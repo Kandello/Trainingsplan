@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="MinMax Workout">
+  <rect width="512" height="512" fill="#0b0b0b"/>
+  <g fill="none" stroke="#fcfcfb" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M160 296 L214 296 L256 220 L298 296 L352 296"/>
+    <path d="M160 348 L352 348" stroke="#52514e"/>
+  </g>
+  <circle cx="352" cy="296" r="19" fill="#2a78d6" stroke="#0b0b0b" stroke-width="11"/>
+</svg>
