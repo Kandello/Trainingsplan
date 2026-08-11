@@ -102,12 +102,25 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .sync-chip .sync-dot.err{background:var(--critical)}
 .sync-chip span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+.swap-label{font-size:12px;font-weight:600;color:var(--text-2);margin:0 2px -4px}
+.swap-input{
+  width:100%;min-height:var(--tap);padding:0 34px 0 12px;
+  border:1.5px solid var(--border);border-radius:var(--r-md);
+  background:var(--plane);color:var(--text-1);
+  font:600 16px/1 system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+.swap-input::placeholder{font-weight:400;color:var(--muted)}
+.swap-input::-webkit-calendar-picker-indicator{opacity:.45}
+.swap-input:focus{outline:none;border-color:var(--hold);background:var(--surface-1)}
+
+dialog#swap-dialog,
 dialog#sync-dialog{
   width:min(440px, calc(100vw - 24px));
   padding:0;border:1px solid var(--border);border-radius:var(--r-lg);
   background:var(--surface-1);color:var(--text-1);
   box-shadow:0 20px 60px rgba(0,0,0,.28);
 }
+dialog#swap-dialog::backdrop,
 dialog#sync-dialog::backdrop{background:rgba(0,0,0,.5)}
 .dlg-inner{padding:18px 16px 16px}
 .dlg-inner h2{font-size:17px;font-weight:650;letter-spacing:-0.01em}
@@ -175,6 +188,14 @@ main{padding:14px 12px calc(env(safe-area-inset-bottom) + 88px);max-width:720px;
   padding:12px 12px 11px;
 }
 .ex-head{display:flex;align-items:flex-start;gap:8px}
+.ex-swap{
+  flex:0 0 auto;width:34px;height:34px;margin:-6px -5px -6px 0;
+  display:grid;place-items:center;border-radius:9px;color:var(--muted);
+  transition:background .12s,color .12s;
+}
+.ex-swap svg{width:17px;height:17px}
+.ex-swap:hover,.ex-swap:focus-visible{background:var(--sunken);color:var(--text-1)}
+.ex-swap:active{transform:scale(.94)}
 .ex-idx{
   flex:0 0 auto;width:21px;height:21px;margin-top:1px;
   display:grid;place-items:center;border-radius:999px;
@@ -187,7 +208,8 @@ main{padding:14px 12px calc(env(safe-area-inset-bottom) + 88px);max-width:720px;
   background:var(--sunken);color:var(--text-2);
   font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;
 }
-.ex-plan{margin:3px 0 0 29px;font-size:12px;color:var(--muted)}
+.ex-meta{display:flex;align-items:center;gap:7px;margin:4px 0 0 29px;min-width:0}
+.ex-plan{margin:0;font-size:12px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
 
 .ex-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px}
 .wfield{
@@ -395,6 +417,17 @@ tbody td.na{color:var(--muted)}
 
 <nav class="tabbar" role="tablist" aria-label="Trainingstage"></nav>
 
+<dialog id="swap-dialog" aria-labelledby="swap-dlg-title">
+  <div class="dlg-inner">
+    <h2 id="swap-dlg-title">Übung tauschen</h2>
+    <p class="dlg-lead" id="swap-dlg-lead"></p>
+    <div class="dlg-body" id="swap-dlg-body"></div>
+    <div style="margin-top:12px">
+      <button class="btn-line" type="button" id="swap-cancel">Abbrechen</button>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="sync-dialog" aria-labelledby="sync-dlg-title">
   <div class="dlg-inner">
     <h2 id="sync-dlg-title">Geräte-Sync</h2>
@@ -416,7 +449,7 @@ tbody td.na{color:var(--muted)}
 /* ============================================================
    1. Trainingsplan — Reihenfolge exakt wie im Plan
    ============================================================ */
-const DAYS = [
+const BASE_DAYS = [
   { id:"total", name:"Total Body", short:"Total", ex:[
     { id:"tb-lying-leg-curl",       n:"LyingLegCurl",         s:"2×6–8",  p:"55 kg" },
     { id:"tb-any-squat",            n:"AnySquat",             s:"2×6–8",  p:"2×13,75 kg" },
@@ -454,9 +487,51 @@ const DAYS = [
   ]}
 ];
 
-const EX_BY_ID = {};
-const DAY_OF_EX = {};
-DAYS.forEach(function(d){ d.ex.forEach(function(e){ EX_BY_ID[e.id]=e; DAY_OF_EX[e.id]=d; }); });
+/* POOL enthält jede je verwendete Übung — auch getauschte, damit ihr
+   Verlauf im Fortschritt erhalten bleibt. DAYS bildet ab, was aktuell
+   in welchem Trainingstag steht, und wird nach jedem Tausch neu gebildet. */
+const POOL = {};
+BASE_DAYS.forEach(function(d){
+  d.ex.forEach(function(e){
+    POOL[e.id] = { id:e.id, n:e.n, s:e.s, p:e.p, planTrend:e.planTrend || null, dayId:d.id };
+  });
+});
+
+const DAYS = BASE_DAYS.map(function(d){
+  return { id:d.id, name:d.name, short:d.short, base:d.ex.map(function(e){ return e.id; }), ex:[] };
+});
+
+const EX_BY_ID = POOL;
+var DAY_OF_EX = {};
+
+function dayById(id){
+  for(var i=0;i<DAYS.length;i++) if(DAYS[i].id === id) return DAYS[i];
+  return null;
+}
+
+/** Baut DAYS.ex aus dem gespeicherten Plan; fällt je Tag auf den Basisplan zurück. */
+function applyPlan(){
+  DAY_OF_EX = {};
+  Object.keys(POOL).forEach(function(id){
+    var d = dayById(POOL[id].dayId);
+    if(d) DAY_OF_EX[id] = d;
+  });
+  DAYS.forEach(function(d){
+    var ids = Array.isArray(planOrder[d.id]) && planOrder[d.id].length ? planOrder[d.id] : d.base;
+    d.ex = ids.map(function(id){ return POOL[id]; }).filter(Boolean);
+    d.ex.forEach(function(e){ DAY_OF_EX[e.id] = d; });
+  });
+}
+
+/** Übungen mit Historie oder aus dem Basisplan, die aktuell in keinem Tag stehen. */
+function replacedExercises(){
+  var current = {};
+  DAYS.forEach(function(d){ d.ex.forEach(function(e){ current[e.id] = true; }); });
+  return Object.keys(POOL)
+    .filter(function(id){ return !current[id]; })
+    .map(function(id){ return POOL[id]; })
+    .sort(function(a,b){ return a.n.localeCompare(b.n, "de"); });
+}
 
 const TRENDS = [
   { t:"down", label:"Senken",   gly:"▼" },
@@ -467,6 +542,8 @@ const TRENDS = [
 /* ============================================================
    2. Speicher — localStorage, offline, ohne Konto
    ============================================================ */
+const K_PLAN     = "trainingsplan.v1.plan";
+const K_CUSTOMEX = "trainingsplan.v1.customExercises";
 const K_SESSIONS = "trainingsplan.v1.sessions";
 const K_DRAFTS   = "trainingsplan.v1.drafts";
 const K_UI       = "trainingsplan.v1.ui";
@@ -497,14 +574,26 @@ var sessions = store.read(K_SESSIONS, []);
 /** drafts: {exId:{w:"55", t:"up"}} — jede Tastatureingabe wird sofort gesichert */
 var drafts   = store.read(K_DRAFTS, {});
 var ui       = store.read(K_UI, {});
+/** planOrder: {dayId:[exId,…]} — nur belegt, wo getauscht wurde */
+var planOrder = store.read(K_PLAN, {});
+/** customEx: {exId:{id,n,s,p,dayId}} — selbst eingetragene Übungen */
+var customEx  = store.read(K_CUSTOMEX, {});
 
 if(!Array.isArray(sessions)) sessions = [];
 if(!drafts || typeof drafts !== "object") drafts = {};
 if(!ui || typeof ui !== "object") ui = {};
+if(!planOrder || typeof planOrder !== "object") planOrder = {};
+if(!customEx || typeof customEx !== "object") customEx = {};
+
+Object.keys(customEx).forEach(function(id){
+  var e = customEx[id];
+  if(e && typeof e.n === "string" && e.n) POOL[id] = e;
+});
 
 function saveSessions(){ sessions.sort(function(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }); store.write(K_SESSIONS, sessions); }
 function saveDrafts(){ store.write(K_DRAFTS, drafts); }
 function saveUi(){ store.write(K_UI, ui); }
+function savePlan(){ store.write(K_PLAN, planOrder); store.write(K_CUSTOMEX, customEx); }
 
 /* ============================================================
    3. Zahlen & Datum
@@ -653,14 +742,29 @@ function buildExercise(ex, idx){
   var d = drafts[ex.id] || {};
   var card = h("article", { class:"ex", "data-ex":ex.id });
 
-  var head = h("div", { class:"ex-head" }, [
+  var swapBtn = h("button", { class:"ex-swap", type:"button",
+    "aria-label":"Übung tauschen — " + ex.n, title:"Übung tauschen" });
+  var si = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
+    "stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
+  svg("path", { d:"M16 3l4 4-4 4" }, si);
+  svg("path", { d:"M20 7H6a2 2 0 0 0-2 2v2" }, si);
+  svg("path", { d:"M8 21l-4-4 4-4" }, si);
+  svg("path", { d:"M4 17h14a2 2 0 0 0 2-2v-2" }, si);
+  swapBtn.appendChild(si);
+  swapBtn.addEventListener("click", function(){ openSwap(DAY_OF_EX[ex.id].id, ex.id); });
+
+  card.appendChild(h("div", { class:"ex-head" }, [
     h("span", { class:"ex-idx", text:String(idx+1) }),
     h("h3",   { class:"ex-name", text:ex.n }),
-    h("span", { class:"ex-sets", text:ex.s })
-  ]);
-  card.appendChild(head);
-  card.appendChild(h("p", { class:"ex-plan",
-    text:"Plan: " + ex.p + (ex.planTrend === "up" ? " · nächstes Mal steigern" : "") }));
+    swapBtn
+  ]));
+
+  var meta = h("div", { class:"ex-meta" }, [ h("span", { class:"ex-sets", text:ex.s }) ]);
+  if(ex.p){
+    meta.appendChild(h("span", { class:"ex-plan",
+      text:"Plan: " + ex.p + (ex.planTrend === "up" ? " · nächstes Mal steigern" : "") }));
+  }
+  card.appendChild(meta);
 
   /* Gewicht */
   var last = lastWeight(ex.id);
@@ -892,6 +996,15 @@ function buildProgressView(){
     sel.appendChild(g);
   });
 
+  /* Getauschte Übungen bleiben abrufbar — im Tagesdiagramm stehen sie nicht,
+     weil die Farbpalette auf acht Kurven ausgelegt ist. */
+  var gone = replacedExercises();
+  if(gone.length){
+    var gr = h("optgroup", { label:"Ersetzte Übungen" });
+    gone.forEach(function(e){ gr.appendChild(h("option", { value:"ex:"+e.id, text:e.n })); });
+    sel.appendChild(gr);
+  }
+
   sel.value = ui.metric && sel.querySelector('option[value="' + CSS.escape(ui.metric) + '"]') ? ui.metric : "day:total";
   sel.addEventListener("change", function(){ ui.metric = sel.value; saveUi(); renderProgress(); });
   pick.appendChild(sel);
@@ -933,9 +1046,15 @@ function collectSeries(){
   if(parts[0] === "ex"){
     var ex = EX_BY_ID[parts[1]];
     if(!ex) return { title:"Fortschritt", sub:"", series:[] };
+    var home = DAY_OF_EX[ex.id];
+    var inPlan = home && home.ex.some(function(e){ return e.id === ex.id; });
+    var bits = [];
+    if(home) bits.push(home.name);
+    if(ex.p) bits.push("Plan " + ex.p);
+    if(!inPlan) bits.push("ersetzt");
     return {
       title: ex.n,
-      sub: DAY_OF_EX[ex.id].name + " · Plan " + ex.p,
+      sub: bits.join(" · "),
       series: [{ id:ex.id, name:ex.n, slot:0, points:historyOf(ex.id) }]
     };
   }
@@ -1234,7 +1353,11 @@ function drawTable(allSeries){
    10. Export / Import
    ============================================================ */
 function exportData(){
-  var payload = { app:"trainingsplan", version:1, exported:new Date().toISOString(), sessions:sessions };
+  var payload = {
+    app:"trainingsplan", version:2, exported:new Date().toISOString(),
+    sessions:sessions,
+    plan:{ order:planOrder, exercises:customEx }
+  };
   var blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
   var url = URL.createObjectURL(blob);
   var a = document.createElement("a");
@@ -1259,6 +1382,30 @@ function importData(){
       try { parsed = JSON.parse(String(reader.result)); }
       catch(e){ toast("Datei konnte nicht gelesen werden"); return; }
       if(!parsed || !Array.isArray(parsed.sessions)){ toast("Kein gültiger Trainingsplan-Export"); return; }
+
+      /* Getauschte Übungen zuerst übernehmen — sonst fielen ihre Werte
+         unten durch die EX_BY_ID-Prüfung. */
+      if(parsed.plan && typeof parsed.plan === "object"){
+        var ex = parsed.plan.exercises;
+        if(ex && typeof ex === "object"){
+          Object.keys(ex).forEach(function(id){
+            var e = ex[id];
+            if(!e || typeof e.n !== "string" || !e.n) return;
+            customEx[id] = { id:id, n:e.n, s:e.s || "", p:e.p || "", planTrend:null, dayId:e.dayId || null };
+            POOL[id] = customEx[id];
+          });
+        }
+        var ord = parsed.plan.order;
+        if(ord && typeof ord === "object"){
+          DAYS.forEach(function(d){
+            if(Array.isArray(ord[d.id]) && ord[d.id].every(function(id){ return !!POOL[id]; })){
+              planOrder[d.id] = ord[d.id];
+            }
+          });
+        }
+        savePlan();
+        applyPlan();
+      }
 
       var added = 0;
       parsed.sessions.forEach(function(s){
@@ -1289,6 +1436,178 @@ function importData(){
 }
 
 /* ============================================================
+   10b. Übung tauschen
+   ------------------------------------------------------------
+   Der Slot im Trainingstag zeigt danach auf eine andere Übung.
+   Die ersetzte Übung bleibt mit ihrem Verlauf im POOL und ist im
+   Fortschritt unter "Ersetzte Übungen" weiter auswählbar. Ein
+   bereits bekannter Name wird wiederverwendet, damit beim
+   Zurücktauschen die alte Historie wieder zusammenfindet.
+   ============================================================ */
+function slugId(name){
+  var base = "cx-" + name.toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/ß/g, "ss")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32);
+  if(base === "cx-") base = "cx-uebung";
+  var id = base, n = 2;
+  while(POOL[id]) id = base + "-" + (n++);
+  return id;
+}
+
+function findByName(name){
+  var key = name.trim().toLowerCase();
+  var ids = Object.keys(POOL);
+  for(var i=0;i<ids.length;i++) if(POOL[ids[i]].n.trim().toLowerCase() === key) return POOL[ids[i]];
+  return null;
+}
+
+/** Ersetzt die Übung im Slot. Gibt bei Problemen eine Meldung zurück, sonst null. */
+function swapExercise(dayId, oldId, rawName){
+  var name = String(rawName || "").trim().replace(/\s+/g, " ");
+  if(!name) return "Bitte einen Namen für die neue Übung eingeben.";
+  if(name.length > 40) return "Der Name ist zu lang (maximal 40 Zeichen).";
+
+  var day = dayById(dayId);
+  if(!day) return "Trainingstag nicht gefunden.";
+  var idx = day.ex.map(function(e){ return e.id; }).indexOf(oldId);
+  if(idx < 0) return "Übung nicht gefunden.";
+
+  var old = POOL[oldId];
+  if(name.toLowerCase() === old.n.trim().toLowerCase()) return "Das ist bereits die aktuelle Übung.";
+
+  for(var i=0;i<day.ex.length;i++){
+    if(i !== idx && day.ex[i].n.trim().toLowerCase() === name.toLowerCase()){
+      return "\u201E" + name + "\u201C steht schon in diesem Trainingstag.";
+    }
+  }
+
+  var existing = findByName(name);
+  var newId;
+  if(existing){
+    newId = existing.id;
+    existing.dayId = dayId;
+    if(!POOL[newId].s) POOL[newId].s = old.s;
+    customEx[newId] = POOL[newId];
+  } else {
+    newId = slugId(name);
+    POOL[newId] = { id:newId, n:name, s:old.s, p:"", planTrend:null, dayId:dayId };
+    customEx[newId] = POOL[newId];
+  }
+
+  var ids = day.ex.map(function(e){ return e.id; });
+  ids[idx] = newId;
+  planOrder[dayId] = ids;
+  savePlan();
+  applyPlan();
+  Sync.pushPlan();
+  return null;
+}
+
+/** Setzt den Slot auf die Übung aus dem Originalplan zurück. */
+function restoreSlot(dayId, idx){
+  var day = dayById(dayId);
+  var base = BASE_DAYS.filter(function(d){ return d.id === dayId; })[0];
+  if(!day || !base || !base.ex[idx]) return "Kein Originaleintrag vorhanden.";
+  var ids = day.ex.map(function(e){ return e.id; });
+  ids[idx] = base.ex[idx].id;
+  planOrder[dayId] = ids;
+  savePlan();
+  applyPlan();
+  Sync.pushPlan();
+  return null;
+}
+
+var swapCtx = null;
+
+function openSwap(dayId, exId){
+  swapCtx = { dayId:dayId, exId:exId, error:null };
+  renderSwap();
+  var dlg = document.getElementById("swap-dialog");
+  if(typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+  var inp = document.getElementById("swap-input");
+  if(inp) setTimeout(function(){ inp.focus(); }, 60);
+}
+
+function closeSwap(){
+  var dlg = document.getElementById("swap-dialog");
+  if(typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
+  swapCtx = null;
+}
+
+function renderSwap(){
+  if(!swapCtx) return;
+  var body = document.getElementById("swap-dlg-body");
+  var lead = document.getElementById("swap-dlg-lead");
+  while(body.firstChild) body.removeChild(body.firstChild);
+
+  var day = dayById(swapCtx.dayId);
+  var ex  = POOL[swapCtx.exId];
+  if(!day || !ex){ closeSwap(); return; }
+  var idx = day.ex.map(function(e){ return e.id; }).indexOf(ex.id);
+
+  lead.textContent = "\u201E" + ex.n + "\u201C in " + day.name
+    + " ersetzen. Der bisherige Verlauf bleibt erhalten und ist im Fortschritt weiter abrufbar.";
+
+  if(swapCtx.error) body.appendChild(h("p", { class:"dlg-err", text:swapCtx.error }));
+
+  var label = h("label", { class:"swap-label", for:"swap-input", text:"Neue Übung" });
+  body.appendChild(label);
+
+  var inp = h("input", { class:"swap-input", id:"swap-input", type:"text", list:"swap-known",
+    autocomplete:"off", enterkeyhint:"done", maxlength:"40", placeholder:"Name der neuen Übung" });
+  body.appendChild(inp);
+
+  /* Bereits bekannte Übungen vorschlagen — die Auswahl einer davon
+     führt ihre vorhandene Historie wieder mit dem Slot zusammen. */
+  var dl = h("datalist", { id:"swap-known" });
+  var seen = {};
+  day.ex.forEach(function(e){ seen[e.id] = true; });
+  Object.keys(POOL).forEach(function(id){
+    if(seen[id]) return;
+    dl.appendChild(h("option", { value:POOL[id].n }));
+  });
+  body.appendChild(dl);
+
+  body.appendChild(h("p", { class:"dlg-note",
+    text:"Sätze und Wiederholungen (" + ex.s + ") werden übernommen." }));
+
+  function submit(){
+    var err = swapExercise(swapCtx.dayId, swapCtx.exId, inp.value);
+    if(err){ swapCtx.error = err; renderSwap(); return; }
+    var name = inp.value.trim().replace(/\s+/g, " ");
+    closeSwap();
+    rebuildAll();
+    toast("Getauscht: \u201E" + name + "\u201C");
+  }
+  inp.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); submit(); } });
+
+  var go = h("button", { class:"btn-line primary", type:"button", text:"Tauschen" });
+  go.addEventListener("click", submit);
+  body.appendChild(go);
+
+  var baseDay = BASE_DAYS.filter(function(d){ return d.id === swapCtx.dayId; })[0];
+  var baseEx  = baseDay && baseDay.ex[idx];
+  if(baseEx && baseEx.id !== ex.id){
+    var back = h("button", { class:"btn-line", type:"button",
+      text:"Original wiederherstellen: " + baseEx.n });
+    back.addEventListener("click", function(){
+      var err = restoreSlot(swapCtx.dayId, idx);
+      if(err){ swapCtx.error = err; renderSwap(); return; }
+      closeSwap();
+      rebuildAll();
+      toast("Wiederhergestellt: \u201E" + baseEx.n + "\u201C");
+    });
+    body.appendChild(back);
+  }
+}
+
+function wireSwapUi(){
+  document.getElementById("swap-cancel").addEventListener("click", closeSwap);
+  document.getElementById("swap-dialog").addEventListener("close", function(){ swapCtx = null; });
+}
+
+/* ============================================================
    11. Geräte-Sync — Cloud Firestore mit Offline-Persistenz
    ------------------------------------------------------------
    Gespeicherte Einheiten liegen unter users/{uid}/sessions und
@@ -1302,7 +1621,7 @@ const SDK_URL = "./vendor/firebase.js";
 
 const Sync = (function(){
   var st = { status:"unconfigured", email:null, error:null, pending:false };
-  var M = null, unsub = null, uid = null;
+  var M = null, unsub = null, unsubPlan = null, uid = null;
 
   function readConfig(){
     var local = store.read(K_FBCFG, null);
@@ -1346,10 +1665,11 @@ const Sync = (function(){
 
       F.onAuthStateChanged(auth, function(user){
         if(unsub){ unsub(); unsub = null; }
+        if(unsubPlan){ unsubPlan(); unsubPlan = null; }
         if(!user){ uid = null; set("signed-out", { email:null }); return; }
         uid = user.uid;
         set("syncing", { email:user.email || user.displayName || "angemeldet", error:null });
-        pushAll().then(subscribe).catch(function(e){ set("error", { error:describe(e) }); });
+        pushAll().then(pushPlan).then(subscribe).catch(function(e){ set("error", { error:describe(e) }); });
       });
     } catch(e){
       set("error", { error: navigator.onLine ? describe(e) : "Offline — Sync startet, sobald wieder Netz da ist." });
@@ -1380,8 +1700,38 @@ const Sync = (function(){
     return Promise.all(sessions.map(function(s){ return push(s).catch(function(){}); }));
   }
 
+  function planRef(){ return M.F.doc(M.db, "users", uid, "state", "plan"); }
+
+  function pushPlan(){
+    if(!M || !uid) return Promise.resolve();
+    return M.F.setDoc(planRef(), {
+      order: planOrder, exercises: customEx, updatedAt: M.F.serverTimestamp()
+    }, { merge:true });
+  }
+
+  function subscribePlan(){
+    if(!M || !uid) return;
+    unsubPlan = M.F.onSnapshot(planRef(), function(snap){
+      var v = snap.data();
+      if(!v) return;
+      if(v.exercises && typeof v.exercises === "object"){
+        customEx = v.exercises;
+        Object.keys(customEx).forEach(function(id){
+          var e = customEx[id];
+          if(e && typeof e.n === "string" && e.n) POOL[id] = e;
+        });
+      }
+      if(v.order && typeof v.order === "object") planOrder = v.order;
+      store.write(K_PLAN, planOrder);
+      store.write(K_CUSTOMEX, customEx);
+      applyPlan();
+      rebuildAll();
+    }, function(){});
+  }
+
   function subscribe(){
     if(!M || !uid) return;
+    subscribePlan();
     var col = M.F.collection(M.db, "users", uid, "sessions");
     unsub = M.F.onSnapshot(col, function(snap){
       var remote = [];
@@ -1406,6 +1756,7 @@ const Sync = (function(){
     configured: function(){ return !!readConfig(); },
     init: boot,
     push: function(s){ push(s).catch(function(){}); },
+    pushPlan: function(){ if(M && uid) pushPlan().catch(function(){}); },
     saveConfig: function(text){
       var obj;
       try {
@@ -1420,6 +1771,7 @@ const Sync = (function(){
     clearConfig: function(){
       store.write(K_FBCFG, null);
       if(unsub){ unsub(); unsub = null; }
+      if(unsubPlan){ unsubPlan(); unsubPlan = null; }
       M = null; uid = null;
       set("unconfigured", { email:null, error:null });
     },
@@ -1439,6 +1791,7 @@ const Sync = (function(){
     signOut: async function(){
       if(!M) return;
       if(unsub){ unsub(); unsub = null; }
+      if(unsubPlan){ unsubPlan(); unsubPlan = null; }
       try { await M.F.signOut(M.auth); } catch(e){}
     }
   };
@@ -1622,6 +1975,8 @@ function rebuildAll(){
   renderProgress();
 }
 
+applyPlan();
+
 /* Plan-Vorgabe "+" (z. B. HipThrust 110 kg +) heißt: nächstes Mal steigern.
    Einmalig als Startwert im Schalter setzen, solange nichts erfasst ist. */
 DAYS.forEach(function(d){
@@ -1633,6 +1988,7 @@ saveDrafts();
 
 buildTabs();
 wireSyncUi();
+wireSwapUi();
 renderChip();
 rebuildAll();
 Sync.init();

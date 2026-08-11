@@ -79,6 +79,7 @@ npx esbuild entry.js --bundle --format=esm --minify --target=es2020 \
 | Ort | Inhalt |
 |---|---|
 | Firestore `users/{uid}/sessions` | Gespeicherte Einheiten — geräteübergreifend |
+| Firestore `users/{uid}/state/plan` | Getauschte Übungen und ihre Reihenfolge |
 | `localStorage` | Lokale Kopie, laufende Eingaben, zuletzt geöffneter Tab |
 
 Jede Tastatureingabe wird sofort lokal gesichert — App-Wechsel oder Neustart
@@ -106,6 +107,25 @@ Vier Trainingstage in der Reihenfolge des Plans: **Total Body** (6 Übungen),
 
 Gewichte werden mit bis zu drei Nachkommastellen erfasst; Komma und Punkt
 werden beide akzeptiert.
+
+### Übungen tauschen
+
+Der Tausch-Button (⇄) rechts neben jeder Übung ersetzt sie durch eine andere.
+Sätze und Wiederholungen des Slots werden übernommen.
+
+- Die **ersetzte Übung behält ihren Verlauf** und bleibt im Fortschritt unter
+  *Ersetzte Übungen* auswählbar. Im Tagesdiagramm taucht sie nicht mehr auf —
+  die Farbpalette ist auf acht gleichzeitige Kurven ausgelegt.
+- Die **neue Übung startet mit leerem Verlauf** und wird ab der nächsten
+  gespeicherten Einheit mitgeschrieben.
+- Wird ein **bereits bekannter Name** eingegeben (die Vorschlagsliste im
+  Eingabefeld zeigt alle), verwendet die App die vorhandene Übung samt ihrer
+  Historie wieder — Zurücktauschen erzeugt also keine Dublette.
+- **Original wiederherstellen** setzt den Slot auf die Übung aus dem Foto-Plan
+  zurück.
+
+Der angepasste Plan wird lokal gespeichert, liegt im JSON-Export mit drin und
+wird bei aktiviertem Sync unter `users/{uid}/state/plan` mitsynchronisiert.
 
 ## Diagramm-Farben
 
