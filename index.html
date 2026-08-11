@@ -211,7 +211,10 @@ main{padding:14px 12px calc(env(safe-area-inset-bottom) + 88px);max-width:720px;
 .ex-meta{display:flex;align-items:center;gap:7px;margin:4px 0 0 29px;min-width:0}
 .ex-plan{margin:0;font-size:12px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
 
-.ex-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px}
+/* Eine Spalte: oben die Gewichtseingabe (mit Miniverlauf daneben),
+   darunter der Schalter — beide am selben linken Rand. */
+.ex-body{display:flex;flex-direction:column;align-items:flex-start;gap:9px;margin-top:10px}
+.ex-line{display:flex;flex-wrap:wrap;align-items:center;gap:10px;width:100%}
 .wfield{
   flex:0 0 auto;display:flex;align-items:center;gap:5px;
   width:126px;height:var(--tap);padding:0 10px 0 12px;
@@ -254,19 +257,20 @@ main{padding:14px 12px calc(env(safe-area-inset-bottom) + 88px);max-width:720px;
 .delta.flat .gly{color:var(--hold)}
 
 /* ---------- Segmented 3-way ---------- */
+/* Schmale Leiste direkt unter der Gewichtseingabe — nur so breit wie nötig. */
 .seg{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:4px;
-  margin-top:9px;padding:4px;
-  background:var(--sunken);border-radius:var(--r-md);
+  display:flex;gap:3px;width:fit-content;max-width:100%;
+  padding:3px;
+  background:var(--sunken);border-radius:10px;
 }
 .seg button{
-  display:flex;align-items:center;justify-content:center;gap:5px;
-  min-height:38px;padding:0 4px;border-radius:9px;
-  font-size:12.5px;font-weight:600;color:var(--text-2);
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  min-height:34px;padding:0 7px;border-radius:8px;white-space:nowrap;
+  font-size:10.5px;font-weight:600;color:var(--text-2);
   border:1.5px solid transparent;
   transition:background .12s,color .12s,border-color .12s;
 }
-.seg button .gly{font-size:13px;line-height:1;transition:transform .12s}
+.seg button .gly{font-size:10px;line-height:1;transition:transform .12s}
 .seg button[data-t="down"] .gly{color:var(--critical)}
 .seg button[data-t="hold"] .gly{color:var(--hold)}
 .seg button[data-t="up"]   .gly{color:var(--good)}
@@ -395,7 +399,7 @@ tbody td.na{color:var(--muted)}
 
 @media (min-width:520px){
   main{padding-left:16px;padding-right:16px}
-  .ex-row{gap:14px}
+  .ex-line{gap:14px}
   .wfield{width:150px}
 }
 </style>
@@ -762,7 +766,7 @@ function buildExercise(ex, idx){
   var meta = h("div", { class:"ex-meta" }, [ h("span", { class:"ex-sets", text:ex.s }) ]);
   if(ex.p){
     meta.appendChild(h("span", { class:"ex-plan",
-      text:"Plan: " + ex.p + (ex.planTrend === "up" ? " · nächstes Mal steigern" : "") }));
+      text:"Gewicht: " + ex.p + (ex.planTrend === "up" ? " · nächstes Mal steigern" : "") }));
   }
   card.appendChild(meta);
 
@@ -795,8 +799,10 @@ function buildExercise(ex, idx){
     updateSaveBar(DAY_OF_EX[ex.id].id);
   });
 
-  var row = h("div", { class:"ex-row" }, [ field, buildHistory(ex.id) ]);
-  card.appendChild(row);
+  var body = h("div", { class:"ex-body" }, [
+    h("div", { class:"ex-line" }, [ field, buildHistory(ex.id) ])
+  ]);
+  card.appendChild(body);
 
   /* 3-Wege-Schalter */
   var seg = h("div", { class:"seg", role:"radiogroup", "aria-label":"Nächstes Training — " + ex.n });
@@ -830,7 +836,7 @@ function buildExercise(ex, idx){
     var next = btns[(Math.max(cur, 0) + step + btns.length) % btns.length];
     next.focus(); next.click();
   });
-  card.appendChild(seg);
+  body.appendChild(seg);
 
   return card;
 }
@@ -1050,7 +1056,7 @@ function collectSeries(){
     var inPlan = home && home.ex.some(function(e){ return e.id === ex.id; });
     var bits = [];
     if(home) bits.push(home.name);
-    if(ex.p) bits.push("Plan " + ex.p);
+    if(ex.p) bits.push("Gewicht " + ex.p);
     if(!inPlan) bits.push("ersetzt");
     return {
       title: ex.n,
