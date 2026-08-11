@@ -77,13 +77,73 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ---------- Header ---------- */
 .app-header{
   position:sticky;top:0;z-index:20;
-  padding:calc(env(safe-area-inset-top) + 12px) 16px 10px;
+  display:flex;align-items:center;gap:10px;
+  padding:calc(env(safe-area-inset-top) + 12px) 12px 10px 16px;
   background:color-mix(in srgb, var(--plane) 88%, transparent);
   backdrop-filter:saturate(1.4) blur(10px);
   border-bottom:1px solid var(--border);
 }
+.hdr-txt{flex:1 1 auto;min-width:0}
 .app-header h1{font-size:19px;font-weight:650;letter-spacing:-0.01em}
 .app-header p{font-size:12.5px;color:var(--muted);margin-top:1px}
+
+.sync-chip{
+  flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;
+  min-height:36px;padding:0 11px;border-radius:999px;
+  border:1px solid var(--border);background:var(--surface-1);
+  font-size:12px;font-weight:600;color:var(--text-2);max-width:132px;
+}
+.sync-chip .sync-dot{
+  width:8px;height:8px;border-radius:999px;flex:0 0 auto;
+  background:var(--muted);
+}
+.sync-chip .sync-dot.ok{background:var(--good)}
+.sync-chip .sync-dot.pending{background:var(--warning)}
+.sync-chip .sync-dot.err{background:var(--critical)}
+.sync-chip span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+dialog#sync-dialog{
+  width:min(440px, calc(100vw - 24px));
+  padding:0;border:1px solid var(--border);border-radius:var(--r-lg);
+  background:var(--surface-1);color:var(--text-1);
+  box-shadow:0 20px 60px rgba(0,0,0,.28);
+}
+dialog#sync-dialog::backdrop{background:rgba(0,0,0,.5)}
+.dlg-inner{padding:18px 16px 16px}
+.dlg-inner h2{font-size:17px;font-weight:650;letter-spacing:-0.01em}
+.dlg-lead{margin-top:6px;font-size:13px;color:var(--text-2);line-height:1.5}
+.dlg-body{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.dlg-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:13px}
+.dlg-row dt{color:var(--muted)}
+.dlg-row dd{margin:0;font-weight:600;text-align:right;overflow-wrap:anywhere}
+.btn-line{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;min-height:46px;border-radius:var(--r-md);
+  border:1px solid var(--border);background:var(--plane);
+  font-size:14px;font-weight:600;color:var(--text-1);
+}
+.btn-line.primary{background:var(--text-1);color:var(--plane);border-color:var(--text-1)}
+.btn-line:disabled{opacity:.5;cursor:default}
+.dlg-note{font-size:12px;color:var(--muted);line-height:1.5}
+.dlg-note code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;
+  background:var(--sunken);padding:1px 4px;border-radius:4px;
+}
+.dlg-note ol{margin:6px 0 0;padding-left:18px}
+.dlg-note li{margin-bottom:3px}
+dialog textarea{
+  width:100%;min-height:132px;padding:9px 10px;
+  border:1px solid var(--border);border-radius:var(--r-md);
+  background:var(--plane);color:var(--text-1);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.45;
+  resize:vertical;
+}
+.dlg-err{
+  font-size:12.5px;color:var(--text-1);line-height:1.45;
+  background:color-mix(in srgb, var(--critical) 12%, transparent);
+  border:1px solid color-mix(in srgb, var(--critical) 40%, transparent);
+  border-radius:var(--r-sm);padding:8px 10px;
+}
 
 /* ---------- Layout ---------- */
 main{padding:14px 12px calc(env(safe-area-inset-bottom) + 88px);max-width:720px;margin:0 auto}
@@ -321,16 +381,34 @@ tbody td.na{color:var(--muted)}
 <body>
 
 <header class="app-header">
-  <h1>MinMax Workout</h1>
-  <p>Trainingsdokumentation</p>
+  <div class="hdr-txt">
+    <h1>MinMax Workout</h1>
+    <p>Trainingsdokumentation</p>
+  </div>
+  <button class="sync-chip" id="sync-chip" type="button" aria-haspopup="dialog">
+    <span class="sync-dot" id="sync-dot"></span>
+    <span id="sync-label">Sync</span>
+  </button>
 </header>
 
 <main id="main"></main>
 
 <nav class="tabbar" role="tablist" aria-label="Trainingstage"></nav>
 
+<dialog id="sync-dialog" aria-labelledby="sync-dlg-title">
+  <div class="dlg-inner">
+    <h2 id="sync-dlg-title">Geräte-Sync</h2>
+    <p class="dlg-lead" id="sync-dlg-lead"></p>
+    <div class="dlg-body" id="sync-dlg-body"></div>
+    <div style="margin-top:14px">
+      <button class="btn-line" type="button" id="sync-close">Schließen</button>
+    </div>
+  </div>
+</dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="firebase-config.js"></script>
 <script>
 (function(){
 "use strict";
@@ -354,19 +432,19 @@ const DAYS = [
     { id:"ub-machine-chest-press",  n:"MachineChestPress",    s:"2×8–10", p:"95 kg" },
     { id:"ub-high-cable-lat-raise", n:"HighCableLateralRaise",s:"2×8–10", p:"37 kg" },
     { id:"ub-1arm-reverse-pec-deck",n:"1ArmReversePecDeck",   s:"1×8–10", p:"50 kg" },
-    { id:"ub-crunch-machine",       n:"CrunchMachine",        s:"2×6–8",  p:"55–60 kg" }
+    { id:"ub-crunch-machine",       n:"CrunchMachine",        s:"2×6–8",  p:"60 kg" }
   ]},
   { id:"lower", name:"Lower Body", short:"Lower", ex:[
     { id:"lb-kniebeugen",           n:"Kniebeugen",           s:"3×10",   p:"110 kg" },
     { id:"lb-barbell-dl",           n:"Barbell DL",           s:"2×8–10", p:"100 kg" },
-    { id:"lb-hip-thrust",           n:"HipThrust",            s:"2×6–8",  p:"110 kg +" },
+    { id:"lb-hip-thrust",           n:"HipThrust",            s:"2×6–8",  p:"110 kg", planTrend:"up" },
     { id:"lb-standing-calf-raise",  n:"StandingCalfRaise",    s:"2×8–10", p:"2×65 kg" },
     { id:"lb-leg-extensions",       n:"LegExtensions",        s:"2×8–10", p:"90 kg" },
     { id:"lb-leg-press",            n:"LegPress",             s:"1×6–8",  p:"189 kg" }
   ]},
   { id:"arms", name:"Arms & Delts", short:"Arms", ex:[
     { id:"ad-bayesian-cable-curls", n:"BayesianCableCurls",   s:"2×6–8",  p:"109 kg" },
-    { id:"ad-oh-triceps",           n:"OH Triceps",           s:"2×8–10", p:"141–149 kg" },
+    { id:"ad-oh-triceps",           n:"OH Triceps",           s:"2×8–10", p:"149 kg" },
     { id:"ad-mod-zottman-curl",     n:"ModZottmanCurl",       s:"1×8–10", p:"22 kg" },
     { id:"ad-db-wrist-curl",        n:"DBWristCurl",          s:"2×8–10", p:"12 kg" },
     { id:"ad-db-wrist-extension",   n:"DBWristExtension",     s:"2×8–10", p:"9 kg" },
@@ -436,6 +514,8 @@ const DF_SHORT = new Intl.DateTimeFormat("de-DE", { day:"2-digit", month:"2-digi
 const DF_LONG  = new Intl.DateTimeFormat("de-DE", { day:"2-digit", month:"2-digit", year:"numeric" });
 
 function fmtKg(v){ return NF.format(v); }
+/** "1 Übung" / "3 Übungen" */
+function plural(n, one, many){ return n + " " + (n === 1 ? one : many); }
 function todayISO(){
   var d = new Date();
   return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
@@ -579,7 +659,8 @@ function buildExercise(ex, idx){
     h("span", { class:"ex-sets", text:ex.s })
   ]);
   card.appendChild(head);
-  card.appendChild(h("p", { class:"ex-plan", text:"Plan: " + ex.p }));
+  card.appendChild(h("p", { class:"ex-plan",
+    text:"Plan: " + ex.p + (ex.planTrend === "up" ? " · nächstes Mal steigern" : "") }));
 
   /* Gewicht */
   var last = lastWeight(ex.id);
@@ -675,7 +756,8 @@ function updateSaveBar(dayId){
   if(hint){
     hint.textContent = n === 0
       ? "Trage mindestens ein Gewicht oder eine Tendenz ein."
-      : n + " von " + day.ex.length + " Übungen werden mit dem heutigen Datum gespeichert.";
+      : n + " von " + day.ex.length + " Übungen " + (n === 1 ? "wird" : "werden")
+        + " mit dem heutigen Datum gespeichert.";
   }
   if(pre){
     var hasAny = day.ex.some(function(e){ return lastWeight(e.id) != null; });
@@ -715,7 +797,7 @@ function buildDayView(day){
     });
     saveDrafts();
     updateSaveBar(day.id);
-    toast(n ? n + " Gewichte übernommen" : "Keine früheren Gewichte vorhanden");
+    toast(n ? plural(n, "Gewicht", "Gewichte") + " übernommen" : "Keine früheren Gewichte vorhanden");
   });
   view.appendChild(pre);
 
@@ -751,12 +833,16 @@ function saveDay(day){
   for(var i=0;i<sessions.length;i++){
     if(sessions[i].dayId === day.id && sessions[i].date === date){ existing = sessions[i]; break; }
   }
+  var session;
   if(existing){
     for(var k in entries) existing.entries[k] = entries[k];
+    session = existing;
   } else {
-    sessions.push({ date:date, dayId:day.id, entries:entries });
+    session = { date:date, dayId:day.id, entries:entries };
+    sessions.push(session);
   }
   saveSessions();
+  Sync.push(session);
 
   day.ex.forEach(function(e){ delete drafts[e.id]; });
   saveDrafts();
@@ -779,7 +865,7 @@ function saveDay(day){
   }
   updateSaveBar(day.id);
   renderProgress();
-  toast(count + " Übungen gespeichert — " + DF_LONG.format(isoToDate(date)));
+  toast(plural(count, "Übung", "Übungen") + " gespeichert — " + DF_LONG.format(isoToDate(date)));
 }
 
 /* ============================================================
@@ -1195,7 +1281,7 @@ function importData(){
       });
       saveSessions();
       rebuildAll();
-      toast(added ? added + " Werte importiert" : "Nichts zu importieren");
+      toast(added ? plural(added, "Wert", "Werte") + " importiert" : "Nichts zu importieren");
     };
     reader.readAsText(file);
   });
@@ -1203,7 +1289,270 @@ function importData(){
 }
 
 /* ============================================================
-   11. Navigation & Bootstrap
+   11. Geräte-Sync — Cloud Firestore mit Offline-Persistenz
+   ------------------------------------------------------------
+   Gespeicherte Einheiten liegen unter users/{uid}/sessions und
+   werden zwischen Handy und PC abgeglichen. Der lokale
+   IndexedDB-Cache von Firestore hält die App auch ohne Netz
+   nutzbar; Schreibvorgänge laufen nach, sobald wieder Netz da
+   ist. Ohne Konfiguration bleibt die App rein lokal.
+   ============================================================ */
+const K_FBCFG = "trainingsplan.v1.firebaseConfig";
+const SDK_URL = "./vendor/firebase.js";
+
+const Sync = (function(){
+  var st = { status:"unconfigured", email:null, error:null, pending:false };
+  var M = null, unsub = null, uid = null;
+
+  function readConfig(){
+    var local = store.read(K_FBCFG, null);
+    if(local && local.apiKey && local.projectId) return local;
+    var g = window.FIREBASE_CONFIG;
+    if(g && g.apiKey && g.projectId) return g;
+    return null;
+  }
+
+  function set(status, extra){
+    st.status = status;
+    if(status !== "error") st.error = null;
+    if(extra) for(var k in extra) st[k] = extra[k];
+    renderChip();
+    if(document.getElementById("sync-dialog").open) renderDialog();
+  }
+
+  async function boot(){
+    var conf = readConfig();
+    if(!conf){ set("unconfigured"); return; }
+    set("loading");
+    try {
+      var F = await import(SDK_URL);
+
+      var app = F.getApps().length ? F.getApp() : F.initializeApp(conf);
+      var db  = F.initializeFirestore(app, {
+        localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() })
+      });
+      var auth = F.getAuth(app);
+
+      /* Lokaler Firebase-Emulator zum Testen — greift ausschliesslich auf
+         localhost und nur mit ?emulator=1 in der Adresse. */
+      if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /[?&]emulator=1/.test(location.search)){
+        F.connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings:true });
+        F.connectFirestoreEmulator(db, "127.0.0.1", 8080);
+      }
+
+      M = { app:app, db:db, auth:auth, F:F };
+
+      try { await F.getRedirectResult(auth); } catch(e){}
+
+      F.onAuthStateChanged(auth, function(user){
+        if(unsub){ unsub(); unsub = null; }
+        if(!user){ uid = null; set("signed-out", { email:null }); return; }
+        uid = user.uid;
+        set("syncing", { email:user.email || user.displayName || "angemeldet", error:null });
+        pushAll().then(subscribe).catch(function(e){ set("error", { error:describe(e) }); });
+      });
+    } catch(e){
+      set("error", { error: navigator.onLine ? describe(e) : "Offline — Sync startet, sobald wieder Netz da ist." });
+    }
+  }
+
+  function describe(e){
+    var c = (e && e.code) || "";
+    if(c === "auth/unauthorized-domain") return "Diese Domain ist in Firebase nicht freigegeben. In der Firebase Console unter Authentication → Settings → Authorized domains eintragen: " + location.hostname;
+    if(c === "auth/operation-not-allowed") return "Google-Anmeldung ist im Firebase-Projekt nicht aktiviert (Authentication → Sign-in method).";
+    if(c === "auth/popup-closed-by-user" || c === "auth/cancelled-popup-request") return "Anmeldung abgebrochen.";
+    if(c === "permission-denied") return "Zugriff verweigert — bitte die Firestore-Regeln aus firestore.rules veröffentlichen.";
+    if(c === "failed-precondition") return "Firestore ist im Projekt noch nicht angelegt (Firestore Database → Create database).";
+    return (e && e.message) ? String(e.message) : "Unbekannter Fehler";
+  }
+
+  function ref(s){ return M.F.doc(M.db, "users", uid, "sessions", s.dayId + "_" + s.date); }
+
+  function push(s){
+    if(!M || !uid) return Promise.resolve();
+    return M.F.setDoc(ref(s), {
+      date:s.date, dayId:s.dayId, entries:s.entries, updatedAt: M.F.serverTimestamp()
+    }, { merge:true });
+  }
+
+  function pushAll(){
+    if(!M || !uid) return Promise.resolve();
+    return Promise.all(sessions.map(function(s){ return push(s).catch(function(){}); }));
+  }
+
+  function subscribe(){
+    if(!M || !uid) return;
+    var col = M.F.collection(M.db, "users", uid, "sessions");
+    unsub = M.F.onSnapshot(col, function(snap){
+      var remote = [];
+      snap.forEach(function(d){
+        var v = d.data();
+        if(v && typeof v.date === "string" && v.dayId && v.entries) {
+          remote.push({ date:v.date, dayId:v.dayId, entries:v.entries });
+        }
+      });
+      sessions = remote;
+      saveSessions();
+      st.pending = snap.metadata.hasPendingWrites;
+      set(st.pending ? "pending" : "ready", { error:null });
+      refreshFromData();
+    }, function(err){
+      set("error", { error:describe(err) });
+    });
+  }
+
+  return {
+    state: st,
+    configured: function(){ return !!readConfig(); },
+    init: boot,
+    push: function(s){ push(s).catch(function(){}); },
+    saveConfig: function(text){
+      var obj;
+      try {
+        var t = String(text).trim().replace(/^const\s+firebaseConfig\s*=\s*/, "").replace(/;+\s*$/, "");
+        obj = (new Function("return (" + t + ")"))();
+      } catch(e){ return "Konnte nicht gelesen werden — bitte das komplette firebaseConfig-Objekt einfügen."; }
+      if(!obj || !obj.apiKey || !obj.projectId) return "Es fehlen apiKey oder projectId.";
+      store.write(K_FBCFG, obj);
+      boot();
+      return null;
+    },
+    clearConfig: function(){
+      store.write(K_FBCFG, null);
+      if(unsub){ unsub(); unsub = null; }
+      M = null; uid = null;
+      set("unconfigured", { email:null, error:null });
+    },
+    signIn: async function(){
+      if(!M) return;
+      try {
+        await M.F.signInWithPopup(M.auth, new M.F.GoogleAuthProvider());
+      } catch(e){
+        var c = (e && e.code) || "";
+        if(c === "auth/popup-blocked" || c === "auth/popup-closed-by-user" || c === "auth/cancelled-popup-request"){
+          try { await M.F.signInWithRedirect(M.auth, new M.F.GoogleAuthProvider()); return; }
+          catch(e2){ set("error", { error:describe(e2) }); return; }
+        }
+        set("error", { error:describe(e) });
+      }
+    },
+    signOut: async function(){
+      if(!M) return;
+      if(unsub){ unsub(); unsub = null; }
+      try { await M.F.signOut(M.auth); } catch(e){}
+    }
+  };
+})();
+
+const SYNC_CHIP = {
+  unconfigured: { dot:"",        label:"Sync aus" },
+  loading:      { dot:"pending", label:"Lädt …" },
+  "signed-out": { dot:"pending", label:"Anmelden" },
+  syncing:      { dot:"pending", label:"Sync …" },
+  pending:      { dot:"pending", label:"Wartet" },
+  ready:        { dot:"ok",      label:"Sync aktiv" },
+  error:        { dot:"err",     label:"Sync-Fehler" }
+};
+
+function renderChip(){
+  var meta = SYNC_CHIP[Sync.state.status] || SYNC_CHIP.unconfigured;
+  document.getElementById("sync-dot").className = "sync-dot " + meta.dot;
+  document.getElementById("sync-label").textContent = meta.label;
+  document.getElementById("sync-chip").setAttribute("aria-label", "Geräte-Sync: " + meta.label);
+}
+
+function renderDialog(){
+  var body = document.getElementById("sync-dlg-body");
+  var lead = document.getElementById("sync-dlg-lead");
+  while(body.firstChild) body.removeChild(body.firstChild);
+
+  var s = Sync.state;
+
+  if(s.error){
+    body.appendChild(h("p", { class:"dlg-err", text:s.error }));
+  }
+
+  if(s.status === "unconfigured"){
+    lead.textContent = "Noch nicht eingerichtet — die Daten liegen nur auf diesem Gerät. Für den Abgleich zwischen Handy und PC ein kostenloses Firebase-Projekt anlegen und die Konfiguration hier einfügen.";
+    var note = h("div", { class:"dlg-note" });
+    note.appendChild(h("strong", { text:"Einrichtung (einmalig, ca. 10 Minuten):" }));
+    var ol = document.createElement("ol");
+    [
+      "console.firebase.google.com öffnen und ein Projekt anlegen.",
+      "Firestore Database → Create database → Produktionsmodus.",
+      "Authentication → Sign-in method → Google aktivieren.",
+      "Authentication → Settings → Authorized domains: " + location.hostname + " eintragen.",
+      "Projektübersicht → Web-App (</>) hinzufügen und das firebaseConfig-Objekt kopieren.",
+      "Rules aus firestore.rules im Repo einfügen und veröffentlichen."
+    ].forEach(function(t){ ol.appendChild(h("li", { text:t })); });
+    note.appendChild(ol);
+    body.appendChild(note);
+
+    var ta = h("textarea", { spellcheck:"false", "aria-label":"Firebase-Konfiguration",
+      placeholder:'{\n  "apiKey": "…",\n  "authDomain": "…",\n  "projectId": "…",\n  "appId": "…"\n}' });
+    body.appendChild(ta);
+    var btn = h("button", { class:"btn-line primary", type:"button", text:"Konfiguration speichern" });
+    btn.addEventListener("click", function(){
+      var err = Sync.saveConfig(ta.value);
+      if(err){ Sync.state.error = err; renderDialog(); }
+    });
+    body.appendChild(btn);
+    return;
+  }
+
+  if(s.status === "loading"){
+    lead.textContent = "Verbindung wird aufgebaut …";
+    return;
+  }
+
+  if(s.status === "signed-out"){
+    lead.textContent = "Mit Google anmelden — danach sind die gespeicherten Einheiten auf allen Geräten identisch, die mit demselben Konto angemeldet sind.";
+    var bIn = h("button", { class:"btn-line primary", type:"button", text:"Mit Google anmelden" });
+    bIn.addEventListener("click", function(){ Sync.signIn(); });
+    body.appendChild(bIn);
+    var bReset = h("button", { class:"btn-line", type:"button", text:"Konfiguration zurücksetzen" });
+    bReset.addEventListener("click", function(){ Sync.clearConfig(); });
+    body.appendChild(bReset);
+    return;
+  }
+
+  lead.textContent = s.status === "ready"
+    ? "Alle gespeicherten Einheiten werden mit deinem Konto abgeglichen."
+    : s.status === "pending"
+      ? "Änderungen sind lokal gesichert und werden übertragen, sobald wieder Netz da ist."
+      : "Wird abgeglichen …";
+
+  var dl = document.createElement("dl");
+  [["Konto", s.email || "—"], ["Einheiten", String(sessions.length)],
+   ["Status", (SYNC_CHIP[s.status] || {}).label || "—"]].forEach(function(pair){
+    var row = h("div", { class:"dlg-row" });
+    row.appendChild(h("dt", { text:pair[0] }));
+    row.appendChild(h("dd", { text:pair[1] }));
+    dl.appendChild(row);
+  });
+  body.appendChild(dl);
+
+  var bOut = h("button", { class:"btn-line", type:"button", text:"Abmelden" });
+  bOut.addEventListener("click", function(){ Sync.signOut(); });
+  body.appendChild(bOut);
+}
+
+function wireSyncUi(){
+  var dlg = document.getElementById("sync-dialog");
+  document.getElementById("sync-chip").addEventListener("click", function(){
+    renderDialog();
+    if(typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open","");
+  });
+  document.getElementById("sync-close").addEventListener("click", function(){
+    if(typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
+  });
+  window.addEventListener("online", function(){
+    if(Sync.state.status === "error" && Sync.configured()) Sync.init();
+  });
+}
+
+/* ============================================================
+   12. Navigation & Bootstrap
    ============================================================ */
 const TAB_ICONS = {
   total:   ["M12 3v18","M5 8h14","M5 16h14"],
@@ -1224,7 +1573,10 @@ function buildTabs(){
     (TAB_ICONS[it.id] || []).forEach(function(d){ svg("path", { d:d }, ic); });
     b.appendChild(ic);
     b.appendChild(h("span", { text:it.label }));
-    b.addEventListener("click", function(){ showTab(it.id); });
+    b.addEventListener("click", function(){
+      showTab(it.id);
+      window.scrollTo({ top:0, behavior:"auto" });
+    });
     bar.appendChild(b);
   });
 }
@@ -1233,8 +1585,31 @@ function showTab(id){
   document.querySelectorAll(".view").forEach(function(v){ v.classList.toggle("is-active", v.getAttribute("data-view") === id); });
   document.querySelectorAll(".tabbar button").forEach(function(b){ b.setAttribute("aria-selected", b.id === "tab-"+id ? "true" : "false"); });
   ui.tab = id; saveUi();
-  window.scrollTo({ top:0, behavior:"instant" in document.documentElement.style ? "instant" : "auto" });
   if(id === "progress") renderProgress();
+}
+
+/** Aktualisiert die Ansicht aus den Daten, ohne das DOM neu zu bauen —
+    damit ein eintreffender Sync keine laufende Eingabe zerstört. */
+function refreshFromData(){
+  DAYS.forEach(function(day){
+    var view = document.querySelector('.view[data-view="' + day.id + '"]');
+    if(!view) return;
+    var lastS = lastSessionOf(day.id);
+    var meta = view.querySelector(".day-meta");
+    if(meta){
+      meta.textContent = lastS ? "Zuletzt " + DF_LONG.format(isoToDate(lastS.date)) : "Noch kein Training erfasst";
+    }
+    day.ex.forEach(function(e){
+      refreshHistory(e.id);
+      var inp = view.querySelector('.ex[data-ex="' + CSS.escape(e.id) + '"] input');
+      if(inp && document.activeElement !== inp){
+        var w = lastWeight(e.id);
+        inp.placeholder = w != null ? fmtKg(w) : "0";
+      }
+    });
+    updateSaveBar(day.id);
+  });
+  renderProgress();
 }
 
 function rebuildAll(){
@@ -1247,8 +1622,20 @@ function rebuildAll(){
   renderProgress();
 }
 
+/* Plan-Vorgabe "+" (z. B. HipThrust 110 kg +) heißt: nächstes Mal steigern.
+   Einmalig als Startwert im Schalter setzen, solange nichts erfasst ist. */
+DAYS.forEach(function(d){
+  d.ex.forEach(function(e){
+    if(e.planTrend && !drafts[e.id] && !historyOf(e.id).length) drafts[e.id] = { t:e.planTrend };
+  });
+});
+saveDrafts();
+
 buildTabs();
+wireSyncUi();
+renderChip();
 rebuildAll();
+Sync.init();
 
 if(!store.available) toast("Speicher nicht verfügbar — Daten gehen beim Schließen verloren");
 
