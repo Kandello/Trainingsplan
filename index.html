@@ -113,6 +113,37 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .swap-input::-webkit-calendar-picker-indicator{opacity:.45}
 .swap-input:focus{outline:none;border-color:var(--hold);background:var(--surface-1)}
 
+.dlg-actions{display:flex;gap:8px;margin-top:14px}
+.dlg-actions .btn-line{flex:1 1 0}
+.btn-line.danger{background:var(--critical);color:#fff;border-color:var(--critical)}
+/* Zurückhaltend, weil die eigentliche Warnung im Bestätigungsdialog steht. */
+.btn-line.danger-ghost{
+  background:transparent;color:var(--critical);
+  border-color:color-mix(in srgb, var(--critical) 45%, transparent);
+}
+.btn-line.danger-ghost:hover,.btn-line.danger-ghost:focus-visible{
+  background:color-mix(in srgb, var(--critical) 10%, transparent);
+}
+
+/* Ausreisser-Liste in der Sicherheitsabfrage */
+.odd-list{display:flex;flex-direction:column;gap:6px}
+.odd{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:8px 10px;border-radius:var(--r-sm);background:var(--sunken);
+  font-size:13px;
+}
+.odd-name{flex:1 1 120px;min-width:0;font-weight:600;overflow-wrap:anywhere}
+.odd-jump{
+  flex:0 0 auto;font-variant-numeric:tabular-nums;color:var(--text-2);
+  display:inline-flex;align-items:center;gap:5px;
+}
+.odd-pct{
+  flex:0 0 auto;padding:1px 6px;border-radius:999px;
+  background:color-mix(in srgb, var(--warning) 26%, transparent);
+  font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;
+}
+
+dialog#confirm-dialog,
 dialog#swap-dialog,
 dialog#sync-dialog{
   width:min(440px, calc(100vw - 24px));
@@ -120,6 +151,7 @@ dialog#sync-dialog{
   background:var(--surface-1);color:var(--text-1);
   box-shadow:0 20px 60px rgba(0,0,0,.28);
 }
+dialog#confirm-dialog::backdrop,
 dialog#swap-dialog::backdrop,
 dialog#sync-dialog::backdrop{background:rgba(0,0,0,.5)}
 .dlg-inner{padding:18px 16px 16px}
@@ -359,6 +391,53 @@ tbody td{color:var(--text-1)}
 tbody td.na{color:var(--muted)}
 .empty-note{margin-top:10px;font-size:12.5px;color:var(--muted);text-align:center}
 
+/* ---------- Trainings-Log ---------- */
+.log-card{margin-top:12px}
+.log-item{border-top:1px solid var(--border)}
+.log-item:first-of-type{border-top:0}
+.log-item summary{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  min-height:46px;padding:4px 2px;cursor:pointer;list-style:none;
+}
+.log-item summary::-webkit-details-marker{display:none}
+.log-item summary::before{
+  content:"";flex:0 0 auto;width:0;height:0;
+  border:4.5px solid transparent;border-left-color:var(--muted);
+  transition:transform .15s;transform-origin:2px 50%;
+}
+.log-item[open] summary::before{transform:rotate(90deg)}
+.log-date{flex:0 0 auto;font-size:13px;font-weight:650;font-variant-numeric:tabular-nums}
+.log-day{flex:1 1 auto;min-width:0;font-size:13px;color:var(--text-2);overflow-wrap:anywhere}
+.log-count{flex:0 0 auto;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.log-rows{padding:2px 0 12px 14px;display:flex;flex-direction:column;gap:6px}
+.log-row{display:flex;align-items:center;gap:8px}
+.log-ex{flex:1 1 auto;min-width:0;font-size:13px;overflow-wrap:anywhere}
+.log-field{
+  flex:0 0 auto;display:flex;align-items:center;gap:4px;
+  width:96px;height:38px;padding:0 8px 0 10px;
+  border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--plane);
+}
+.log-field:focus-within{border-color:var(--hold);background:var(--surface-1)}
+.log-field input{
+  width:100%;min-width:0;border:0;padding:0;background:none;color:var(--text-1);
+  font:600 15px/1 system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums;
+}
+.log-field input:focus{outline:none}
+.log-field .log-unit{flex:0 0 auto;font-size:11.5px;font-weight:600;color:var(--muted)}
+.log-trend{flex:0 0 auto;width:14px;text-align:center;font-size:10px}
+.log-trend.up{color:var(--good)}
+.log-trend.down{color:var(--critical)}
+.log-trend.hold{color:var(--hold)}
+.log-trend.none{color:var(--muted)}
+.log-del{
+  flex:0 0 auto;width:34px;height:34px;border-radius:8px;
+  display:grid;place-items:center;color:var(--muted);
+  font-size:19px;line-height:1;
+}
+.log-del:hover,.log-del:focus-visible{background:var(--sunken);color:var(--critical)}
+.log-wipe{margin-top:8px;min-height:38px;font-size:13px}
+
 .data-tools{margin-top:14px;display:flex;gap:8px}
 .data-tools button{
   flex:1 1 0;min-height:42px;border-radius:var(--r-md);
@@ -420,6 +499,18 @@ tbody td.na{color:var(--muted)}
 <main id="main"></main>
 
 <nav class="tabbar" role="tablist" aria-label="Trainingstage"></nav>
+
+<dialog id="confirm-dialog" aria-labelledby="confirm-dlg-title">
+  <div class="dlg-inner">
+    <h2 id="confirm-dlg-title"></h2>
+    <p class="dlg-lead" id="confirm-dlg-lead"></p>
+    <div class="dlg-body" id="confirm-dlg-body"></div>
+    <div class="dlg-actions">
+      <button class="btn-line" type="button" id="confirm-no">Abbrechen</button>
+      <button class="btn-line primary" type="button" id="confirm-yes">OK</button>
+    </div>
+  </div>
+</dialog>
 
 <dialog id="swap-dialog" aria-labelledby="swap-dlg-title">
   <div class="dlg-inner">
@@ -674,6 +765,45 @@ function svg(tag, attrs, parent){
   return n;
 }
 
+/** Modaler Ja/Nein-Dialog. Liefert ein Promise mit true (bestätigt) oder false. */
+function askConfirm(opts){
+  return new Promise(function(resolve){
+    var dlg  = document.getElementById("confirm-dialog");
+    var body = document.getElementById("confirm-dlg-body");
+    document.getElementById("confirm-dlg-title").textContent = opts.title || "Sicher?";
+    document.getElementById("confirm-dlg-lead").textContent  = opts.lead  || "";
+    while(body.firstChild) body.removeChild(body.firstChild);
+    if(opts.node) body.appendChild(opts.node);
+
+    var yes = document.getElementById("confirm-yes");
+    var no  = document.getElementById("confirm-no");
+    yes.textContent = opts.okLabel || "OK";
+    no.textContent  = opts.cancelLabel || "Abbrechen";
+    yes.className = "btn-line " + (opts.danger ? "danger" : "primary");
+
+    var done = false;
+    function finish(v){
+      if(done) return;
+      done = true;
+      yes.removeEventListener("click", onYes);
+      no.removeEventListener("click", onNo);
+      dlg.removeEventListener("close", onClose);
+      if(dlg.open){ if(typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open"); }
+      resolve(v);
+    }
+    function onYes(){ finish(true); }
+    function onNo(){ finish(false); }
+    function onClose(){ finish(false); }
+
+    yes.addEventListener("click", onYes);
+    no.addEventListener("click", onNo);
+    dlg.addEventListener("close", onClose);
+
+    if(typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+    setTimeout(function(){ no.focus(); }, 60);
+  });
+}
+
 var toastTimer = null;
 function toast(msg){
   var el = document.getElementById("toast");
@@ -925,6 +1055,42 @@ function buildDayView(day){
   return view;
 }
 
+/** Ab dieser relativen Abweichung zum letzten Gewicht wird nachgefragt. */
+const OUTLIER_LIMIT = 0.30;
+
+/** Findet Eingaben, die stark vom letzten erfassten Gewicht abweichen — meist Tippfehler. */
+function findOutliers(entries){
+  var out = [];
+  Object.keys(entries).forEach(function(id){
+    var w = entries[id].w;
+    if(w == null) return;
+    var last = lastWeight(id);
+    if(last == null || last <= 0) return;
+    var rel = Math.abs(w - last) / last;
+    if(rel > OUTLIER_LIMIT){
+      out.push({ name:(POOL[id] || {}).n || id, from:last, to:w,
+                 pct:Math.round(rel * 100), up:w > last });
+    }
+  });
+  return out;
+}
+
+function outlierNode(list){
+  var box = h("div", { class:"odd-list" });
+  list.forEach(function(o){
+    var row = h("div", { class:"odd" });
+    row.appendChild(h("span", { class:"odd-name", text:o.name }));
+    var jump = h("span", { class:"odd-jump" });
+    jump.appendChild(document.createTextNode(fmtKg(o.from) + " kg"));
+    jump.appendChild(h("span", { text:"→" }));
+    jump.appendChild(h("strong", { text:fmtKg(o.to) + " kg" }));
+    row.appendChild(jump);
+    row.appendChild(h("span", { class:"odd-pct", text:(o.up ? "+" : "−") + o.pct + " %" }));
+    box.appendChild(row);
+  });
+  return box;
+}
+
 function saveDay(day){
   var date = todayISO();
   var entries = {};
@@ -939,6 +1105,23 @@ function saveDay(day){
   });
   if(!count){ toast("Keine Eingaben zum Speichern"); return; }
 
+  var odd = findOutliers(entries);
+  if(odd.length){
+    askConfirm({
+      title: odd.length === 1 ? "Ungewöhnliches Gewicht" : "Ungewöhnliche Gewichte",
+      lead: (odd.length === 1 ? "Ein Wert weicht" : odd.length + " Werte weichen")
+          + " um mehr als " + Math.round(OUTLIER_LIMIT * 100)
+          + " % vom letzten Training ab. Stimmt das?",
+      node: outlierNode(odd),
+      okLabel: "Trotzdem speichern",
+      cancelLabel: "Nochmal prüfen"
+    }).then(function(ok){ if(ok) commitDay(day, date, entries, count); });
+    return;
+  }
+  commitDay(day, date, entries, count);
+}
+
+function commitDay(day, date, entries, count){
   var existing = null;
   for(var i=0;i<sessions.length;i++){
     if(sessions[i].dayId === day.id && sessions[i].date === date){ existing = sessions[i]; break; }
@@ -1031,6 +1214,14 @@ function buildProgressView(){
   det.appendChild(h("div", { class:"table-scroll", id:"table-scroll" }));
   card.appendChild(det);
   view.appendChild(card);
+
+  var log = h("div", { class:"card log-card" });
+  log.appendChild(h("div", { class:"card-head" }, [
+    h("h3", { text:"Trainings-Log" }),
+    h("p",  { text:"Gespeicherte Einheiten — antippen zum Korrigieren oder Löschen" })
+  ]));
+  log.appendChild(h("div", { id:"log-body" }));
+  view.appendChild(log);
 
   var tools = h("div", { class:"data-tools" });
   var bExp = h("button", { type:"button", text:"Daten exportieren" });
@@ -1442,6 +1633,138 @@ function importData(){
 }
 
 /* ============================================================
+   9b. Trainings-Log — gespeicherte Einheiten nachträglich ändern
+   ============================================================ */
+function findSession(dayId, date){
+  for(var i=0;i<sessions.length;i++){
+    if(sessions[i].dayId === dayId && sessions[i].date === date) return sessions[i];
+  }
+  return null;
+}
+
+function afterLogChange(){
+  saveSessions();
+  refreshFromData();
+  renderLog();
+}
+
+function deleteEntry(session, exId){
+  delete session.entries[exId];
+  if(!Object.keys(session.entries).length){
+    sessions = sessions.filter(function(s){ return s !== session; });
+    Sync.removeSession(session);
+  } else {
+    Sync.removeEntry(session, exId);
+  }
+  afterLogChange();
+}
+
+function deleteSession(session){
+  sessions = sessions.filter(function(s){ return s !== session; });
+  Sync.removeSession(session);
+  afterLogChange();
+}
+
+function buildLogRow(session){
+  var day = dayById(session.dayId);
+  var det = h("details", { class:"log-item" });
+
+  var ids = Object.keys(session.entries);
+  var sum = h("summary");
+  sum.appendChild(h("span", { class:"log-date", text:DF_LONG.format(isoToDate(session.date)) }));
+  sum.appendChild(h("span", { class:"log-day", text:day ? day.name : session.dayId }));
+  sum.appendChild(h("span", { class:"log-count", text:plural(ids.length, "Übung", "Übungen") }));
+  det.appendChild(sum);
+
+  var list = h("div", { class:"log-rows" });
+
+  /* Reihenfolge des Trainingstags beibehalten, Unbekanntes hinten anhängen. */
+  var ordered = [];
+  if(day) day.ex.forEach(function(e){ if(session.entries[e.id]) ordered.push(e.id); });
+  ids.forEach(function(id){ if(ordered.indexOf(id) < 0) ordered.push(id); });
+
+  ordered.forEach(function(id){
+    var entry = session.entries[id];
+    var row = h("div", { class:"log-row" });
+    row.appendChild(h("span", { class:"log-ex", text:(POOL[id] || {}).n || id }));
+
+    var field = h("label", { class:"log-field" });
+    var inp = h("input", { type:"text", inputmode:"decimal", autocomplete:"off",
+      "aria-label":"Gewicht " + ((POOL[id] || {}).n || id) + " am " + session.date });
+    inp.value = entry.w != null ? fmtKg(entry.w) : "";
+    inp.addEventListener("input", function(){
+      inp.value = sanitizeInput(inp.value);
+    });
+    function commit(){
+      var w = parseKg(inp.value);
+      /* Leer oder unlesbar heisst nicht "kein Gewicht" — zum Entfernen gibt es das ×. */
+      if(w == null){ inp.value = entry.w != null ? fmtKg(entry.w) : ""; return; }
+      if(w === entry.w) return;
+      entry.w = w;
+      saveSessions();
+      Sync.push(session);
+      /* Bewusst ohne renderLog(): sonst würde das gerade bearbeitete Feld ersetzt. */
+      refreshFromData();
+    }
+    inp.addEventListener("blur", commit);
+    inp.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); inp.blur(); } });
+    field.appendChild(inp);
+    field.appendChild(h("span", { class:"log-unit", text:"kg" }));
+    row.appendChild(field);
+
+    var tr = TRENDS.filter(function(t){ return t.t === entry.t; })[0];
+    row.appendChild(h("span", { class:"log-trend " + (entry.t || "none"),
+      text: tr ? tr.gly : "·", title: tr ? tr.label : "keine Tendenz" }));
+
+    var del = h("button", { class:"log-del", type:"button",
+      "aria-label":"Eintrag löschen: " + ((POOL[id] || {}).n || id), title:"Eintrag löschen", text:"×" });
+    del.addEventListener("click", function(){ deleteEntry(session, id); });
+    row.appendChild(del);
+
+    list.appendChild(row);
+  });
+
+  var wipe = h("button", { class:"btn-line danger-ghost log-wipe", type:"button", text:"Ganze Einheit löschen" });
+  wipe.addEventListener("click", function(){
+    askConfirm({
+      title:"Einheit löschen",
+      lead:(day ? day.name : session.dayId) + " vom " + DF_LONG.format(isoToDate(session.date))
+        + " mit " + plural(Object.keys(session.entries).length, "Eintrag", "Einträgen")
+        + " endgültig entfernen?",
+      okLabel:"Löschen", danger:true
+    }).then(function(ok){ if(ok){ deleteSession(session); toast("Einheit gelöscht"); } });
+  });
+  list.appendChild(wipe);
+
+  det.appendChild(list);
+  return det;
+}
+
+function renderLog(){
+  var box = document.getElementById("log-body");
+  if(!box) return;
+  var open = {};
+  box.querySelectorAll("details[open]").forEach(function(d){ open[d.dataset.key] = true; });
+  while(box.firstChild) box.removeChild(box.firstChild);
+
+  if(!sessions.length){
+    box.appendChild(h("p", { class:"empty-note",
+      text:"Noch keine Einheit gespeichert. Gespeicherte Trainings erscheinen hier und lassen sich hier auch korrigieren." }));
+    return;
+  }
+
+  var sorted = sessions.slice().sort(function(a,b){
+    return a.date < b.date ? 1 : a.date > b.date ? -1 : a.dayId.localeCompare(b.dayId);
+  });
+  sorted.forEach(function(s){
+    var row = buildLogRow(s);
+    row.dataset.key = s.dayId + "_" + s.date;
+    if(open[row.dataset.key]) row.open = true;
+    box.appendChild(row);
+  });
+}
+
+/* ============================================================
    10b. Übung tauschen
    ------------------------------------------------------------
    Der Slot im Trainingstag zeigt danach auf eine andere Übung.
@@ -1701,6 +2024,18 @@ const Sync = (function(){
     }, { merge:true });
   }
 
+  function removeSession(s){
+    if(!M || !uid) return Promise.resolve();
+    return M.F.deleteDoc(ref(s));
+  }
+
+  function removeEntry(s, exId){
+    if(!M || !uid) return Promise.resolve();
+    var patch = { entries:{} };
+    patch.entries[exId] = M.F.deleteField();
+    return M.F.setDoc(ref(s), patch, { merge:true });
+  }
+
   function pushAll(){
     if(!M || !uid) return Promise.resolve();
     return Promise.all(sessions.map(function(s){ return push(s).catch(function(){}); }));
@@ -1752,6 +2087,7 @@ const Sync = (function(){
       st.pending = snap.metadata.hasPendingWrites;
       set(st.pending ? "pending" : "ready", { error:null });
       refreshFromData();
+      renderLog();
     }, function(err){
       set("error", { error:describe(err) });
     });
@@ -1763,6 +2099,8 @@ const Sync = (function(){
     init: boot,
     push: function(s){ push(s).catch(function(){}); },
     pushPlan: function(){ if(M && uid) pushPlan().catch(function(){}); },
+    removeSession: function(s){ removeSession(s).catch(function(){}); },
+    removeEntry: function(s, exId){ removeEntry(s, exId).catch(function(){}); },
     saveConfig: function(text){
       var obj;
       try {
@@ -1944,7 +2282,7 @@ function showTab(id){
   document.querySelectorAll(".view").forEach(function(v){ v.classList.toggle("is-active", v.getAttribute("data-view") === id); });
   document.querySelectorAll(".tabbar button").forEach(function(b){ b.setAttribute("aria-selected", b.id === "tab-"+id ? "true" : "false"); });
   ui.tab = id; saveUi();
-  if(id === "progress") renderProgress();
+  if(id === "progress"){ renderProgress(); renderLog(); }
 }
 
 /** Aktualisiert die Ansicht aus den Daten, ohne das DOM neu zu bauen —
@@ -1977,6 +2315,7 @@ function rebuildAll(){
   DAYS.forEach(function(d){ main.appendChild(buildDayView(d)); });
   main.appendChild(buildProgressView());
   DAYS.forEach(function(d){ updateSaveBar(d.id); });
+  renderLog();
   showTab(ui.tab && (DAYS.some(function(d){ return d.id === ui.tab; }) || ui.tab === "progress") ? ui.tab : DAYS[0].id);
   renderProgress();
 }

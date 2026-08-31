@@ -67,8 +67,8 @@ export { getAuth, onAuthStateChanged, signInWithPopup, signInWithRedirect,
          getRedirectResult, signOut, GoogleAuthProvider, connectAuthEmulator,
          signInWithCredential } from "firebase/auth";
 export { initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
-         collection, doc, setDoc, onSnapshot, serverTimestamp,
-         connectFirestoreEmulator } from "firebase/firestore";
+         collection, doc, setDoc, deleteDoc, deleteField, onSnapshot,
+         serverTimestamp, connectFirestoreEmulator } from "firebase/firestore";
 EOF
 npx esbuild entry.js --bundle --format=esm --minify --target=es2020 \
   --outfile=vendor/firebase.js
@@ -126,6 +126,26 @@ Sätze und Wiederholungen des Slots werden übernommen.
 
 Der angepasste Plan wird lokal gespeichert, liegt im JSON-Export mit drin und
 wird bei aktiviertem Sync unter `users/{uid}/state/plan` mitsynchronisiert.
+
+## Werte korrigieren
+
+Beim Speichern prüft die App jede Eingabe gegen das zuletzt erfasste Gewicht
+derselben Übung. Weicht ein Wert um **mehr als 30 %** ab, kommt eine
+Sicherheitsabfrage mit alter und neuer Zahl — das fängt Tippfehler wie 1125
+statt 112,5 ab, bevor sie in der Historie landen. Übungen ohne Vorgeschichte
+lösen keine Abfrage aus, weil es nichts zu vergleichen gibt.
+
+Unter *Fortschritt → Trainings-Log* stehen alle gespeicherten Einheiten,
+neueste zuerst. Eine Einheit antippen klappt sie auf:
+
+- **Gewicht ändern** — direkt im Feld, wird beim Verlassen übernommen. Eine
+  leere oder unlesbare Eingabe springt auf den alten Wert zurück.
+- **× je Zeile** entfernt einen einzelnen Eintrag. War es der letzte, verschwindet
+  die Einheit ganz.
+- **Ganze Einheit löschen** entfernt sie nach Rückfrage komplett.
+
+Änderungen schlagen sofort auf Miniverlauf und Diagramm durch. Bei aktivem Sync
+werden Löschungen mit übertragen, statt vom anderen Gerät zurückzukehren.
 
 ## Diagramm-Farben
 
