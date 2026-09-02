@@ -153,14 +153,21 @@ als JSON; der Import ergänzt bestehende Einheiten, statt sie zu überschreiben.
 ## Trainingsplan
 
 Vier Trainingstage in der Reihenfolge des Plans: **Total Body** (6 Übungen),
-**Upper Body** (7), **Lower Body** (6), **Arms & Delts** (8).
+**Upper Body** (7), **Lower Body** (5), **Arms & Delts** (6).
+
+Aus dem Foto-Plan herausgenommen: `LegPress` (Lower Body), `DBWristCurl` und
+`DBWristExtension` (Arms & Delts). Sie bleiben der App als Übungen bekannt —
+ihr bisheriger Verlauf ist im Fortschritt unter *Ersetzte Übungen* weiter
+abrufbar und im Trainings-Log korrekt beschriftet.
 
 - `StandingCalfRaise` kommt zweimal vor (Total Body 1×6–8 / Lower Body 2×8–10)
   und wird als zwei getrennte Übungen mit eigener Historie geführt.
 - Bei Von-bis-Angaben ist der höhere Wert hinterlegt (CrunchMachine 60 kg,
   OH Triceps 149 kg).
-- Das `+` bei HipThrust bedeutet „nächstes Mal steigern" — der Schalter steht
-  dort beim ersten Öffnen auf *Steigern*.
+- Das `+` bei HipThrust bedeutet „nächstes Mal steigern" — das steht als
+  Hinweis in der Karte. Der Schalter wird bewusst *nicht* vorbelegt: eine
+  Vorauswahl zählt als Eingabe und schriebe die Übung sonst in jede
+  gespeicherte Einheit, auch ohne Training.
 
 Gewichte werden mit bis zu drei Nachkommastellen erfasst; Komma und Punkt
 werden beide akzeptiert.
@@ -207,6 +214,14 @@ Der angepasste Plan wird lokal gespeichert, liegt im JSON-Export mit drin und
 wird bei aktiviertem Sync unter `users/{uid}/state/plan` mitsynchronisiert.
 
 ## Werte korrigieren
+
+Eine Einheit lässt sich jederzeit unvollständig speichern: aufgenommen wird
+nur, wofür du ein Gewicht eingetragen oder eine Tendenz gewählt hast. Der
+Button zeigt die Anzahl mit, z. B. „Einheit speichern (2)".
+
+Laufende Eingaben überstehen einen Reload mitten im Training — jede
+Tastatureingabe wird sofort lokal gesichert und beim Öffnen wiederhergestellt,
+inklusive der Tendenz-Schalter.
 
 Beim Speichern prüft die App jede Eingabe gegen das zuletzt erfasste Gewicht
 derselben Übung. Weicht ein Wert um **mehr als 30 %** ab, kommt eine

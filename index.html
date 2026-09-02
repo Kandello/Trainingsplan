@@ -626,14 +626,14 @@ const BASE_DAYS = [
     { id:"lb-hip-thrust",           n:"HipThrust",            sets:2, rmin:6, rmax:8,  p:"110 kg", planTrend:"up" },
     { id:"lb-standing-calf-raise",  n:"StandingCalfRaise",    sets:2, rmin:8, rmax:10, p:"2×65 kg" },
     { id:"lb-leg-extensions",       n:"LegExtensions",        sets:2, rmin:8, rmax:10, p:"90 kg" },
-    { id:"lb-leg-press",            n:"LegPress",             sets:1, rmin:6, rmax:8,  p:"189 kg" }
+    { id:"lb-leg-press",            n:"LegPress",             sets:1, rmin:6, rmax:8,  p:"189 kg", retired:true }
   ]},
   { id:"arms", name:"Arms & Delts", short:"Arms", ex:[
     { id:"ad-bayesian-cable-curls", n:"BayesianCableCurls",   sets:2, rmin:6, rmax:8,  p:"109 kg" },
     { id:"ad-oh-triceps",           n:"OH Triceps",           sets:2, rmin:8, rmax:10, p:"149 kg" },
     { id:"ad-mod-zottman-curl",     n:"ModZottmanCurl",       sets:1, rmin:8, rmax:10, p:"22 kg" },
-    { id:"ad-db-wrist-curl",        n:"DBWristCurl",          sets:2, rmin:8, rmax:10, p:"12 kg" },
-    { id:"ad-db-wrist-extension",   n:"DBWristExtension",     sets:2, rmin:8, rmax:10, p:"9 kg" },
+    { id:"ad-db-wrist-curl",        n:"DBWristCurl",          sets:2, rmin:8, rmax:10, p:"12 kg", retired:true },
+    { id:"ad-db-wrist-extension",   n:"DBWristExtension",     sets:2, rmin:8, rmax:10, p:"9 kg", retired:true },
     { id:"ad-alternating-db-curl",  n:"AlternatingDBCurl",    sets:1, rmin:6, rmax:8,  p:"20 kg" },
     { id:"ad-cable-triceps-kickbk", n:"CableTricepsKickback", sets:2, rmin:8, rmax:10, p:"53 kg" },
     { id:"ad-machine-lateral-raise",n:"MachineLateralRaise",  sets:2, rmin:8, rmax:10, p:"50 kg" }
@@ -652,7 +652,13 @@ BASE_DAYS.forEach(function(d){
 });
 
 const DAYS = BASE_DAYS.map(function(d){
-  return { id:d.id, name:d.name, short:d.short, base:d.ex.map(function(e){ return e.id; }), ex:[] };
+  return {
+    id:d.id, name:d.name, short:d.short, ex:[],
+    /* retired = aus dem Plan genommen. Die Übung bleibt im POOL, damit ihr
+       bisheriger Verlauf lesbar und im Fortschritt abrufbar bleibt — sie
+       steht nur nicht mehr im Trainingstag. */
+    base: d.ex.filter(function(e){ return !e.retired; }).map(function(e){ return e.id; })
+  };
 });
 
 const EX_BY_ID = POOL;
@@ -2072,10 +2078,9 @@ function swapExercise(dayId, oldId, rawName){
 /** Setzt den Slot auf die Übung aus dem Originalplan zurück. */
 function restoreSlot(dayId, idx){
   var day = dayById(dayId);
-  var base = BASE_DAYS.filter(function(d){ return d.id === dayId; })[0];
-  if(!day || !base || !base.ex[idx]) return "Kein Originaleintrag vorhanden.";
+  if(!day || !day.base[idx]) return "Kein Originaleintrag vorhanden.";
   var ids = day.ex.map(function(e){ return e.id; });
-  ids[idx] = base.ex[idx].id;
+  ids[idx] = day.base[idx];
   planOrder[dayId] = ids;
   savePlan();
   applyPlan();
@@ -2151,8 +2156,7 @@ function renderSwap(){
   go.addEventListener("click", submit);
   body.appendChild(go);
 
-  var baseDay = BASE_DAYS.filter(function(d){ return d.id === swapCtx.dayId; })[0];
-  var baseEx  = baseDay && baseDay.ex[idx];
+  var baseEx = POOL[day.base[idx]];
   if(baseEx && baseEx.id !== ex.id){
     var back = h("button", { class:"btn-line", type:"button",
       text:"Original wiederherstellen: " + baseEx.n });
@@ -2611,14 +2615,10 @@ function rebuildAll(){
 
 applyPlan();
 
-/* Plan-Vorgabe "+" (z. B. HipThrust 110 kg +) heißt: nächstes Mal steigern.
-   Einmalig als Startwert im Schalter setzen, solange nichts erfasst ist. */
-DAYS.forEach(function(d){
-  d.ex.forEach(function(e){
-    if(e.planTrend && !drafts[e.id] && !historyOf(e.id).length) drafts[e.id] = { t:e.planTrend };
-  });
-});
-saveDrafts();
+/* Die Plan-Vorgabe "+" (z. B. HipThrust 110 kg +) steht als Hinweis in der
+   Karte, wird aber NICHT in den Schalter vorbelegt: eine Vorauswahl würde
+   sonst als Eingabe zählen und die Übung in jede gespeicherte Einheit
+   schreiben, auch wenn sie gar nicht trainiert wurde. */
 
 buildTabs();
 wireSyncUi();
