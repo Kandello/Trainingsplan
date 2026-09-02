@@ -215,6 +215,32 @@ wird bei aktiviertem Sync unter `users/{uid}/state/plan` mitsynchronisiert.
 
 ## Werte korrigieren
 
+### Letzte Gewichte übernehmen
+
+Der Button oben im Trainingstag füllt die Gewichtsfelder mit dem jeweils
+**zuletzt erfassten** Wert der Übung — unabhängig davon, wie viele Einheiten
+seither vergangen sind oder ob die Übung zwischendurch ausgelassen wurde.
+Gespeichert wird dabei nichts; es ist eine Voreinstellung.
+
+Gefüllt werden **nur leere Felder**. Bereits eingetragene Werte bleiben in
+jedem Fall stehen, auch bei mehrfachem Antippen.
+
+Die Zahlen haben drei Zustände:
+
+| Farbe | Bedeutung |
+|---|---|
+| grau/leer | nichts eingetragen — die Übung landet nicht in der Einheit |
+| **blau** | Wert steht da, aber noch nicht bestätigt |
+| **grün** | mit dem Haken als absolviert bestätigt |
+
+Der Haken rechts neben dem Feld bestätigt, dass die Übung absolviert ist; ein
+weiterer Druck nimmt die Bestätigung zurück. Eine Korrektur an einem grünen
+Wert bleibt grün. Wer eine Übung auslässt, leert einfach das Feld — dann
+entsteht auch kein Punkt in der Verlaufskurve.
+
+Gespeichert wird derzeit jeder nicht-leere Wert, blau wie grün; der Hinweis
+unter dem Speichern-Button nennt die Zahl der unbestätigten Werte.
+
 Eine Einheit lässt sich jederzeit unvollständig speichern: aufgenommen wird
 nur, wofür du ein Gewicht eingetragen oder eine Tendenz gewählt hast. Der
 Button zeigt die Anzahl mit, z. B. „Einheit speichern (2)".

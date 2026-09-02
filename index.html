@@ -29,6 +29,9 @@
   --good-text:#006300;
   --critical:#d03b3b;
   --hold:#2a78d6;
+  /* Vorschlagswert: dunkler als das UI-Blau, damit die Zahl als Normaltext
+     lesbar bleibt (5,39:1 statt 4,19:1 auf hellem Grund). */
+  --suggest:#1f66bd;
 
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
   --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
@@ -54,6 +57,7 @@
     --good-text:#0ca30c;
     --critical:#d03b3b;
     --hold:#3987e5;
+    --suggest:#3987e5;
 
     --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
     --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
@@ -313,6 +317,30 @@ main{padding:14px 12px calc(env(safe-area-inset-bottom) + 88px);max-width:720px;
 .wfield input:focus{outline:none}
 .wfield input::placeholder{color:var(--muted);font-weight:500}
 .wfield .unit{flex:0 0 auto;font-size:13px;font-weight:600;color:var(--muted)}
+
+/* Blau = Vorschlag aus „Letzte Gewichte übernehmen", noch nicht bestätigt.
+   Grün = Übung als absolviert bestätigt. */
+.wfield.is-sug  input{color:var(--suggest)}
+.wfield.is-sug  .unit{color:var(--suggest);opacity:.75}
+.wfield.is-done input{color:var(--good-text)}
+.wfield.is-done .unit{color:var(--good-text);opacity:.75}
+.wfield.is-done{border-color:color-mix(in srgb, var(--good) 55%, transparent)}
+
+.ex-check{
+  flex:0 0 auto;width:44px;height:44px;border-radius:var(--r-md);
+  display:grid;place-items:center;color:var(--muted);
+  border:1.5px solid var(--border);background:var(--plane);
+  transition:background .12s,border-color .12s,color .12s;
+}
+/* display:grid oben schlägt sonst das [hidden] des Browsers */
+.ex-check[hidden]{display:none}
+.ex-check svg{width:20px;height:20px}
+.ex-check:active{transform:scale(.95)}
+.ex-check[aria-pressed="true"]{
+  background:color-mix(in srgb, var(--good) 15%, transparent);
+  border-color:var(--good);
+  color:var(--good-text);
+}
 
 /* ---------- Mini history ---------- */
 /* Verlauf der letzten Trainings, direkt unter dem Übungsnamen */
@@ -1042,9 +1070,38 @@ function buildExercise(ex, idx){
     "aria-label": "Trainingsgewicht " + ex.n + " in Kilogramm"
   });
   input.value = d.w || "";
-  if(input.value) field.classList.add("has-val");
   field.appendChild(input);
   field.appendChild(h("span", { class:"unit", text:"kg" }));
+
+  /* Haken bestätigt, dass die Übung absolviert ist. Bestätigte Werte
+     werden von „Letzte Gewichte übernehmen" nicht überschrieben. */
+  var check = h("button", { class:"ex-check", type:"button",
+    "aria-label":"Als absolviert bestätigen — " + ex.n });
+  var ci = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
+    "stroke-width":"2.6", "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
+  svg("path", { d:"M4 12.5l5.5 5.5L20 7" }, ci);
+  check.appendChild(ci);
+
+  /** "empty" | "sug" (blau, unbestätigt) | "done" (grün, bestätigt) */
+  function paint(state){
+    field.classList.toggle("has-val", state !== "empty");
+    field.classList.toggle("is-sug",  state === "sug");
+    field.classList.toggle("is-done", state === "done");
+    check.hidden = state === "empty";
+    check.setAttribute("aria-pressed", state === "done" ? "true" : "false");
+    check.title = state === "done" ? "Absolviert — antippen zum Zurücknehmen"
+                                   : "Als absolviert bestätigen";
+  }
+  paint(!input.value ? "empty" : (d.sug ? "sug" : "done"));
+
+  check.addEventListener("click", function(){
+    var entry = drafts[ex.id];
+    if(!entry || !entry.w) return;
+    if(entry.sug) delete entry.sug; else entry.sug = true;
+    saveDrafts();
+    paint(entry.sug ? "sug" : "done");
+    updateSaveBar(DAY_OF_EX[ex.id].id);
+  });
 
   input.addEventListener("input", function(){
     var pos = input.selectionStart;
@@ -1054,15 +1111,19 @@ function buildExercise(ex, idx){
       input.value = clean;
       try { input.setSelectionRange(pos - (before.length - clean.length), pos - (before.length - clean.length)); } catch(e){}
     }
-    field.classList.toggle("has-val", !!clean);
+    var had = drafts[ex.id] && drafts[ex.id].w;
     var entry = drafts[ex.id] || (drafts[ex.id] = {});
+    /* Neu getippter Wert ist zunächst unbestätigt; eine Korrektur an einem
+       bereits bestätigten Wert bleibt bestätigt. */
+    if(clean && !had) entry.sug = true;
     entry.w = clean;
-    if(!clean && !entry.t) delete drafts[ex.id];
+    if(!clean){ delete entry.sug; if(!entry.t) delete drafts[ex.id]; }
     saveDrafts();
+    paint(!clean ? "empty" : (entry.sug ? "sug" : "done"));
     updateSaveBar(DAY_OF_EX[ex.id].id);
   });
 
-  var body = h("div", { class:"ex-body" }, [ h("div", { class:"ex-line" }, [ field ]) ]);
+  var body = h("div", { class:"ex-body" }, [ h("div", { class:"ex-line" }, [ field, check ]) ]);
   card.appendChild(body);
 
   /* 3-Wege-Schalter */
@@ -1125,10 +1186,16 @@ function updateSaveBar(dayId){
   btn.disabled = n === 0;
   btn.textContent = n === 0 ? "Einheit speichern" : "Einheit speichern (" + n + ")";
   if(hint){
+    var open = day.ex.filter(function(e){
+      var d = drafts[e.id];
+      return d && d.w && d.sug;
+    }).length;
     hint.textContent = n === 0
       ? "Trage mindestens ein Gewicht oder eine Tendenz ein."
       : n + " von " + day.ex.length + " Übungen " + (n === 1 ? "wird" : "werden")
-        + " mit dem heutigen Datum gespeichert.";
+        + " mit dem heutigen Datum gespeichert."
+        + (open ? " " + (open === 1 ? "Ein Wert ist" : open + " Werte sind")
+                + " noch nicht bestätigt (blau)." : "");
   }
   if(pre){
     var hasAny = day.ex.some(function(e){ return lastWeight(e.id) != null; });
@@ -1155,20 +1222,26 @@ function buildDayView(day){
   svg("path", { d:"M3 4v5h5" }, ic);
   pre.appendChild(ic);
   pre.appendChild(document.createTextNode("Letzte Gewichte übernehmen"));
+  /* Füllt ausschliesslich leere Felder — bereits eingetragene Werte, ob
+     bestätigt oder nicht, bleiben unangetastet. Übernommene Werte sind
+     unbestätigt (blau), bis der Haken gedrückt wird. */
   pre.addEventListener("click", function(){
-    var n = 0;
+    var n = 0, kept = 0;
     day.ex.forEach(function(e){
+      var entry = drafts[e.id];
+      if(entry && entry.w){ kept++; return; }
       var w = lastWeight(e.id);
       if(w == null) return;
-      var entry = drafts[e.id] || (drafts[e.id] = {});
+      entry = drafts[e.id] || (drafts[e.id] = {});
       entry.w = fmtKg(w);
+      entry.sug = true;
       n++;
-      var inp = view.querySelector('.ex[data-ex="' + CSS.escape(e.id) + '"] input');
-      if(inp){ inp.value = entry.w; inp.closest(".wfield").classList.add("has-val"); }
     });
     saveDrafts();
-    updateSaveBar(day.id);
-    toast(n ? plural(n, "Gewicht", "Gewichte") + " übernommen" : "Keine früheren Gewichte vorhanden");
+    rebuildAll();
+    if(n) toast(plural(n, "Gewicht", "Gewichte") + " übernommen"
+      + (kept ? " · " + kept + " bereits eingetragen" : ""));
+    else toast(kept ? "Alle Felder sind schon gefüllt" : "Keine früheren Gewichte vorhanden");
   });
   view.appendChild(pre);
 
@@ -1278,7 +1351,9 @@ function commitDay(day, date, entries, count){
       if(!card) return;
       var inp = card.querySelector("input");
       inp.value = "";
-      inp.closest(".wfield").classList.remove("has-val");
+      inp.closest(".wfield").classList.remove("has-val", "is-sug", "is-done");
+      var chk = card.querySelector(".ex-check");
+      if(chk){ chk.hidden = true; chk.setAttribute("aria-pressed", "false"); }
       var w = lastWeight(e.id);
       inp.placeholder = w != null ? fmtKg(w) : "0";
       card.querySelectorAll(".seg button").forEach(function(b){ b.setAttribute("aria-checked","false"); b.tabIndex = 0; });
