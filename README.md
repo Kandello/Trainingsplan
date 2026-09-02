@@ -21,22 +21,79 @@ GitHub Pages ist das gegeben.
 ## Geräte-Sync einrichten
 
 Ohne Einrichtung läuft die App rein lokal. Für den Abgleich zwischen
-Android-Handy und PC-Firefox einmalig ein kostenloses Firebase-Projekt anlegen:
+Android-Handy und PC-Firefox einmalig ein kostenloses Firebase-Projekt anlegen.
+Dieselbe Anleitung steht auch in der App hinter dem Sync-Button oben rechts.
 
-1. [console.firebase.google.com](https://console.firebase.google.com) → Projekt anlegen.
-2. **Firestore Database** → *Create database* → Produktionsmodus.
-3. **Firestore → Rules** → Inhalt von `firestore.rules` einfügen → *Veröffentlichen*.
-4. **Authentication → Sign-in method** → *Google* aktivieren.
-5. **Authentication → Settings → Authorized domains** → die GitHub-Pages-Domain
-   eintragen (z. B. `kandello.github.io`). Ohne diesen Schritt schlägt die
-   Anmeldung mit `auth/unauthorized-domain` fehl.
-6. **Projektübersicht → Web-App (`</>`)** hinzufügen und das `firebaseConfig`
-   kopieren — entweder in `firebase-config.js` eintragen und pushen, oder in der
-   App über den Sync-Button oben rechts einfügen (dann nur auf diesem Gerät).
+Die Beschriftungen der Firebase-Konsole ändern sich gelegentlich; deshalb steht
+jeweils dabei, wo der Punkt sitzt.
 
-Danach auf beiden Geräten mit demselben Google-Konto anmelden. Der Chip oben
-rechts zeigt den Zustand: *Sync aktiv*, *Wartet* (offline, wird nachgeholt) oder
-*Sync-Fehler* mit Klartext-Ursache.
+**1. Projekt anlegen**
+- [console.firebase.google.com](https://console.firebase.google.com) öffnen.
+- „Projekt erstellen" → Name vergeben, z. B. `trainingsplan`.
+- Google Analytics kann abgewählt werden, wird nicht gebraucht.
+
+**2. Firestore-Datenbank anlegen**
+- Linke Seitenleiste → „Erstellen" (engl. *Build*) → „Firestore Database".
+- Button „Datenbank erstellen".
+- Standort `eur3 (europe-west)` — **später nicht mehr änderbar**.
+- Modus: „Im Produktionsmodus starten" (nicht Testmodus — der läuft nach
+  30 Tagen ab).
+- „Erstellen". Danach erscheint eine leere Datenbank.
+
+**3. Zugriffsregeln veröffentlichen**
+- In der Firestore-Ansicht oben auf den Reiter „Regeln" (*Rules*).
+- Den kompletten vorhandenen Text markieren und löschen.
+- Inhalt von [`firestore.rules`](firestore.rules) einfügen.
+- Button „Veröffentlichen".
+
+Ohne diesen Schritt endet jeder Zugriff mit `permission-denied`.
+
+**4. Google-Anmeldung aktivieren**
+- Seitenleiste → „Authentication" → „Jetzt starten".
+- Reiter „Sign-in method" → in der Liste „Google" anklicken.
+- Schalter auf „Aktivieren", Support-E-Mail auswählen, „Speichern".
+
+**5. Domain freigeben**
+- Weiter in „Authentication" → Reiter „Settings" bzw. „Einstellungen"
+  (neben *Users* und *Sign-in method*).
+- Abschnitt „Autorisierte Domains" (*Authorized domains*).
+- „Domain hinzufügen" → genau `kandello.github.io` eintragen — ohne `https://`
+  und ohne Pfad. Dass `localhost` dort schon steht, ist normal.
+
+Fehlt dieser Schritt, bricht die Anmeldung mit `auth/unauthorized-domain` ab.
+
+**6. Konfiguration holen**
+- Zahnrad oben links neben „Projektübersicht" → „Projekteinstellungen".
+- Reiter „Allgemein", runterscrollen bis „Meine Apps".
+- Symbol `</>` (Web) anklicken, Spitzname z. B. `Trainingsplan`.
+- „Firebase Hosting einrichten" **nicht** ankreuzen → „App registrieren".
+- Im angezeigten Code steht ein Block:
+
+```js
+const firebaseConfig = {
+  apiKey: "…",
+  authDomain: "…",
+  projectId: "…",
+  appId: "…"
+};
+```
+
+Nur die geschweifte Klammer samt Inhalt kopieren — von `{` bis `}`.
+
+**7. Eintragen**
+
+Zwei Wege, beide gleichwertig:
+- In der App auf den Sync-Button → unten einfügen → „Konfiguration speichern".
+  Gilt nur für dieses Gerät, muss am zweiten Gerät wiederholt werden.
+- Oder in [`firebase-config.js`](firebase-config.js) eintragen und pushen —
+  dann gilt sie für alle Geräte.
+
+Danach springt der Chip auf „Anmelden". Auf beiden Geräten mit **demselben
+Google-Konto** anmelden. Der Chip zeigt anschliessend *Sync aktiv*, *Wartet*
+(offline, wird nachgeholt) oder *Sync-Fehler* mit Klartext-Ursache.
+
+Die App findest du später über Projekteinstellungen → „Meine Apps" →
+„Konfiguration" wieder.
 
 Die Werte in `firebase-config.js` sind keine Geheimnisse — der Schutz kommt aus
 den Firestore-Regeln, nicht aus dem `apiKey`.
@@ -107,6 +164,28 @@ Vier Trainingstage in der Reihenfolge des Plans: **Total Body** (6 Übungen),
 
 Gewichte werden mit bis zu drei Nachkommastellen erfasst; Komma und Punkt
 werden beide akzeptiert.
+
+### Sätze und Wiederholungen
+
+`2×6–8` heisst zwei Sätze mit je 6 bis 8 Wiederholungen. Beide Werte stehen als
+antippbare Chips in der Übungskarte: Antippen öffnet ein kleines Eingabefenster,
+**Enter** übernimmt, **daneben tippen oder Escape** bricht ab. Bei den
+Wiederholungen ergeben zwei gleiche Zahlen eine feste Vorgabe (`3×10`),
+vertauschte Eingaben werden sortiert.
+
+Die Änderung gilt nur für diese eine Übung, wird lokal gespeichert, liegt im
+JSON-Export und synchronisiert wie der Tausch unter `users/{uid}/state/plan`.
+
+Die Gewichtsangabe daneben bleibt bewusst grau und nicht antippbar — sie ist die
+Planvorgabe; das tatsächliche Gewicht wird bei jedem Training im Eingabefeld
+protokolliert.
+
+### Verlauf in der Übungskarte
+
+Unter dem Namen stehen die letzten Trainings mit Datum und Gewicht, dazu eine
+kleine Kurve und die Veränderung zum vorletzten Mal. Es werden bis zu drei
+Einträge gezeigt; passt die Zeile nicht, entfällt zuerst die Kurve, dann der
+älteste Eintrag — auf schmalen Displays bleiben so mindestens zwei sichtbar.
 
 ### Übungen tauschen
 

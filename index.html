@@ -143,6 +143,34 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;
 }
 
+/* Antippbare Zahlen für Sätze und Wiederholungen */
+.spec-chip{
+  flex:0 0 auto;display:inline-flex;align-items:baseline;gap:3px;
+  min-height:26px;padding:2px 8px;border-radius:999px;
+  background:var(--sunken);color:var(--text-2);
+  font-size:11.5px;font-weight:600;white-space:nowrap;
+  border:1px solid transparent;transition:border-color .12s,background .12s;
+}
+.spec-chip strong{font-size:12.5px;font-weight:750;color:var(--text-1);font-variant-numeric:tabular-nums}
+.spec-chip:hover,.spec-chip:focus-visible{border-color:var(--ring)}
+.spec-chip:active{transform:scale(.96)}
+
+dialog#spec-dialog{width:min(320px, calc(100vw - 32px));margin-top:12vh}
+dialog#spec-dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog#spec-dialog .dlg-inner{padding:16px}
+.spec-fields{display:flex;align-items:flex-end;gap:10px;margin-top:12px}
+.spec-f{flex:1 1 0;min-width:0}
+.spec-f span{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin:0 2px 4px}
+.spec-f input{
+  width:100%;min-height:48px;padding:0 12px;text-align:center;
+  border:1.5px solid var(--border);border-radius:var(--r-md);
+  background:var(--plane);color:var(--text-1);
+  font:700 20px/1 system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-variant-numeric:tabular-nums;
+}
+.spec-f input:focus{outline:none;border-color:var(--hold);background:var(--surface-1)}
+.spec-dash{flex:0 0 auto;padding-bottom:13px;color:var(--muted);font-weight:700}
+
 dialog#confirm-dialog,
 dialog#swap-dialog,
 dialog#sync-dialog{
@@ -170,6 +198,31 @@ dialog#sync-dialog::backdrop{background:rgba(0,0,0,.5)}
 .btn-line.primary{background:var(--text-1);color:var(--plane);border-color:var(--text-1)}
 .btn-line:disabled{opacity:.5;cursor:default}
 .dlg-note{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* Einrichtungs-Anleitung im Sync-Dialog */
+.guide{display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow-y:auto;
+  margin:0 -4px;padding:0 4px;-webkit-overflow-scrolling:touch}
+.guide-step{border-bottom:1px solid var(--border)}
+.guide-step:last-of-type{border-bottom:0}
+.guide-step summary{
+  display:flex;align-items:center;gap:8px;min-height:38px;
+  cursor:pointer;list-style:none;font-size:13px;font-weight:600;
+}
+.guide-step summary::-webkit-details-marker{display:none}
+.guide-num{
+  flex:0 0 auto;width:20px;height:20px;display:grid;place-items:center;
+  border-radius:999px;background:var(--sunken);color:var(--text-2);
+  font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;
+}
+.guide-t{flex:1 1 auto;min-width:0}
+.guide-step summary::after{
+  content:"";flex:0 0 auto;width:0;height:0;
+  border:4px solid transparent;border-top-color:var(--muted);margin-top:3px;
+  transition:transform .15s;
+}
+.guide-step[open] summary::after{transform:rotate(180deg);margin-top:-3px}
+.guide-step ul{margin:0 0 10px;padding-left:30px}
+.guide-step li{font-size:12px;color:var(--text-2);line-height:1.55;margin-bottom:4px;overflow-wrap:anywhere}
 .dlg-note code{
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;
   background:var(--sunken);padding:1px 4px;border-radius:4px;
@@ -235,12 +288,8 @@ main{padding:14px 12px calc(env(safe-area-inset-bottom) + 88px);max-width:720px;
   font-size:11.5px;font-weight:650;font-variant-numeric:tabular-nums;
 }
 .ex-name{flex:1 1 auto;font-size:15.5px;font-weight:600;line-height:1.25;letter-spacing:-0.01em;min-width:0;overflow-wrap:anywhere}
-.ex-sets{
-  flex:0 0 auto;padding:2px 7px;border-radius:999px;
-  background:var(--sunken);color:var(--text-2);
-  font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;
-}
-.ex-meta{display:flex;align-items:center;gap:7px;margin:4px 0 0 29px;min-width:0}
+
+.ex-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:7px 0 0 29px;min-width:0}
 .ex-plan{margin:0;font-size:12px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
 
 /* Eine Spalte: oben die Gewichtseingabe (mit Miniverlauf daneben),
@@ -266,18 +315,18 @@ main{padding:14px 12px calc(env(safe-area-inset-bottom) + 88px);max-width:720px;
 .wfield .unit{flex:0 0 auto;font-size:13px;font-weight:600;color:var(--muted)}
 
 /* ---------- Mini history ---------- */
+/* Verlauf der letzten Trainings, direkt unter dem Übungsnamen */
 .hist{
-  flex:1 1 170px;min-width:0;overflow:hidden;
-  display:flex;align-items:center;gap:7px;justify-content:flex-end;
+  display:flex;align-items:center;gap:8px;
+  margin:5px 0 0 29px;min-width:0;overflow:hidden;white-space:nowrap;
 }
-.hist-empty{font-size:12px;color:var(--muted);font-style:italic}
+.hist-empty{font-size:11.5px;color:var(--muted);font-style:italic}
 .spark{flex:0 0 auto;display:block;overflow:visible}
-.hist-vals{
-  display:flex;align-items:baseline;gap:4px;flex-wrap:nowrap;
-  font-size:12.5px;color:var(--text-2);font-variant-numeric:tabular-nums;
-}
-.hist-vals .hsep{color:var(--muted);font-size:11px}
-.hist-vals .hv-last{font-weight:700;color:var(--text-1)}
+.hist-vals{display:flex;align-items:baseline;gap:10px;flex-wrap:nowrap}
+.hitem{display:inline-flex;align-items:baseline;gap:4px}
+.hdate{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.hkg{font-size:12px;color:var(--text-2);font-variant-numeric:tabular-nums}
+.hitem-last .hkg{font-weight:700;color:var(--text-1)}
 .delta{
   flex:0 0 auto;display:inline-flex;align-items:center;gap:2px;
   padding:1px 5px;border-radius:999px;background:var(--sunken);
@@ -512,6 +561,15 @@ tbody td.na{color:var(--muted)}
   </div>
 </dialog>
 
+<dialog id="spec-dialog" class="dlg-compact" aria-labelledby="spec-dlg-title">
+  <form method="dialog" class="dlg-inner" id="spec-form">
+    <h2 id="spec-dlg-title"></h2>
+    <p class="dlg-lead" id="spec-dlg-lead"></p>
+    <div class="spec-fields" id="spec-fields"></div>
+    <p class="dlg-note" id="spec-hint"></p>
+  </form>
+</dialog>
+
 <dialog id="swap-dialog" aria-labelledby="swap-dlg-title">
   <div class="dlg-inner">
     <h2 id="swap-dlg-title">Übung tauschen</h2>
@@ -546,39 +604,39 @@ tbody td.na{color:var(--muted)}
    ============================================================ */
 const BASE_DAYS = [
   { id:"total", name:"Total Body", short:"Total", ex:[
-    { id:"tb-lying-leg-curl",       n:"LyingLegCurl",         s:"2×6–8",  p:"55 kg" },
-    { id:"tb-any-squat",            n:"AnySquat",             s:"2×6–8",  p:"2×13,75 kg" },
-    { id:"tb-barbell-incline-press",n:"BarbellInclinePress",  s:"2×6–8",  p:"2×23,75 kg" },
-    { id:"tb-incline-db-y-raise",   n:"InclineDB Y-Raise",    s:"1×8–10", p:"9 kg" },
-    { id:"tb-pullups",              n:"PullUps",              s:"2×6–8",  p:"Körpergewicht" },
-    { id:"tb-standing-calf-raise",  n:"StandingCalfRaise",    s:"1×6–8",  p:"2×70 kg" }
+    { id:"tb-lying-leg-curl",       n:"LyingLegCurl",         sets:2, rmin:6, rmax:8,  p:"55 kg" },
+    { id:"tb-any-squat",            n:"AnySquat",             sets:2, rmin:6, rmax:8,  p:"2×13,75 kg" },
+    { id:"tb-barbell-incline-press",n:"BarbellInclinePress",  sets:2, rmin:6, rmax:8,  p:"2×23,75 kg" },
+    { id:"tb-incline-db-y-raise",   n:"InclineDB Y-Raise",    sets:1, rmin:8, rmax:10, p:"9 kg" },
+    { id:"tb-pullups",              n:"PullUps",              sets:2, rmin:6, rmax:8,  p:"Körpergewicht" },
+    { id:"tb-standing-calf-raise",  n:"StandingCalfRaise",    sets:1, rmin:6, rmax:8,  p:"2×70 kg" }
   ]},
   { id:"upper", name:"Upper Body", short:"Upper", ex:[
-    { id:"ub-close-grip-latzug",    n:"CloseGripLatzug",      s:"2×8–10", p:"90 kg" },
-    { id:"ub-smith-machine-shrug",  n:"SmithMachineShrug",    s:"2×6–8",  p:"100 kg" },
-    { id:"ub-chest-supported-tbar", n:"ChestSupported TbarRow",s:"2×8–10",p:"55 kg" },
-    { id:"ub-machine-chest-press",  n:"MachineChestPress",    s:"2×8–10", p:"95 kg" },
-    { id:"ub-high-cable-lat-raise", n:"HighCableLateralRaise",s:"2×8–10", p:"37 kg" },
-    { id:"ub-1arm-reverse-pec-deck",n:"1ArmReversePecDeck",   s:"1×8–10", p:"50 kg" },
-    { id:"ub-crunch-machine",       n:"CrunchMachine",        s:"2×6–8",  p:"60 kg" }
+    { id:"ub-close-grip-latzug",    n:"CloseGripLatzug",      sets:2, rmin:8, rmax:10, p:"90 kg" },
+    { id:"ub-smith-machine-shrug",  n:"SmithMachineShrug",    sets:2, rmin:6, rmax:8,  p:"100 kg" },
+    { id:"ub-chest-supported-tbar", n:"ChestSupported TbarRow",sets:2, rmin:8, rmax:10,p:"55 kg" },
+    { id:"ub-machine-chest-press",  n:"MachineChestPress",    sets:2, rmin:8, rmax:10, p:"95 kg" },
+    { id:"ub-high-cable-lat-raise", n:"HighCableLateralRaise",sets:2, rmin:8, rmax:10, p:"37 kg" },
+    { id:"ub-1arm-reverse-pec-deck",n:"1ArmReversePecDeck",   sets:1, rmin:8, rmax:10, p:"50 kg" },
+    { id:"ub-crunch-machine",       n:"CrunchMachine",        sets:2, rmin:6, rmax:8,  p:"60 kg" }
   ]},
   { id:"lower", name:"Lower Body", short:"Lower", ex:[
-    { id:"lb-kniebeugen",           n:"Kniebeugen",           s:"3×10",   p:"110 kg" },
-    { id:"lb-barbell-dl",           n:"Barbell DL",           s:"2×8–10", p:"100 kg" },
-    { id:"lb-hip-thrust",           n:"HipThrust",            s:"2×6–8",  p:"110 kg", planTrend:"up" },
-    { id:"lb-standing-calf-raise",  n:"StandingCalfRaise",    s:"2×8–10", p:"2×65 kg" },
-    { id:"lb-leg-extensions",       n:"LegExtensions",        s:"2×8–10", p:"90 kg" },
-    { id:"lb-leg-press",            n:"LegPress",             s:"1×6–8",  p:"189 kg" }
+    { id:"lb-kniebeugen",           n:"Kniebeugen",           sets:3, rmin:10, rmax:null,   p:"110 kg" },
+    { id:"lb-barbell-dl",           n:"Barbell DL",           sets:2, rmin:8, rmax:10, p:"100 kg" },
+    { id:"lb-hip-thrust",           n:"HipThrust",            sets:2, rmin:6, rmax:8,  p:"110 kg", planTrend:"up" },
+    { id:"lb-standing-calf-raise",  n:"StandingCalfRaise",    sets:2, rmin:8, rmax:10, p:"2×65 kg" },
+    { id:"lb-leg-extensions",       n:"LegExtensions",        sets:2, rmin:8, rmax:10, p:"90 kg" },
+    { id:"lb-leg-press",            n:"LegPress",             sets:1, rmin:6, rmax:8,  p:"189 kg" }
   ]},
   { id:"arms", name:"Arms & Delts", short:"Arms", ex:[
-    { id:"ad-bayesian-cable-curls", n:"BayesianCableCurls",   s:"2×6–8",  p:"109 kg" },
-    { id:"ad-oh-triceps",           n:"OH Triceps",           s:"2×8–10", p:"149 kg" },
-    { id:"ad-mod-zottman-curl",     n:"ModZottmanCurl",       s:"1×8–10", p:"22 kg" },
-    { id:"ad-db-wrist-curl",        n:"DBWristCurl",          s:"2×8–10", p:"12 kg" },
-    { id:"ad-db-wrist-extension",   n:"DBWristExtension",     s:"2×8–10", p:"9 kg" },
-    { id:"ad-alternating-db-curl",  n:"AlternatingDBCurl",    s:"1×6–8",  p:"20 kg" },
-    { id:"ad-cable-triceps-kickbk", n:"CableTricepsKickback", s:"2×8–10", p:"53 kg" },
-    { id:"ad-machine-lateral-raise",n:"MachineLateralRaise",  s:"2×8–10", p:"50 kg" }
+    { id:"ad-bayesian-cable-curls", n:"BayesianCableCurls",   sets:2, rmin:6, rmax:8,  p:"109 kg" },
+    { id:"ad-oh-triceps",           n:"OH Triceps",           sets:2, rmin:8, rmax:10, p:"149 kg" },
+    { id:"ad-mod-zottman-curl",     n:"ModZottmanCurl",       sets:1, rmin:8, rmax:10, p:"22 kg" },
+    { id:"ad-db-wrist-curl",        n:"DBWristCurl",          sets:2, rmin:8, rmax:10, p:"12 kg" },
+    { id:"ad-db-wrist-extension",   n:"DBWristExtension",     sets:2, rmin:8, rmax:10, p:"9 kg" },
+    { id:"ad-alternating-db-curl",  n:"AlternatingDBCurl",    sets:1, rmin:6, rmax:8,  p:"20 kg" },
+    { id:"ad-cable-triceps-kickbk", n:"CableTricepsKickback", sets:2, rmin:8, rmax:10, p:"53 kg" },
+    { id:"ad-machine-lateral-raise",n:"MachineLateralRaise",  sets:2, rmin:8, rmax:10, p:"50 kg" }
   ]}
 ];
 
@@ -588,7 +646,8 @@ const BASE_DAYS = [
 const POOL = {};
 BASE_DAYS.forEach(function(d){
   d.ex.forEach(function(e){
-    POOL[e.id] = { id:e.id, n:e.n, s:e.s, p:e.p, planTrend:e.planTrend || null, dayId:d.id };
+    POOL[e.id] = { id:e.id, n:e.n, sets:e.sets, rmin:e.rmin, rmax:e.rmax,
+                   p:e.p, planTrend:e.planTrend || null, dayId:d.id };
   });
 });
 
@@ -606,6 +665,13 @@ function dayById(id){
 
 /** Baut DAYS.ex aus dem gespeicherten Plan; fällt je Tag auf den Basisplan zurück. */
 function applyPlan(){
+  Object.keys(exSpec).forEach(function(id){
+    var o = exSpec[id], e = POOL[id];
+    if(!e || !o) return;
+    if(o.sets != null) e.sets = o.sets;
+    if(o.rmin != null) e.rmin = o.rmin;
+    e.rmax = o.rmax != null ? o.rmax : null;
+  });
   DAY_OF_EX = {};
   Object.keys(POOL).forEach(function(id){
     var d = dayById(POOL[id].dayId);
@@ -616,6 +682,16 @@ function applyPlan(){
     d.ex = ids.map(function(id){ return POOL[id]; }).filter(Boolean);
     d.ex.forEach(function(e){ DAY_OF_EX[e.id] = d; });
   });
+}
+
+/** "6–8" bzw. "10" — Wiederholungsbereich als Text. */
+function repsText(ex){
+  if(ex.rmin == null) return "–";
+  return ex.rmax != null && ex.rmax !== ex.rmin ? ex.rmin + "–" + ex.rmax : String(ex.rmin);
+}
+/** "2×6–8" — kompakte Gesamtangabe, z. B. für Dialogtexte. */
+function specText(ex){
+  return (ex.sets != null ? ex.sets : "–") + "×" + repsText(ex);
 }
 
 /** Übungen mit Historie oder aus dem Basisplan, die aktuell in keinem Tag stehen. */
@@ -639,6 +715,7 @@ const TRENDS = [
    ============================================================ */
 const K_PLAN     = "trainingsplan.v1.plan";
 const K_CUSTOMEX = "trainingsplan.v1.customExercises";
+const K_EXSPEC   = "trainingsplan.v1.exerciseSpec";
 const K_SESSIONS = "trainingsplan.v1.sessions";
 const K_DRAFTS   = "trainingsplan.v1.drafts";
 const K_UI       = "trainingsplan.v1.ui";
@@ -673,12 +750,15 @@ var ui       = store.read(K_UI, {});
 var planOrder = store.read(K_PLAN, {});
 /** customEx: {exId:{id,n,s,p,dayId}} — selbst eingetragene Übungen */
 var customEx  = store.read(K_CUSTOMEX, {});
+/** exSpec: {exId:{sets,rmin,rmax}} — geänderte Sätze/Wiederholungen */
+var exSpec    = store.read(K_EXSPEC, {});
 
 if(!Array.isArray(sessions)) sessions = [];
 if(!drafts || typeof drafts !== "object") drafts = {};
 if(!ui || typeof ui !== "object") ui = {};
 if(!planOrder || typeof planOrder !== "object") planOrder = {};
 if(!customEx || typeof customEx !== "object") customEx = {};
+if(!exSpec || typeof exSpec !== "object") exSpec = {};
 
 Object.keys(customEx).forEach(function(id){
   var e = customEx[id];
@@ -688,13 +768,18 @@ Object.keys(customEx).forEach(function(id){
 function saveSessions(){ sessions.sort(function(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }); store.write(K_SESSIONS, sessions); }
 function saveDrafts(){ store.write(K_DRAFTS, drafts); }
 function saveUi(){ store.write(K_UI, ui); }
-function savePlan(){ store.write(K_PLAN, planOrder); store.write(K_CUSTOMEX, customEx); }
+function savePlan(){
+  store.write(K_PLAN, planOrder);
+  store.write(K_CUSTOMEX, customEx);
+  store.write(K_EXSPEC, exSpec);
+}
 
 /* ============================================================
    3. Zahlen & Datum
    ============================================================ */
 const NF = new Intl.NumberFormat("de-DE", { maximumFractionDigits:3 });
 const DF_SHORT = new Intl.DateTimeFormat("de-DE", { day:"2-digit", month:"2-digit" });
+const DF_TINY  = new Intl.DateTimeFormat("de-DE", { day:"numeric", month:"numeric" });
 const DF_LONG  = new Intl.DateTimeFormat("de-DE", { day:"2-digit", month:"2-digit", year:"numeric" });
 
 function fmtKg(v){ return NF.format(v); }
@@ -816,50 +901,74 @@ function toast(msg){
 /* ============================================================
    6. Miniverlauf (letzte 3 Trainingsgewichte)
    ============================================================ */
+/** Verlauf der letzten Trainings mit Datum und Gewicht, direkt unter dem Namen.
+    Passt nicht alles in eine Zeile, fallen die ältesten Einträge weg (mind. 1). */
 function buildHistory(exId){
   var wrap = h("div", { class:"hist" });
   var hist = historyOf(exId).slice(-3);
 
   if(!hist.length){
-    wrap.appendChild(h("span", { class:"hist-empty", text:"Noch keine Daten" }));
+    wrap.appendChild(h("span", { class:"hist-empty", text:"Noch kein Training erfasst" }));
     return wrap;
   }
 
-  var W = 46, H = 18, PAD = 3;
-  var s = svg("svg", { class:"spark", width:W, height:H, viewBox:"0 0 "+W+" "+H, "aria-hidden":"true", focusable:"false" });
+  var W = 40, H = 16, PAD = 3;
+  var sp = svg("svg", { class:"spark", width:W, height:H, viewBox:"0 0 "+W+" "+H,
+    "aria-hidden":"true", focusable:"false" });
   var vals = hist.map(function(p){ return p.w; });
   var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
   var span = hi - lo || 1;
   var xs = hist.map(function(_, i){ return hist.length === 1 ? W/2 : PAD + i * ((W - PAD*2) / (hist.length - 1)); });
   var ys = vals.map(function(v){ return H - PAD - ((v - lo) / span) * (H - PAD*2); });
-
   if(hist.length > 1){
     var d = xs.map(function(x, i){ return (i ? "L" : "M") + x.toFixed(1) + " " + ys[i].toFixed(1); }).join(" ");
-    svg("path", { d:d, fill:"none", stroke:"var(--muted)", "stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round" }, s);
+    svg("path", { d:d, fill:"none", stroke:"var(--muted)", "stroke-width":"2",
+      "stroke-linecap":"round", "stroke-linejoin":"round" }, sp);
   }
-  svg("circle", { cx:xs[xs.length-1].toFixed(1), cy:ys[ys.length-1].toFixed(1), r:"3", fill:"var(--s1)", stroke:"var(--surface-1)", "stroke-width":"2" }, s);
-  wrap.appendChild(s);
+  svg("circle", { cx:xs[xs.length-1].toFixed(1), cy:ys[ys.length-1].toFixed(1), r:"2.5",
+    fill:"var(--s1)", stroke:"var(--surface-1)", "stroke-width":"2" }, sp);
+  wrap.appendChild(sp);
 
   var valsBox = h("span", { class:"hist-vals" });
   hist.forEach(function(p, i){
-    if(i) valsBox.appendChild(h("span", { class:"hsep", text:"›" }));
-    var span2 = h("span", { class:"hv" + (i === hist.length-1 ? " hv-last" : ""), text:fmtKg(p.w) });
-    span2.title = DF_LONG.format(isoToDate(p.date)) + ": " + fmtKg(p.w) + " kg";
-    valsBox.appendChild(span2);
+    var item = h("span", { class:"hitem" + (i === hist.length-1 ? " hitem-last" : "") });
+    item.appendChild(h("span", { class:"hdate", text:DF_TINY.format(isoToDate(p.date)) }));
+    item.appendChild(h("span", { class:"hkg",
+      text:fmtKg(p.w) + (i === hist.length-1 ? " kg" : "") }));
+    item.title = DF_LONG.format(isoToDate(p.date)) + ": " + fmtKg(p.w) + " kg";
+    valsBox.appendChild(item);
   });
   wrap.appendChild(valsBox);
 
   if(hist.length > 1){
     var diff = Math.round((hist[hist.length-1].w - hist[hist.length-2].w) * 1000) / 1000;
     var dir  = diff > 0 ? "up" : diff < 0 ? "down" : "flat";
-    var gly  = diff > 0 ? "▲" : diff < 0 ? "▼" : "●";
+    var gly  = diff > 0 ? "\u25B2" : diff < 0 ? "\u25BC" : "\u25CF";
     var badge = h("span", { class:"delta " + dir });
     badge.appendChild(h("span", { class:"gly", text:gly }));
-    badge.appendChild(document.createTextNode(diff > 0 ? "+" + fmtKg(diff) : diff < 0 ? fmtKg(diff) : "±0"));
+    badge.appendChild(document.createTextNode(diff > 0 ? "+" + fmtKg(diff) : diff < 0 ? fmtKg(diff) : "\u00B10"));
     badge.title = "Veränderung zum vorletzten Training";
     wrap.appendChild(badge);
   }
+
+  fitHistory(wrap);
   return wrap;
+}
+
+/** Kürzt den Verlauf, bis er in eine Zeile passt: erst ältere Einträge, dann die Kurve. */
+function fitHistory(wrap){
+  requestAnimationFrame(function(){
+    if(!wrap.isConnected) return;
+    var box = wrap.querySelector(".hist-vals");
+    if(!box) return;
+    var guard = 0;
+    while(wrap.scrollWidth > wrap.clientWidth + 1 && guard++ < 4){
+      var sp2 = wrap.querySelector(".spark");
+      if(sp2) sp2.remove();
+      else if(box.children.length > 1) box.removeChild(box.firstChild);
+      else break;
+    }
+  });
 }
 
 function refreshHistory(exId){
@@ -893,7 +1002,25 @@ function buildExercise(ex, idx){
     swapBtn
   ]));
 
-  var meta = h("div", { class:"ex-meta" }, [ h("span", { class:"ex-sets", text:ex.s }) ]);
+  card.appendChild(buildHistory(ex.id));
+
+  /* Sätze und Wiederholungen getrennt — beide antippbar. */
+  var meta = h("div", { class:"ex-meta" });
+
+  var setsBtn = h("button", { class:"spec-chip", type:"button",
+    "aria-label":"Sätze ändern — " + ex.n + ", aktuell " + (ex.sets != null ? ex.sets : "–") });
+  setsBtn.appendChild(h("strong", { text:ex.sets != null ? String(ex.sets) : "–" }));
+  setsBtn.appendChild(document.createTextNode(ex.sets === 1 ? " Satz" : " Sätze"));
+  setsBtn.addEventListener("click", function(){ openSpec(ex.id, "sets"); });
+  meta.appendChild(setsBtn);
+
+  var repsBtn = h("button", { class:"spec-chip", type:"button",
+    "aria-label":"Wiederholungen ändern — " + ex.n + ", aktuell " + repsText(ex) });
+  repsBtn.appendChild(h("strong", { text:repsText(ex) }));
+  repsBtn.appendChild(document.createTextNode(" Whlg."));
+  repsBtn.addEventListener("click", function(){ openSpec(ex.id, "reps"); });
+  meta.appendChild(repsBtn);
+
   if(ex.p){
     meta.appendChild(h("span", { class:"ex-plan",
       text:"Gewicht: " + ex.p + (ex.planTrend === "up" ? " · nächstes Mal steigern" : "") }));
@@ -929,9 +1056,7 @@ function buildExercise(ex, idx){
     updateSaveBar(DAY_OF_EX[ex.id].id);
   });
 
-  var body = h("div", { class:"ex-body" }, [
-    h("div", { class:"ex-line" }, [ field, buildHistory(ex.id) ])
-  ]);
+  var body = h("div", { class:"ex-body" }, [ h("div", { class:"ex-line" }, [ field ]) ]);
   card.appendChild(body);
 
   /* 3-Wege-Schalter */
@@ -1553,7 +1678,7 @@ function exportData(){
   var payload = {
     app:"trainingsplan", version:2, exported:new Date().toISOString(),
     sessions:sessions,
-    plan:{ order:planOrder, exercises:customEx }
+    plan:{ order:planOrder, exercises:customEx, spec:exSpec }
   };
   var blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
   var url = URL.createObjectURL(blob);
@@ -1588,8 +1713,17 @@ function importData(){
           Object.keys(ex).forEach(function(id){
             var e = ex[id];
             if(!e || typeof e.n !== "string" || !e.n) return;
-            customEx[id] = { id:id, n:e.n, s:e.s || "", p:e.p || "", planTrend:null, dayId:e.dayId || null };
+            customEx[id] = { id:id, n:e.n, sets:e.sets, rmin:e.rmin, rmax:e.rmax,
+                             p:e.p || "", planTrend:null, dayId:e.dayId || null };
             POOL[id] = customEx[id];
+          });
+        }
+        var sp = parsed.plan.spec;
+        if(sp && typeof sp === "object"){
+          Object.keys(sp).forEach(function(id){
+            var o = sp[id];
+            if(!POOL[id] || !o) return;
+            exSpec[id] = { sets:o.sets, rmin:o.rmin, rmax:o.rmax != null ? o.rmax : null };
           });
         }
         var ord = parsed.plan.order;
@@ -1765,6 +1899,106 @@ function renderLog(){
 }
 
 /* ============================================================
+   9c. Sätze und Wiederholungen ändern
+   ------------------------------------------------------------
+   Enter übernimmt, Tippen daneben oder Escape bricht ab. Die
+   Änderung gilt nur für diese Übung und wird wie der Tausch im
+   Plan gespeichert.
+   ============================================================ */
+var specCtx = null;
+
+function openSpec(exId, which){
+  var ex = POOL[exId];
+  if(!ex) return;
+  specCtx = { exId:exId, which:which };
+
+  var dlg    = document.getElementById("spec-dialog");
+  var fields = document.getElementById("spec-fields");
+  while(fields.firstChild) fields.removeChild(fields.firstChild);
+
+  document.getElementById("spec-dlg-title").textContent =
+    which === "sets" ? "Sätze" : "Wiederholungen";
+  document.getElementById("spec-dlg-lead").textContent = ex.n;
+  document.getElementById("spec-hint").textContent =
+    which === "sets" ? "Enter übernimmt, daneben tippen bricht ab."
+                     : "Für eine feste Zahl beide Felder gleich setzen. Enter übernimmt.";
+
+  function numField(label, value, ref){
+    var wrap = h("label", { class:"spec-f" });
+    wrap.appendChild(h("span", { text:label }));
+    var inp = h("input", { type:"text", inputmode:"numeric", autocomplete:"off",
+      enterkeyhint:"done", maxlength:"2", "aria-label":label });
+    inp.value = value != null ? String(value) : "";
+    inp.addEventListener("input", function(){ inp.value = inp.value.replace(/[^0-9]/g, "").slice(0, 2); });
+    inp.addEventListener("focus", function(){ inp.select(); });
+    wrap.appendChild(inp);
+    fields.appendChild(wrap);
+    ref.push(inp);
+    return inp;
+  }
+
+  var inputs = [];
+  if(which === "sets"){
+    numField("Anzahl", ex.sets, inputs);
+  } else {
+    numField("von", ex.rmin, inputs);
+    fields.appendChild(h("span", { class:"spec-dash", text:"–" }));
+    numField("bis", ex.rmax != null ? ex.rmax : ex.rmin, inputs);
+  }
+
+  function commit(){
+    var vals = inputs.map(function(i){ return parseInt(i.value, 10); });
+    if(vals.some(function(v){ return !isFinite(v) || v < 1 || v > 99; })){
+      toast("Bitte eine Zahl zwischen 1 und 99 eingeben");
+      return;
+    }
+    if(which === "sets") setSpec(exId, { sets:vals[0] });
+    else {
+      var lo = Math.min(vals[0], vals[1]), hi = Math.max(vals[0], vals[1]);
+      setSpec(exId, { rmin:lo, rmax:hi > lo ? hi : null });
+    }
+    specCtx = null;
+    if(typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
+    rebuildAll();
+  }
+
+  inputs.forEach(function(inp){
+    inp.addEventListener("keydown", function(e){
+      if(e.key === "Enter"){ e.preventDefault(); commit(); }
+    });
+  });
+
+  if(typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+  setTimeout(function(){ inputs[0].focus(); inputs[0].select(); }, 60);
+}
+
+function setSpec(exId, patch){
+  var cur = exSpec[exId] || {};
+  var ex  = POOL[exId] || {};
+  var next = {
+    sets: patch.sets != null ? patch.sets : (cur.sets != null ? cur.sets : ex.sets),
+    rmin: patch.rmin != null ? patch.rmin : (cur.rmin != null ? cur.rmin : ex.rmin),
+    rmax: ("rmax" in patch) ? patch.rmax : (("rmax" in cur) ? cur.rmax : ex.rmax)
+  };
+  exSpec[exId] = next;
+  savePlan();
+  applyPlan();
+  Sync.pushPlan();
+}
+
+/** Klick auf den Hintergrund des Dialogs bricht ab — wie Escape. */
+function wireSpecUi(){
+  var dlg = document.getElementById("spec-dialog");
+  dlg.addEventListener("click", function(e){
+    if(e.target === dlg){
+      specCtx = null;
+      if(typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
+    }
+  });
+  dlg.addEventListener("close", function(){ specCtx = null; });
+}
+
+/* ============================================================
    10b. Übung tauschen
    ------------------------------------------------------------
    Der Slot im Trainingstag zeigt danach auf eine andere Übung.
@@ -1816,11 +2050,13 @@ function swapExercise(dayId, oldId, rawName){
   if(existing){
     newId = existing.id;
     existing.dayId = dayId;
-    if(!POOL[newId].s) POOL[newId].s = old.s;
+    if(POOL[newId].sets == null) POOL[newId].sets = old.sets;
+    if(POOL[newId].rmin == null) POOL[newId].rmin = old.rmin;
     customEx[newId] = POOL[newId];
   } else {
     newId = slugId(name);
-    POOL[newId] = { id:newId, n:name, s:old.s, p:"", planTrend:null, dayId:dayId };
+    POOL[newId] = { id:newId, n:name, sets:old.sets, rmin:old.rmin, rmax:old.rmax,
+                    p:"", planTrend:null, dayId:dayId };
     customEx[newId] = POOL[newId];
   }
 
@@ -1899,7 +2135,7 @@ function renderSwap(){
   body.appendChild(dl);
 
   body.appendChild(h("p", { class:"dlg-note",
-    text:"Sätze und Wiederholungen (" + ex.s + ") werden übernommen." }));
+    text:"Sätze und Wiederholungen (" + specText(ex) + ") werden übernommen." }));
 
   function submit(){
     var err = swapExercise(swapCtx.dayId, swapCtx.exId, inp.value);
@@ -2046,7 +2282,8 @@ const Sync = (function(){
   function pushPlan(){
     if(!M || !uid) return Promise.resolve();
     return M.F.setDoc(planRef(), {
-      order: planOrder, exercises: customEx, updatedAt: M.F.serverTimestamp()
+      order: planOrder, exercises: customEx, spec: exSpec,
+      updatedAt: M.F.serverTimestamp()
     }, { merge:true });
   }
 
@@ -2063,8 +2300,10 @@ const Sync = (function(){
         });
       }
       if(v.order && typeof v.order === "object") planOrder = v.order;
+      if(v.spec && typeof v.spec === "object") exSpec = v.spec;
       store.write(K_PLAN, planOrder);
       store.write(K_CUSTOMEX, customEx);
+      store.write(K_EXSPEC, exSpec);
       applyPlan();
       rebuildAll();
     }, function(){});
@@ -2158,6 +2397,68 @@ function renderChip(){
   document.getElementById("sync-chip").setAttribute("aria-label", "Geräte-Sync: " + meta.label);
 }
 
+/* Schritt-für-Schritt-Anleitung. Die Beschriftungen der Firebase-Konsole
+   können sich ändern; deshalb steht überall dabei, wo der Punkt sitzt. */
+const SETUP_STEPS = [
+  { t:"Projekt anlegen", d:[
+    "console.firebase.google.com öffnen, mit dem Google-Konto anmelden.",
+    "„Projekt erstellen“ → Name vergeben, z. B. trainingsplan.",
+    "Google Analytics kannst du abwählen — wird nicht gebraucht.",
+    "Auf „Projekt erstellen“ klicken und warten, bis die Übersicht erscheint."
+  ]},
+  { t:"Firestore-Datenbank anlegen", d:[
+    "Linke Seitenleiste → „Erstellen“ (engl. Build) → „Firestore Database“.",
+    "Button „Datenbank erstellen“.",
+    "Standort: eur3 (europe-west) — lässt sich später NICHT mehr ändern.",
+    "Modus: „Im Produktionsmodus starten“ wählen (nicht Testmodus).",
+    "„Erstellen“ — danach erscheint eine leere Datenbank."
+  ]},
+  { t:"Zugriffsregeln veröffentlichen", d:[
+    "In der Firestore-Ansicht oben auf den Reiter „Regeln“ (Rules).",
+    "Den kompletten vorhandenen Text markieren und löschen.",
+    "Inhalt der Datei firestore.rules aus dem Repo einfügen.",
+    "Button „Veröffentlichen“. Ohne diesen Schritt endet jeder Zugriff mit „permission-denied“."
+  ]},
+  { t:"Google-Anmeldung aktivieren", d:[
+    "Seitenleiste → „Authentication“ → „Jetzt starten“.",
+    "Reiter „Sign-in method“ → in der Liste „Google“ anklicken.",
+    "Schalter auf „Aktivieren“, Support-E-Mail auswählen, „Speichern“."
+  ]},
+  { t:"Domain freigeben", d:[
+    "Weiter in „Authentication“ → Reiter „Settings“ bzw. „Einstellungen“ (neben Users und Sign-in method).",
+    "Abschnitt „Autorisierte Domains“ (Authorized domains).",
+    "„Domain hinzufügen“ → genau eintragen: " + location.hostname,
+    "Ohne https:// und ohne Pfad. Dass localhost dort schon steht, ist normal."
+  ]},
+  { t:"Konfiguration holen", d:[
+    "Zahnrad oben links neben „Projektübersicht“ → „Projekteinstellungen“.",
+    "Reiter „Allgemein“, runterscrollen bis „Meine Apps“.",
+    "Auf das Symbol </> (Web) klicken, Spitzname z. B. Trainingsplan.",
+    "„Firebase Hosting einrichten“ NICHT ankreuzen → „App registrieren“.",
+    "Im angezeigten Code steht ein Block const firebaseConfig = { … };",
+    "Nur die geschweifte Klammer samt Inhalt kopieren — von { bis } — und unten einfügen."
+  ]}
+];
+
+function buildSetupGuide(){
+  var box = h("div", { class:"guide" });
+  SETUP_STEPS.forEach(function(step, i){
+    var det = h("details", { class:"guide-step" });
+    if(i >= 3) det.open = true;
+    var sum = h("summary");
+    sum.appendChild(h("span", { class:"guide-num", text:String(i + 1) }));
+    sum.appendChild(h("span", { class:"guide-t", text:step.t }));
+    det.appendChild(sum);
+    var ul = document.createElement("ul");
+    step.d.forEach(function(line){ ul.appendChild(h("li", { text:line })); });
+    det.appendChild(ul);
+    box.appendChild(det);
+  });
+  box.appendChild(h("p", { class:"dlg-note",
+    text:"Danach unten einfügen und speichern. Der Chip springt auf „Anmelden“ — dort mit demselben Google-Konto anmelden, auf jedem Gerät." }));
+  return box;
+}
+
 function renderDialog(){
   var body = document.getElementById("sync-dlg-body");
   var lead = document.getElementById("sync-dlg-lead");
@@ -2170,20 +2471,8 @@ function renderDialog(){
   }
 
   if(s.status === "unconfigured"){
-    lead.textContent = "Noch nicht eingerichtet — die Daten liegen nur auf diesem Gerät. Für den Abgleich zwischen Handy und PC ein kostenloses Firebase-Projekt anlegen und die Konfiguration hier einfügen.";
-    var note = h("div", { class:"dlg-note" });
-    note.appendChild(h("strong", { text:"Einrichtung (einmalig, ca. 10 Minuten):" }));
-    var ol = document.createElement("ol");
-    [
-      "console.firebase.google.com öffnen und ein Projekt anlegen.",
-      "Firestore Database → Create database → Produktionsmodus.",
-      "Authentication → Sign-in method → Google aktivieren.",
-      "Authentication → Settings → Authorized domains: " + location.hostname + " eintragen.",
-      "Projektübersicht → Web-App (</>) hinzufügen und das firebaseConfig-Objekt kopieren.",
-      "Rules aus firestore.rules im Repo einfügen und veröffentlichen."
-    ].forEach(function(t){ ol.appendChild(h("li", { text:t })); });
-    note.appendChild(ol);
-    body.appendChild(note);
+    lead.textContent = "Noch nicht eingerichtet — die Daten liegen nur auf diesem Gerät. Für den Abgleich zwischen Handy und PC einmalig ein kostenloses Firebase-Projekt anlegen.";
+    body.appendChild(buildSetupGuide());
 
     var ta = h("textarea", { spellcheck:"false", "aria-label":"Firebase-Konfiguration",
       placeholder:'{\n  "apiKey": "…",\n  "authDomain": "…",\n  "projectId": "…",\n  "appId": "…"\n}' });
@@ -2334,6 +2623,7 @@ saveDrafts();
 buildTabs();
 wireSyncUi();
 wireSwapUi();
+wireSpecUi();
 renderChip();
 rebuildAll();
 Sync.init();
