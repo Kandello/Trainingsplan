@@ -2407,16 +2407,18 @@ const SETUP_STEPS = [
     "Auf „Projekt erstellen“ klicken und warten, bis die Übersicht erscheint."
   ]},
   { t:"Firestore-Datenbank anlegen", d:[
-    "Linke Seitenleiste → „Erstellen“ (engl. Build) → „Firestore Database“.",
-    "Button „Datenbank erstellen“.",
+    "Linke Seitenleiste → unter „Projektverknüpfungen“ auf „Firestore“.",
+    "Fehlt der Eintrag: „Produktkategorien“ → „Datenbanken und Speicher“ → Firestore Database.",
+    "Erscheint ein Button „Datenbank erstellen“, ist sie noch nicht angelegt.",
     "Standort: eur3 (europe-west) — lässt sich später NICHT mehr ändern.",
-    "Modus: „Im Produktionsmodus starten“ wählen (nicht Testmodus).",
-    "„Erstellen“ — danach erscheint eine leere Datenbank."
+    "Modus: „Im Produktionsmodus starten“ (nicht Testmodus).",
+    "„Erstellen“ — danach erscheint ein leerer Datenbrowser."
   ]},
   { t:"Zugriffsregeln veröffentlichen", d:[
     "In der Firestore-Ansicht oben auf den Reiter „Regeln“ (Rules).",
     "Den kompletten vorhandenen Text markieren und löschen.",
     "Inhalt der Datei firestore.rules aus dem Repo einfügen.",
+    "ACHTUNG: Hier gehört NICHT die firebaseConfig hin. Die erste Zeile muss rules_version = '2'; lauten.",
     "Button „Veröffentlichen“. Ohne diesen Schritt endet jeder Zugriff mit „permission-denied“."
   ]},
   { t:"Google-Anmeldung aktivieren", d:[
@@ -2425,17 +2427,15 @@ const SETUP_STEPS = [
     "Schalter auf „Aktivieren“, Support-E-Mail auswählen, „Speichern“."
   ]},
   { t:"Domain freigeben", d:[
-    "Weiter in „Authentication“ → Reiter „Settings“ bzw. „Einstellungen“ (neben Users und Sign-in method).",
-    "Abschnitt „Autorisierte Domains“ (Authorized domains).",
+    "Authentication → Reiter „Einstellungen“ → links „Autorisierte Domains“.",
     "„Domain hinzufügen“ → genau eintragen: " + location.hostname,
-    "Ohne https:// und ohne Pfad. Dass localhost dort schon steht, ist normal."
+    "Ohne https:// und ohne Pfad. localhost und zwei firebaseapp-Einträge stehen dort schon."
   ]},
   { t:"Konfiguration holen", d:[
-    "Zahnrad oben links neben „Projektübersicht“ → „Projekteinstellungen“.",
-    "Reiter „Allgemein“, runterscrollen bis „Meine Apps“.",
-    "Auf das Symbol </> (Web) klicken, Spitzname z. B. Trainingsplan.",
-    "„Firebase Hosting einrichten“ NICHT ankreuzen → „App registrieren“.",
-    "Im angezeigten Code steht ein Block const firebaseConfig = { … };",
+    "Seitenleiste → „Einstellungen“ (Zahnrad) → „Projekteinstellungen“.",
+    "Runterscrollen bis „Meine Apps“. Gibt es dort noch keine App: Symbol </> (Web) anklicken, Spitznamen vergeben, Firebase Hosting NICHT ankreuzen, „App registrieren“.",
+    "Bei der Web-App unter „SDK-Einrichtung und -Konfiguration“ auf „Konfiguration“ umschalten.",
+    "Angezeigt wird ein Block const firebaseConfig = { … };",
     "Nur die geschweifte Klammer samt Inhalt kopieren — von { bis } — und unten einfügen."
   ]}
 ];
