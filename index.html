@@ -391,9 +391,21 @@ main{padding:14px 12px calc(env(safe-area-inset-bottom) + 88px);max-width:720px;
 
 /* ---------- Save ---------- */
 .save-bar{margin-top:16px}
+.save-row{display:flex;gap:8px}
+.btn-confirm-all{
+  flex:0 0 22%;min-width:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  min-height:52px;border-radius:var(--r-lg);
+  /* Dasselbe Blau wie die unbestätigten Zahlen — Weiss darauf 5,69:1 */
+  background:#1f66bd;color:#fff;
+  font-size:11px;font-weight:650;letter-spacing:-0.01em;
+}
+.btn-confirm-all svg{width:19px;height:19px}
+.btn-confirm-all:active{transform:scale(.98)}
+.btn-confirm-all:disabled{opacity:.35;cursor:default;transform:none}
 .btn-primary{
   display:flex;align-items:center;justify-content:center;gap:8px;
-  width:100%;min-height:52px;border-radius:var(--r-lg);
+  flex:1 1 auto;min-width:0;min-height:52px;border-radius:var(--r-lg);
   background:var(--text-1);color:var(--plane);
   font-size:16px;font-weight:650;letter-spacing:-0.01em;
 }
@@ -1192,6 +1204,19 @@ function countFilled(day){
   return n;
 }
 
+/** Bestätigt in einem Rutsch alles, was eingetragen, aber noch blau ist. */
+function confirmAllOf(day){
+  var n = 0;
+  day.ex.forEach(function(e){
+    var d = drafts[e.id];
+    if(d && d.sug && (d.w || d.t)){ delete d.sug; n++; }
+  });
+  if(!n){ toast("Nichts zu bestätigen"); return; }
+  saveDrafts();
+  rebuildAll();
+  toast(plural(n, "Übung", "Übungen") + " bestätigt");
+}
+
 /** Eingetragen, aber noch nicht bestätigt. */
 function countOpen(day){
   var n = 0;
@@ -1208,8 +1233,10 @@ function updateSaveBar(dayId){
   var btn = document.getElementById("save-" + dayId);
   var hint = document.getElementById("hint-" + dayId);
   var pre = document.getElementById("prefill-" + dayId);
+  var all = document.getElementById("confirmall-" + dayId);
   if(!btn) return;
   var n = countFilled(day);
+  if(all) all.disabled = countOpen(day) === 0;
   btn.disabled = n === 0;
   btn.textContent = n === 0 ? "Einheit speichern" : "Einheit speichern (" + n + ")";
   if(hint){
@@ -1276,10 +1303,21 @@ function buildDayView(day){
   day.ex.forEach(function(e, i){ list.appendChild(buildExercise(e, i)); });
   view.appendChild(list);
 
+  var allBtn = h("button", { class:"btn-confirm-all", type:"button", id:"confirmall-"+day.id,
+    title:"Alle eingetragenen Werte als absolviert bestätigen",
+    "aria-label":"Alle eingetragenen Werte bestätigen — " + day.name });
+  var ai = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
+    "stroke-width":"2.6", "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
+  svg("path", { d:"M4 12.5l5.5 5.5L20 7" }, ai);
+  allBtn.appendChild(ai);
+  allBtn.appendChild(h("span", { text:"Alle" }));
+  allBtn.addEventListener("click", function(){ confirmAllOf(day); });
+
   var saveBtn = h("button", { class:"btn-primary", type:"button", id:"save-"+day.id, text:"Einheit speichern" });
   saveBtn.addEventListener("click", function(){ saveDay(day); });
+
   view.appendChild(h("div", { class:"save-bar" }, [
-    saveBtn,
+    h("div", { class:"save-row" }, [ allBtn, saveBtn ]),
     h("p", { class:"save-hint", id:"hint-"+day.id })
   ]));
 

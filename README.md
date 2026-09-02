@@ -243,6 +243,10 @@ braucht damit keine Aktion — einfach nicht bestätigen. Der Speichern-Button
 bleibt inaktiv, solange nichts bestätigt ist, und der Hinweis darunter nennt,
 wie viele blaue Werte übergangen werden.
 
+Am Ende des Trainingstags steht links neben „Einheit speichern" ein blauer
+**Alle**-Button, der alle eingetragenen blauen Werte auf einmal bestätigt. Er
+ist inaktiv, solange es nichts zu bestätigen gibt.
+
 Das gilt auch für den Tendenz-Schalter: eine gesetzte Tendenz ohne Gewicht
 (z. B. bei Klimmzügen) blendet den Haken ebenfalls ein und wird erst nach
 Bestätigung gespeichert.
