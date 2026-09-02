@@ -235,11 +235,17 @@ Die Zahlen haben drei Zustände:
 
 Der Haken rechts neben dem Feld bestätigt, dass die Übung absolviert ist; ein
 weiterer Druck nimmt die Bestätigung zurück. Eine Korrektur an einem grünen
-Wert bleibt grün. Wer eine Übung auslässt, leert einfach das Feld — dann
-entsteht auch kein Punkt in der Verlaufskurve.
+Wert bleibt grün.
 
-Gespeichert wird derzeit jeder nicht-leere Wert, blau wie grün; der Hinweis
-unter dem Speichern-Button nennt die Zahl der unbestätigten Werte.
+**In die Einheit kommt ausschliesslich, was grün ist.** Blaue Werte zählen wie
+leere: kein Eintrag, kein Punkt in der Verlaufskurve. Eine ausgelassene Übung
+braucht damit keine Aktion — einfach nicht bestätigen. Der Speichern-Button
+bleibt inaktiv, solange nichts bestätigt ist, und der Hinweis darunter nennt,
+wie viele blaue Werte übergangen werden.
+
+Das gilt auch für den Tendenz-Schalter: eine gesetzte Tendenz ohne Gewicht
+(z. B. bei Klimmzügen) blendet den Haken ebenfalls ein und wird erst nach
+Bestätigung gespeichert.
 
 Eine Einheit lässt sich jederzeit unvollständig speichern: aufgenommen wird
 nur, wofür du ein Gewicht eingetragen oder eine Tendenz gewählt hast. Der

@@ -1083,23 +1083,30 @@ function buildExercise(ex, idx){
   check.appendChild(ci);
 
   /** "empty" | "sug" (blau, unbestätigt) | "done" (grün, bestätigt) */
-  function paint(state){
-    field.classList.toggle("has-val", state !== "empty");
-    field.classList.toggle("is-sug",  state === "sug");
-    field.classList.toggle("is-done", state === "done");
+  function draftState(){
+    var cur = drafts[ex.id];
+    if(!cur || (!cur.w && !cur.t)) return "empty";
+    return cur.sug ? "sug" : "done";
+  }
+  function syncCheck(){
+    var state = draftState();
+    var hasW = !!input.value;
+    field.classList.toggle("has-val", hasW);
+    field.classList.toggle("is-sug",  hasW && state === "sug");
+    field.classList.toggle("is-done", hasW && state === "done");
     check.hidden = state === "empty";
     check.setAttribute("aria-pressed", state === "done" ? "true" : "false");
     check.title = state === "done" ? "Absolviert — antippen zum Zurücknehmen"
                                    : "Als absolviert bestätigen";
   }
-  paint(!input.value ? "empty" : (d.sug ? "sug" : "done"));
+  syncCheck();
 
   check.addEventListener("click", function(){
     var entry = drafts[ex.id];
-    if(!entry || !entry.w) return;
+    if(!entry || (!entry.w && !entry.t)) return;
     if(entry.sug) delete entry.sug; else entry.sug = true;
     saveDrafts();
-    paint(entry.sug ? "sug" : "done");
+    syncCheck();
     updateSaveBar(DAY_OF_EX[ex.id].id);
   });
 
@@ -1117,9 +1124,9 @@ function buildExercise(ex, idx){
        bereits bestätigten Wert bleibt bestätigt. */
     if(clean && !had) entry.sug = true;
     entry.w = clean;
-    if(!clean){ delete entry.sug; if(!entry.t) delete drafts[ex.id]; }
+    if(!clean && !entry.t) delete drafts[ex.id];
     saveDrafts();
-    paint(!clean ? "empty" : (entry.sug ? "sug" : "done"));
+    syncCheck();
     updateSaveBar(DAY_OF_EX[ex.id].id);
   });
 
@@ -1134,11 +1141,14 @@ function buildExercise(ex, idx){
     b.appendChild(document.createTextNode(tr.label));
     b.tabIndex = d.t === tr.t ? 0 : (d.t ? -1 : 0);
     b.addEventListener("click", function(){
+      var fresh = !drafts[ex.id];
       var entry = drafts[ex.id] || (drafts[ex.id] = {});
       var next = entry.t === tr.t ? null : tr.t;
       entry.t = next;
+      if(fresh && next) entry.sug = true;
       if(!entry.w && !next) delete drafts[ex.id];
       saveDrafts();
+      syncCheck();
       seg.querySelectorAll("button").forEach(function(o){
         var on = o.getAttribute("data-t") === next;
         o.setAttribute("aria-checked", on ? "true" : "false");
@@ -1166,11 +1176,28 @@ function buildExercise(ex, idx){
 /* ============================================================
    8. Trainingstag-Ansicht
    ============================================================ */
+/** Was aus einem Entwurf in die Einheit wandert — oder null.
+    Unbestätigte (blaue) Einträge gelten als nicht vorhanden. */
+function confirmedEntry(exId){
+  var d = drafts[exId];
+  if(!d || d.sug) return null;
+  var w = parseKg(d.w);
+  if(w == null && !d.t) return null;
+  return { w:w, t:d.t || null };
+}
+
 function countFilled(day){
+  var n = 0;
+  day.ex.forEach(function(e){ if(confirmedEntry(e.id)) n++; });
+  return n;
+}
+
+/** Eingetragen, aber noch nicht bestätigt. */
+function countOpen(day){
   var n = 0;
   day.ex.forEach(function(e){
     var d = drafts[e.id];
-    if(d && (parseKg(d.w) != null || d.t)) n++;
+    if(d && d.sug && (parseKg(d.w) != null || d.t)) n++;
   });
   return n;
 }
@@ -1186,16 +1213,16 @@ function updateSaveBar(dayId){
   btn.disabled = n === 0;
   btn.textContent = n === 0 ? "Einheit speichern" : "Einheit speichern (" + n + ")";
   if(hint){
-    var open = day.ex.filter(function(e){
-      var d = drafts[e.id];
-      return d && d.w && d.sug;
-    }).length;
+    var open = countOpen(day);
+    var openTxt = open
+      ? " " + (open === 1 ? "Ein blauer Wert ist" : open + " blaue Werte sind")
+        + " nicht bestätigt und " + (open === 1 ? "wird" : "werden") + " nicht gespeichert."
+      : "";
     hint.textContent = n === 0
-      ? "Trage mindestens ein Gewicht oder eine Tendenz ein."
+      ? (open ? "Mit dem grünen Haken bestätigen, was du absolviert hast."
+              : "Trage mindestens ein Gewicht oder eine Tendenz ein.")
       : n + " von " + day.ex.length + " Übungen " + (n === 1 ? "wird" : "werden")
-        + " mit dem heutigen Datum gespeichert."
-        + (open ? " " + (open === 1 ? "Ein Wert ist" : open + " Werte sind")
-                + " noch nicht bestätigt (blau)." : "");
+        + " mit dem heutigen Datum gespeichert." + openTxt;
   }
   if(pre){
     var hasAny = day.ex.some(function(e){ return lastWeight(e.id) != null; });
@@ -1300,14 +1327,15 @@ function saveDay(day){
   var entries = {};
   var count = 0;
   day.ex.forEach(function(e){
-    var d = drafts[e.id];
-    if(!d) return;
-    var w = parseKg(d.w);
-    if(w == null && !d.t) return;
-    entries[e.id] = { w:w, t:d.t || null };
+    var entry = confirmedEntry(e.id);
+    if(!entry) return;
+    entries[e.id] = entry;
     count++;
   });
-  if(!count){ toast("Keine Eingaben zum Speichern"); return; }
+  if(!count){
+    toast(countOpen(day) ? "Noch nichts bestätigt — Haken drücken" : "Keine Eingaben zum Speichern");
+    return;
+  }
 
   var odd = findOutliers(entries);
   if(odd.length){
