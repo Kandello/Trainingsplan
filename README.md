@@ -194,6 +194,27 @@ kleine Kurve und die Veränderung zum vorletzten Mal. Es werden bis zu drei
 Einträge gezeigt; passt die Zeile nicht, entfällt zuerst die Kurve, dann der
 älteste Eintrag — auf schmalen Displays bleiben so mindestens zwei sichtbar.
 
+### Reihenfolge per Ziehen ändern
+
+Die kleine Ziffer links neben jeder Übung ist gleichzeitig der Anfasser dafür:
+**gedrückt halten** (rund 350 ms, ohne dabei zu wischen) aktiviert den
+Zug-Modus — die Karte hebt sich sichtbar ab, die Ziffer wird kurz blau. Danach
+folgt die Karte senkrecht dem Finger; sobald sie die Mitte der Nachbarkarte
+passiert, rückt diese sichtbar an ihren Platz — so lässt sich eine Übung in
+einem Zug über mehrere Positionen hinweg verschieben, nicht nur um eine.
+
+Wird dabei nahe an den oberen (unter dem Kopfbereich) oder unteren Rand
+(über der Tableiste) gezogen, scrollt die Seite sanft mit — gedrosselt und
+in beide Richtungen erprobt, damit es nicht ins Endlose läuft. Die Umordnung
+wird dabei nicht angehalten: jeder Scroll-Schritt prüft sofort erneut, ob sich
+die gezogene Übung an eine neue Position geschoben hat, auch wenn der Finger
+selbst stillhält.
+
+Ein kurzer Tipp ohne Halten oder eine Bewegung, bevor die Haltezeit um ist,
+wird als normales Scrollen behandelt — es passiert nichts. Die neue Reihenfolge
+wird wie beim Tausch unter `users/{uid}/state/plan` gespeichert, liegt im
+JSON-Export und gilt auf allen Geräten.
+
 ### Übungen tauschen
 
 Der Tausch-Button (⇄) rechts neben jeder Übung ersetzt sie durch eine andere.

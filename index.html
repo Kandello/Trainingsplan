@@ -285,12 +285,39 @@ main{padding:14px 12px calc(env(safe-area-inset-bottom) + 88px);max-width:720px;
 .ex-swap svg{width:17px;height:17px}
 .ex-swap:hover,.ex-swap:focus-visible{background:var(--sunken);color:var(--text-1)}
 .ex-swap:active{transform:scale(.94)}
-.ex-idx{
-  flex:0 0 auto;width:21px;height:21px;margin-top:1px;
+.ex-idx{position:relative;flex:0 0 auto;width:21px;height:21px;margin-top:1px}
+.idx-dot{
+  width:21px;height:21px;
   display:grid;place-items:center;border-radius:999px;
   background:var(--sunken);color:var(--muted);
   font-size:11.5px;font-weight:650;font-variant-numeric:tabular-nums;
+  pointer-events:none;
+  transition:background .12s,color .12s,transform .12s;
 }
+/* Unsichtbarer Anfasser, deutlich grösser als die Ziffer — beeinflusst
+   das Layout nicht, weil er absolut über ihr sitzt. */
+.ex-idx-hit{
+  position:absolute;left:50%;top:50%;
+  width:44px;height:44px;transform:translate(-50%,-50%);
+  border-radius:999px;background:transparent;
+  cursor:grab;-webkit-tap-highlight-color:transparent;
+  /* touch-action bleibt bis zur Aktivierung auf "auto" (JS setzt "none"
+     erst, wenn der Zug wirklich losgeht) — sonst blockiert schon jede
+     Berührung das normale Scrollen, bevor sich Tippen von Ziehen
+     unterscheiden lässt. */
+}
+.ex-idx-hit:active{cursor:grabbing}
+.ex-idx-hit:hover,.ex-idx-hit:focus-visible{background:color-mix(in srgb, var(--muted) 14%, transparent)}
+
+/* Während des Ziehens: Karte schwebt sichtbar über den anderen. */
+.ex.is-dragging{position:relative;z-index:5;box-shadow:0 14px 30px rgba(0,0,0,.20);transition:none}
+/* #1f66bd statt var(--hold): Weiss darauf kommt auf 5,69:1 — var(--hold)
+   käme je nach Modus nur auf 4,42:1 bzw. 3,64:1, zu wenig für Normaltext. */
+.ex.is-dragging .idx-dot{background:#1f66bd;color:#fff;transform:scale(1.15)}
+/* Nur während einer aktiven Ziehbewegung animieren die verdrängten
+   Nachbarn ihren Platzwechsel — sonst bleibt transform ungebremst. */
+.ex-list.is-reordering > .ex:not(.is-dragging){transition:transform 180ms cubic-bezier(.2,.8,.2,1)}
+body.is-reordering{-webkit-user-select:none;user-select:none}
 .ex-name{flex:1 1 auto;font-size:15.5px;font-weight:600;line-height:1.25;letter-spacing:-0.01em;min-width:0;overflow-wrap:anywhere}
 
 .ex-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:7px 0 0 29px;min-width:0}
@@ -674,8 +701,8 @@ const BASE_DAYS = [
     { id:"ad-mod-zottman-curl",     n:"ModZottmanCurl",       sets:1, rmin:8, rmax:10, p:"22 kg" },
     { id:"ad-db-wrist-curl",        n:"DBWristCurl",          sets:2, rmin:8, rmax:10, p:"12 kg", retired:true },
     { id:"ad-db-wrist-extension",   n:"DBWristExtension",     sets:2, rmin:8, rmax:10, p:"9 kg", retired:true },
-    { id:"ad-alternating-db-curl",  n:"AlternatingDBCurl",    sets:1, rmin:6, rmax:8,  p:"20 kg" },
     { id:"ad-cable-triceps-kickbk", n:"CableTricepsKickback", sets:2, rmin:8, rmax:10, p:"53 kg" },
+    { id:"ad-alternating-db-curl",  n:"AlternatingDBCurl",    sets:1, rmin:6, rmax:8,  p:"20 kg" },
     { id:"ad-machine-lateral-raise",n:"MachineLateralRaise",  sets:2, rmin:8, rmax:10, p:"50 kg" }
   ]}
 ];
@@ -1042,11 +1069,24 @@ function buildExercise(ex, idx){
   swapBtn.appendChild(si);
   swapBtn.addEventListener("click", function(){ openSwap(DAY_OF_EX[ex.id].id, ex.id); });
 
+  /* Positionsziffer + unsichtbar vergrösserter Anfasser für "gedrückt
+     halten und ziehen". Der Anfasser sitzt absolut über der Ziffer, damit
+     das 21-px-Badge im Layout unverändert bleibt — .ex-meta verlässt sich
+     weiter auf den gleichen Abstand. */
+  var idxDot = h("span", { class:"idx-dot", text:String(idx+1) });
+  var idxWrap = h("span", { class:"ex-idx" }, [ idxDot ]);
+  var idxHit = h("button", { class:"ex-idx-hit", type:"button",
+    "aria-label":"Reihenfolge ändern — " + ex.n + ". Gedrückt halten und ziehen.",
+    title:"Gedrückt halten und ziehen, um die Reihenfolge zu ändern" });
+  idxWrap.appendChild(idxHit);
+
   card.appendChild(h("div", { class:"ex-head" }, [
-    h("span", { class:"ex-idx", text:String(idx+1) }),
+    idxWrap,
     h("h3",   { class:"ex-name", text:ex.n }),
     swapBtn
   ]));
+
+  wireReorderHandle(idxHit, card, ex);
 
   card.appendChild(buildHistory(ex.id));
 
@@ -1183,6 +1223,184 @@ function buildExercise(ex, idx){
   body.appendChild(seg);
 
   return card;
+}
+
+/* ============================================================
+   7b. Übungen per Ziehen neu anordnen
+   ------------------------------------------------------------
+   Gedrückt halten auf der Positionsziffer aktiviert nach einer kurzen
+   Verzögerung den Zug-Modus; vorher zählt jede Bewegung als Wisch-Geste
+   und scrollt ganz normal (touch-action bleibt bis dahin unangetastet).
+
+   Während des Zugs wird kein DOM-Knoten verschoben — nur die betroffenen
+   Karten bekommen ein transform. Nachbarn, an denen die gezogene Karte
+   vorbeigezogen wird, animieren sichtbar an ihren neuen Platz ("Platz
+   machen"); die gezogene Karte selbst folgt ohne Verzögerung dem Finger.
+
+   Nahe Bildschirmrand (unter dem Kopfbereich / über der Tableiste) läuft
+   ein sanft gedrosseltes Auto-Scroll. Es teilt sich EINE Schleife mit der
+   Positionsauswertung: jeder Frame scrollt (falls nötig) UND prüft sofort
+   erneut auf einen Platzwechsel — Scrollen kann also nie passieren, ohne
+   dass die eigentliche Umordnung mitläuft.
+   ============================================================ */
+function wireReorderHandle(handle, card, ex){
+  var HOLD_MS = 350, CANCEL_PX = 10;
+  var pending = null;
+
+  handle.addEventListener("pointerdown", function(e){
+    if(e.pointerType === "mouse" && e.button !== 0) return;
+    var startX = e.clientX, startY = e.clientY, pid = e.pointerId;
+
+    function cleanupPending(){
+      window.removeEventListener("pointermove", onPreMove);
+      window.removeEventListener("pointerup", onPreUp);
+      window.removeEventListener("pointercancel", onPreUp);
+    }
+    function onPreMove(ev){
+      if(ev.pointerId !== pid || !pending) return;
+      if(Math.abs(ev.clientX - startX) > CANCEL_PX || Math.abs(ev.clientY - startY) > CANCEL_PX){
+        clearTimeout(pending.timer);
+        pending = null;
+        cleanupPending();
+      }
+    }
+    function onPreUp(ev){
+      if(ev.pointerId !== pid) return;
+      if(pending) clearTimeout(pending.timer);
+      pending = null;
+      cleanupPending();
+    }
+
+    var timer = setTimeout(function(){
+      pending = null;
+      cleanupPending();
+      beginReorderDrag(handle, card, ex, pid, startY);
+    }, HOLD_MS);
+    pending = { timer:timer };
+
+    window.addEventListener("pointermove", onPreMove);
+    window.addEventListener("pointerup", onPreUp);
+    window.addEventListener("pointercancel", onPreUp);
+  });
+}
+
+function beginReorderDrag(handle, card, ex, pointerId, initialClientY){
+  var day = DAY_OF_EX[ex.id];
+  var list = card.parentElement;
+  var siblings = Array.prototype.slice.call(list.children).filter(function(el){
+    return el.classList.contains("ex");
+  });
+  if(siblings.length < 2) return;
+
+  try { handle.setPointerCapture(pointerId); } catch(e){}
+  handle.style.touchAction = "none";
+
+  var scrollAtStart = window.scrollY;
+  var rects = siblings.map(function(el){ return el.getBoundingClientRect(); });
+  var slotTop = rects.map(function(r){ return r.top + scrollAtStart; });
+  var slotMid = rects.map(function(r, i){ return slotTop[i] + r.height / 2; });
+
+  var elFor = {}, originalIndexOf = {};
+  siblings.forEach(function(el, i){ elFor[el.dataset.ex] = el; originalIndexOf[el.dataset.ex] = i; });
+  var order = siblings.map(function(el){ return el.dataset.ex; });
+  var startOrder = order.slice();
+
+  var draggedIndex = originalIndexOf[ex.id];
+  var homeMid = slotMid[draggedIndex];
+  var startPageY = initialClientY + scrollAtStart;
+  var lastClientY = initialClientY;
+
+  list.classList.add("is-reordering");
+  document.body.classList.add("is-reordering");
+  card.classList.add("is-dragging");
+  try { if(navigator.vibrate) navigator.vibrate(12); } catch(e){}
+
+  function shiftTo(id, newIdx){
+    var el = elFor[id];
+    el.style.transform = "translateY(" + (slotTop[newIdx] - slotTop[originalIndexOf[id]]) + "px)";
+  }
+
+  function evaluate(){
+    var pointerPageY = lastClientY + window.scrollY;
+    var dy = pointerPageY - startPageY;
+    card.style.transform = "translateY(" + dy + "px)";
+    var draggedMid = homeMid + dy;
+
+    while(draggedIndex < order.length - 1 && draggedMid > slotMid[draggedIndex + 1]){
+      var a = order[draggedIndex + 1];
+      order[draggedIndex + 1] = order[draggedIndex];
+      order[draggedIndex] = a;
+      draggedIndex++;
+      shiftTo(a, draggedIndex - 1);
+    }
+    while(draggedIndex > 0 && draggedMid < slotMid[draggedIndex - 1]){
+      var b = order[draggedIndex - 1];
+      order[draggedIndex - 1] = order[draggedIndex];
+      order[draggedIndex] = b;
+      draggedIndex--;
+      shiftTo(b, draggedIndex + 1);
+    }
+  }
+
+  var headerEl = document.querySelector(".app-header");
+  var tabbarEl = document.querySelector(".tabbar");
+  var EDGE = 56, MAX_PX_SEC = 600;
+  var rafId = null, lastT = null;
+
+  function loop(now){
+    if(lastT == null) lastT = now;
+    var dt = Math.min((now - lastT) / 1000, 0.05);
+    lastT = now;
+
+    var topLimit = headerEl.getBoundingClientRect().bottom;
+    var botLimit = tabbarEl.getBoundingClientRect().top;
+    if(lastClientY < topLimit + EDGE){
+      var depthT = Math.min(1, (topLimit + EDGE - lastClientY) / EDGE);
+      window.scrollBy(0, -MAX_PX_SEC * depthT * dt);
+    } else if(lastClientY > botLimit - EDGE){
+      var depthB = Math.min(1, (lastClientY - (botLimit - EDGE)) / EDGE);
+      window.scrollBy(0, MAX_PX_SEC * depthB * dt);
+    }
+
+    evaluate();
+    rafId = requestAnimationFrame(loop);
+  }
+  rafId = requestAnimationFrame(loop);
+
+  function onMove(e){
+    if(e.pointerId !== pointerId) return;
+    e.preventDefault();
+    lastClientY = e.clientY;
+  }
+  function finish(){
+    cancelAnimationFrame(rafId);
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onCancel);
+    try { handle.releasePointerCapture(pointerId); } catch(e){}
+    handle.style.touchAction = "";
+    document.body.classList.remove("is-reordering");
+
+    var changed = order.some(function(id, i){ return id !== startOrder[i]; });
+    if(changed){
+      planOrder[day.id] = order;
+      savePlan();
+      applyPlan();
+      Sync.pushPlan();
+      rebuildAll();
+      toast("Reihenfolge geändert");
+    } else {
+      siblings.forEach(function(el){ el.style.transform = ""; });
+      list.classList.remove("is-reordering");
+      card.classList.remove("is-dragging");
+    }
+  }
+  function onUp(e){ if(e.pointerId === pointerId) finish(); }
+  function onCancel(e){ if(e.pointerId === pointerId) finish(); }
+
+  window.addEventListener("pointermove", onMove, { passive:false });
+  window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onCancel);
 }
 
 /* ============================================================
