@@ -301,10 +301,17 @@ main{padding:14px 12px calc(env(safe-area-inset-bottom) + 88px);max-width:720px;
   width:44px;height:44px;transform:translate(-50%,-50%);
   border-radius:999px;background:transparent;
   cursor:grab;-webkit-tap-highlight-color:transparent;
-  /* touch-action bleibt bis zur Aktivierung auf "auto" (JS setzt "none"
-     erst, wenn der Zug wirklich losgeht) — sonst blockiert schon jede
-     Berührung das normale Scrollen, bevor sich Tippen von Ziehen
-     unterscheiden lässt. */
+  /* touch-action:none steht von Anfang an fest, nicht erst wenn der Zug
+     nach der Haltezeit losgeht: der Browser legt pro Touch-Sequenz schon
+     beim ersten Kontakt fest, ob sie fürs native Scrollen infrage kommt,
+     und hält sich später nicht mehr an eine per JS geänderte Regel.
+     Würde touch-action erst nach Ablauf der Haltezeit auf "none" gesetzt,
+     hätte Chrome auf echten Touchscreens die Bewegung längst als Scroll
+     erkannt und schickt beim ersten tatsächlichen Zug ein pointercancel —
+     die Karte hebt sich sichtbar an, lässt sich danach aber nicht mehr
+     bewegen. Der Anfasser ist klein genug, dass ein zufällig hier
+     startender Wisch zum Scrollen kaum vorkommt. */
+  touch-action:none;
 }
 .ex-idx-hit:active{cursor:grabbing}
 .ex-idx-hit:hover,.ex-idx-hit:focus-visible{background:color-mix(in srgb, var(--muted) 14%, transparent)}
@@ -1230,7 +1237,8 @@ function buildExercise(ex, idx){
    ------------------------------------------------------------
    Gedrückt halten auf der Positionsziffer aktiviert nach einer kurzen
    Verzögerung den Zug-Modus; vorher zählt jede Bewegung als Wisch-Geste
-   und scrollt ganz normal (touch-action bleibt bis dahin unangetastet).
+   und bricht die Haltezeit ab (siehe touch-action-Hinweis bei .ex-idx-hit
+   für den Grund, warum der Anfasser selbst dabei nicht mehr scrollt).
 
    Während des Zugs wird kein DOM-Knoten verschoben — nur die betroffenen
    Karten bekommen ein transform. Nachbarn, an denen die gezogene Karte
@@ -1293,7 +1301,6 @@ function beginReorderDrag(handle, card, ex, pointerId, initialClientY){
   if(siblings.length < 2) return;
 
   try { handle.setPointerCapture(pointerId); } catch(e){}
-  handle.style.touchAction = "none";
 
   var scrollAtStart = window.scrollY;
   var rects = siblings.map(function(el){ return el.getBoundingClientRect(); });
@@ -1378,7 +1385,6 @@ function beginReorderDrag(handle, card, ex, pointerId, initialClientY){
     window.removeEventListener("pointerup", onUp);
     window.removeEventListener("pointercancel", onCancel);
     try { handle.releasePointerCapture(pointerId); } catch(e){}
-    handle.style.touchAction = "";
     document.body.classList.remove("is-reordering");
 
     var changed = order.some(function(id, i){ return id !== startOrder[i]; });
