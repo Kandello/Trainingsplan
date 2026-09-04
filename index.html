@@ -351,13 +351,16 @@ body.is-reordering{-webkit-user-select:none;user-select:none}
 .wfield input:focus{outline:none}
 .wfield input::placeholder{color:var(--muted);font-weight:500}
 .wfield .unit{flex:0 0 auto;font-size:13px;font-weight:600;color:var(--muted)}
+/* Bodyweight-Übungen: "+" vor der Zahl macht sofort klar, dass es sich um
+   Zusatzgewicht zum Körpergewicht handelt, nicht ums Gesamtgewicht. */
+.wfield .wfield-prefix{flex:0 0 auto;font-size:16px;font-weight:600;color:var(--muted)}
 
 /* Blau = Vorschlag aus „Letzte Gewichte übernehmen", noch nicht bestätigt.
    Grün = Übung als absolviert bestätigt. */
 .wfield.is-sug  input{color:var(--suggest)}
-.wfield.is-sug  .unit{color:var(--suggest);opacity:.75}
+.wfield.is-sug  .unit,.wfield.is-sug  .wfield-prefix{color:var(--suggest);opacity:.75}
 .wfield.is-done input{color:var(--good-text)}
-.wfield.is-done .unit{color:var(--good-text);opacity:.75}
+.wfield.is-done .unit,.wfield.is-done .wfield-prefix{color:var(--good-text);opacity:.75}
 .wfield.is-done{border-color:color-mix(in srgb, var(--good) 55%, transparent)}
 
 .ex-check{
@@ -682,7 +685,7 @@ const BASE_DAYS = [
     { id:"tb-any-squat",            n:"AnySquat",             sets:2, rmin:6, rmax:8,  p:"2×13,75 kg" },
     { id:"tb-barbell-incline-press",n:"BarbellInclinePress",  sets:2, rmin:6, rmax:8,  p:"2×23,75 kg" },
     { id:"tb-incline-db-y-raise",   n:"InclineDB Y-Raise",    sets:1, rmin:8, rmax:10, p:"9 kg" },
-    { id:"tb-pullups",              n:"PullUps",              sets:2, rmin:6, rmax:8,  p:"Körpergewicht" },
+    { id:"tb-pullups",              n:"PullUps",              sets:2, rmin:6, rmax:8,  p:"Körpergewicht", bodyweight:true },
     { id:"tb-standing-calf-raise",  n:"StandingCalfRaise",    sets:1, rmin:6, rmax:8,  p:"2×70 kg" }
   ]},
   { id:"upper", name:"Upper Body", short:"Upper", ex:[
@@ -721,7 +724,8 @@ const POOL = {};
 BASE_DAYS.forEach(function(d){
   d.ex.forEach(function(e){
     POOL[e.id] = { id:e.id, n:e.n, sets:e.sets, rmin:e.rmin, rmax:e.rmax,
-                   p:e.p, planTrend:e.planTrend || null, dayId:d.id };
+                   p:e.p, planTrend:e.planTrend || null, dayId:d.id,
+                   bodyweight: !!e.bodyweight };
   });
 });
 
@@ -986,6 +990,7 @@ function toast(msg){
 function buildHistory(exId){
   var wrap = h("div", { class:"hist" });
   var hist = historyOf(exId).slice(-3);
+  var isBW = !!(POOL[exId] && POOL[exId].bodyweight);
 
   if(!hist.length){
     wrap.appendChild(h("span", { class:"hist-empty", text:"Noch kein Training erfasst" }));
@@ -1011,11 +1016,12 @@ function buildHistory(exId){
 
   var valsBox = h("span", { class:"hist-vals" });
   hist.forEach(function(p, i){
+    var val = (isBW ? "+" : "") + fmtKg(p.w);
     var item = h("span", { class:"hitem" + (i === hist.length-1 ? " hitem-last" : "") });
     item.appendChild(h("span", { class:"hdate", text:DF_TINY.format(isoToDate(p.date)) }));
     item.appendChild(h("span", { class:"hkg",
-      text:fmtKg(p.w) + (i === hist.length-1 ? " kg" : "") }));
-    item.title = DF_LONG.format(isoToDate(p.date)) + ": " + fmtKg(p.w) + " kg";
+      text:val + (i === hist.length-1 ? " kg" : "") }));
+    item.title = DF_LONG.format(isoToDate(p.date)) + ": " + val + " kg";
     valsBox.appendChild(item);
   });
   wrap.appendChild(valsBox);
@@ -1120,13 +1126,15 @@ function buildExercise(ex, idx){
   }
   card.appendChild(meta);
 
-  /* Gewicht */
+  /* Gewicht — bei Bodyweight-Übungen Zusatzgewicht zum Körpergewicht: ein
+     "+" davor macht das auf einen Blick klar, 0 bleibt ein echter Wert. */
   var last = lastWeight(ex.id);
-  var field = h("label", { class:"wfield" });
+  var field = h("label", { class:"wfield" + (ex.bodyweight ? " is-bodyweight" : "") });
+  if(ex.bodyweight) field.appendChild(h("span", { class:"wfield-prefix", text:"+", "aria-hidden":"true" }));
   var input = h("input", {
     type:"text", inputmode:"decimal", autocomplete:"off", enterkeyhint:"done",
     placeholder: last != null ? fmtKg(last) : "0",
-    "aria-label": "Trainingsgewicht " + ex.n + " in Kilogramm"
+    "aria-label": (ex.bodyweight ? "Zusatzgewicht zum Körpergewicht " : "Trainingsgewicht ") + ex.n + " in Kilogramm"
   });
   input.value = d.w || "";
   field.appendChild(input);
@@ -1419,6 +1427,10 @@ function confirmedEntry(exId){
   if(!d || d.sug) return null;
   var w = parseKg(d.w);
   if(w == null && !d.t) return null;
+  /* Bodyweight-Übungen: ein leeres Feld heisst "nur Körpergewicht", nicht
+     "kein Gewicht" — 0 wird zum echten, gespeicherten Wert. "Nicht gemacht"
+     bleibt davon unabhängig: keine Bestätigung, gar kein Eintrag. */
+  if(w == null && POOL[exId] && POOL[exId].bodyweight) w = 0;
   return { w:w, t:d.t || null };
 }
 
@@ -1557,6 +1569,10 @@ function findOutliers(entries){
   Object.keys(entries).forEach(function(id){
     var w = entries[id].w;
     if(w == null) return;
+    /* Zusatzgewicht ist eine kleine, oft bei 0 startende Zahl — prozentuale
+       Abweichung ist hier kein sinnvolles Signal (0→5 kg wäre schon +∞ %,
+       2,5→5 kg +100 %, beides normale Steigerungen, kein Tippfehler). */
+    if(POOL[id] && POOL[id].bodyweight) return;
     var last = lastWeight(id);
     if(last == null || last <= 0) return;
     var rel = Math.abs(w - last) / last;
@@ -1743,7 +1759,8 @@ function collectSeries(){
     var inPlan = home && home.ex.some(function(e){ return e.id === ex.id; });
     var bits = [];
     if(home) bits.push(home.name);
-    if(ex.p) bits.push("Gewicht " + ex.p);
+    if(ex.bodyweight) bits.push("Zusatzgewicht zum Körpergewicht");
+    else if(ex.p) bits.push("Gewicht " + ex.p);
     if(!inPlan) bits.push("ersetzt");
     return {
       title: ex.n,
@@ -2085,7 +2102,8 @@ function importData(){
             var e = ex[id];
             if(!e || typeof e.n !== "string" || !e.n) return;
             customEx[id] = { id:id, n:e.n, sets:e.sets, rmin:e.rmin, rmax:e.rmax,
-                             p:e.p || "", planTrend:null, dayId:e.dayId || null };
+                             p:e.p || "", planTrend:null, dayId:e.dayId || null,
+                             bodyweight: !!e.bodyweight };
             POOL[id] = customEx[id];
           });
         }
@@ -2427,7 +2445,7 @@ function swapExercise(dayId, oldId, rawName){
   } else {
     newId = slugId(name);
     POOL[newId] = { id:newId, n:name, sets:old.sets, rmin:old.rmin, rmax:old.rmax,
-                    p:"", planTrend:null, dayId:dayId };
+                    p:"", planTrend:null, dayId:dayId, bodyweight: !!old.bodyweight };
     customEx[newId] = POOL[newId];
   }
 
