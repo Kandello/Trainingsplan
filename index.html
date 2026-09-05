@@ -686,7 +686,11 @@ const BASE_DAYS = [
     { id:"tb-barbell-incline-press",n:"BarbellInclinePress",  sets:2, rmin:6, rmax:8,  p:"2×23,75 kg" },
     { id:"tb-incline-db-y-raise",   n:"InclineDB Y-Raise",    sets:1, rmin:8, rmax:10, p:"9 kg" },
     { id:"tb-pullups",              n:"PullUps",              sets:2, rmin:6, rmax:8,  p:"Körpergewicht", bodyweight:true },
-    { id:"tb-standing-calf-raise",  n:"StandingCalfRaise",    sets:1, rmin:6, rmax:8,  p:"2×70 kg" }
+    { id:"tb-standing-calf-raise",  n:"StandingCalfRaise",    sets:1, rmin:6, rmax:8,  p:"2×70 kg" },
+    /* Id bleibt "ub-..." (von Upper Body hierher verschoben) — die id ist
+       der Schlüssel, unter dem der bisherige Verlauf in sessions/Firestore
+       liegt; ein neuer Name hätte diesen Verlauf abgeschnitten. */
+    { id:"ub-crunch-machine",       n:"CrunchMachine",        sets:2, rmin:6, rmax:8,  p:"60 kg" }
   ]},
   { id:"upper", name:"Upper Body", short:"Upper", ex:[
     { id:"ub-close-grip-latzug",    n:"CloseGripLatzug",      sets:2, rmin:8, rmax:10, p:"90 kg" },
@@ -694,8 +698,8 @@ const BASE_DAYS = [
     { id:"ub-chest-supported-tbar", n:"ChestSupported TbarRow",sets:2, rmin:8, rmax:10,p:"55 kg" },
     { id:"ub-machine-chest-press",  n:"MachineChestPress",    sets:2, rmin:8, rmax:10, p:"95 kg" },
     { id:"ub-high-cable-lat-raise", n:"HighCableLateralRaise",sets:2, rmin:8, rmax:10, p:"37 kg" },
-    { id:"ub-1arm-reverse-pec-deck",n:"1ArmReversePecDeck",   sets:1, rmin:8, rmax:10, p:"50 kg" },
-    { id:"ub-crunch-machine",       n:"CrunchMachine",        sets:2, rmin:6, rmax:8,  p:"60 kg" }
+    { id:"ub-face-pulls",           n:"FacePulls",            sets:2, rmin:8, rmax:10, p:"" },
+    { id:"ub-1arm-reverse-pec-deck",n:"1ArmReversePecDeck",   sets:1, rmin:8, rmax:10, p:"50 kg" }
   ]},
   { id:"lower", name:"Lower Body", short:"Lower", ex:[
     { id:"lb-kniebeugen",           n:"Kniebeugen",           sets:3, rmin:10, rmax:null,   p:"110 kg" },
@@ -725,7 +729,7 @@ BASE_DAYS.forEach(function(d){
   d.ex.forEach(function(e){
     POOL[e.id] = { id:e.id, n:e.n, sets:e.sets, rmin:e.rmin, rmax:e.rmax,
                    p:e.p, planTrend:e.planTrend || null, dayId:d.id,
-                   bodyweight: !!e.bodyweight };
+                   bodyweight: !!e.bodyweight, retired: !!e.retired };
   });
 });
 
@@ -762,7 +766,30 @@ function applyPlan(){
     if(d) DAY_OF_EX[id] = d;
   });
   DAYS.forEach(function(d){
-    var ids = Array.isArray(planOrder[d.id]) && planOrder[d.id].length ? planOrder[d.id] : d.base;
+    var stored = Array.isArray(planOrder[d.id]) ? planOrder[d.id] : null;
+    var ids;
+    if(stored && stored.length){
+      /* Eine gespeicherte Reihenfolge zählt nur für Übungen, die laut POOL
+         aktuell wirklich zu diesem Tag gehören — das gilt genauso für
+         getauschte/eigene Übungen (per POOL[id].dayId), nicht nur für
+         Basis-Übungen. Verschiebt sich eine Basis-Übung im Code in einen
+         anderen Tag oder in den Ruhestand, darf eine ältere gespeicherte
+         Reihenfolge sie nicht mehr hier zeigen. Fehlende Plätze gegenüber
+         dem aktuellen Basisplan werden nur dann mit den fehlenden Basis-
+         Übungen aufgefüllt, wenn wirklich welche fehlen (Längenvergleich) —
+         sonst würde eine getauschte Übung neben ihrem eigenen, per Tausch
+         ersetzten Original auftauchen, weil das Original ja nicht mehr in
+         der gespeicherten Reihenfolge steht. */
+      ids = stored.filter(function(id){
+        var e = POOL[id];
+        return e && e.dayId === d.id && !e.retired;
+      });
+      if(ids.length < d.base.length){
+        d.base.forEach(function(id){ if(ids.indexOf(id) < 0) ids.push(id); });
+      }
+    } else {
+      ids = d.base;
+    }
     d.ex = ids.map(function(id){ return POOL[id]; }).filter(Boolean);
     d.ex.forEach(function(e){ DAY_OF_EX[e.id] = d; });
   });
