@@ -87,15 +87,34 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   backdrop-filter:saturate(1.4) blur(10px);
   border-bottom:1px solid var(--border);
 }
-.hdr-txt{flex:1 1 auto;min-width:0}
-.app-header h1{font-size:19px;font-weight:650;letter-spacing:-0.01em}
-.app-header p{font-size:12.5px;color:var(--muted);margin-top:1px}
+.plan-bar{
+  flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:6px;
+  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.plan-bar::-webkit-scrollbar{display:none}
+.plan-btn{
+  flex:0 0 auto;max-width:96px;min-height:32px;padding:0 12px;
+  border-radius:999px;border:1px solid transparent;
+  background:var(--sunken);color:var(--text-2);
+  font-size:11.5px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:background .12s,color .12s;
+}
+.plan-btn:hover,.plan-btn:focus-visible{border-color:var(--ring)}
+/* Aktiver Plan: gleiche "gefüllt = ausgewählt"-Sprache wie .btn-line.primary. */
+.plan-btn.is-active{background:var(--text-1);color:var(--plane)}
+.plan-btn-new{
+  flex:0 0 auto;width:32px;height:32px;display:grid;place-items:center;
+  border-radius:999px;border:1.5px dashed var(--border);color:var(--muted);
+}
+.plan-btn-new svg{width:16px;height:16px}
+.plan-btn-new:hover,.plan-btn-new:focus-visible{background:var(--sunken);color:var(--text-1);border-color:var(--ring)}
+.plan-btn-new:active{transform:scale(.94)}
 
 .sync-chip{
   flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;
-  min-height:36px;padding:0 11px;border-radius:999px;
+  min-height:32px;padding:0 9px;border-radius:999px;
   border:1px solid var(--border);background:var(--surface-1);
-  font-size:12px;font-weight:600;color:var(--text-2);max-width:132px;
+  font-size:12px;font-weight:600;color:var(--text-2);max-width:96px;
 }
 .sync-chip .sync-dot{
   width:8px;height:8px;border-radius:999px;flex:0 0 auto;
@@ -177,6 +196,8 @@ dialog#spec-dialog .dlg-inner{padding:16px}
 
 dialog#confirm-dialog,
 dialog#swap-dialog,
+dialog#fillslot-dialog,
+dialog#newplan-dialog,
 dialog#sync-dialog{
   width:min(440px, calc(100vw - 24px));
   padding:0;border:1px solid var(--border);border-radius:var(--r-lg);
@@ -185,6 +206,8 @@ dialog#sync-dialog{
 }
 dialog#confirm-dialog::backdrop,
 dialog#swap-dialog::backdrop,
+dialog#fillslot-dialog::backdrop,
+dialog#newplan-dialog::backdrop,
 dialog#sync-dialog::backdrop{background:rgba(0,0,0,.5)}
 .dlg-inner{padding:18px 16px 16px}
 .dlg-inner h2{font-size:17px;font-weight:650;letter-spacing:-0.01em}
@@ -285,6 +308,29 @@ main{padding:14px 12px calc(env(safe-area-inset-bottom) + 88px);max-width:720px;
 .ex-swap svg{width:17px;height:17px}
 .ex-swap:hover,.ex-swap:focus-visible{background:var(--sunken);color:var(--text-1)}
 .ex-swap:active{transform:scale(.94)}
+
+/* Leerer Slot eines selbst angelegten Plans: nur Ziffer + grosses Plus. */
+.ex.ex-empty{display:flex;align-items:center;gap:10px;border-style:dashed}
+.ex-empty-add{
+  flex:1 1 auto;display:flex;align-items:center;justify-content:center;
+  min-height:44px;border-radius:var(--r-md);color:var(--muted);
+  transition:background .12s,color .12s;
+}
+.ex-empty-add svg{width:26px;height:26px}
+.ex-empty-add:hover,.ex-empty-add:focus-visible{background:var(--sunken);color:var(--text-1)}
+.ex-empty-add:active{transform:scale(.96)}
+
+/* Neue Übung an ein Tagesende anhängen — nur bei selbst angelegten Plänen. */
+.ex-add-slot{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px;border-radius:var(--r-lg);
+  border:1.5px dashed var(--border);color:var(--muted);
+  font-size:13px;font-weight:600;
+  transition:background .12s,color .12s,border-color .12s;
+}
+.ex-add-slot svg{width:18px;height:18px}
+.ex-add-slot:hover,.ex-add-slot:focus-visible{background:var(--sunken);color:var(--text-1);border-color:var(--ring)}
+.ex-add-slot:active{transform:scale(.98)}
 .ex-idx{position:relative;flex:0 0 auto;width:21px;height:21px;margin-top:1px}
 .idx-dot{
   width:21px;height:21px;
@@ -612,10 +658,7 @@ tbody td.na{color:var(--muted)}
 <body>
 
 <header class="app-header">
-  <div class="hdr-txt">
-    <h1>MinMax Workout</h1>
-    <p>Trainingsdokumentation</p>
-  </div>
+  <nav class="plan-bar" id="plan-bar" aria-label="Trainingsplan wählen"></nav>
   <button class="sync-chip" id="sync-chip" type="button" aria-haspopup="dialog">
     <span class="sync-dot" id="sync-dot"></span>
     <span id="sync-label">Sync</span>
@@ -655,6 +698,22 @@ tbody td.na{color:var(--muted)}
     <div style="margin-top:12px">
       <button class="btn-line" type="button" id="swap-cancel">Abbrechen</button>
     </div>
+  </div>
+</dialog>
+
+<dialog id="newplan-dialog" aria-labelledby="newplan-dlg-title">
+  <div class="dlg-inner">
+    <h2 id="newplan-dlg-title">Neuer Trainingsplan</h2>
+    <p class="dlg-lead" id="newplan-dlg-lead"></p>
+    <div class="dlg-body" id="newplan-dlg-body"></div>
+  </div>
+</dialog>
+
+<dialog id="fillslot-dialog" aria-labelledby="fillslot-dlg-title">
+  <div class="dlg-inner">
+    <h2 id="fillslot-dlg-title">Übung hinzufügen</h2>
+    <p class="dlg-lead" id="fillslot-dlg-lead"></p>
+    <div class="dlg-body" id="fillslot-dlg-body"></div>
   </div>
 </dialog>
 
@@ -721,30 +780,86 @@ const BASE_DAYS = [
   ]}
 ];
 
-/* POOL enthält jede je verwendete Übung — auch getauschte, damit ihr
-   Verlauf im Fortschritt erhalten bleibt. DAYS bildet ab, was aktuell
-   in welchem Trainingstag steht, und wird nach jedem Tausch neu gebildet. */
-const POOL = {};
-BASE_DAYS.forEach(function(d){
-  d.ex.forEach(function(e){
-    POOL[e.id] = { id:e.id, n:e.n, sets:e.sets, rmin:e.rmin, rmax:e.rmax,
-                   p:e.p, planTrend:e.planTrend || null, dayId:d.id,
-                   bodyweight: !!e.bodyweight, retired: !!e.retired };
-  });
-});
+const MINMAX_PLAN_ID = "minmax";
 
-const DAYS = BASE_DAYS.map(function(d){
-  return {
-    id:d.id, name:d.name, short:d.short, ex:[],
+/* POOL enthält jede je verwendete Übung über ALLE Trainingspläne hinweg —
+   auch getauschte und noch leere (nicht ausgefüllte) Slots —, damit ihr
+   Verlauf im Fortschritt erhalten bleibt. PLANS enthält jeden Plan mit
+   seinen Tagen (nur Name + Übungs-id-Reihenfolge, "base"); DAYS ist immer
+   nur der gerade AKTIVE Plan und wird bei jedem Planwechsel neu gesetzt.
+   Andere Pläne liegen in userPlans (Abschnitt 2); ihre Übungen selbst
+   liegen in customEx — genau wie bei getauschten MinMax-Übungen. Dadurch
+   funktionieren Tausch, Sätze/Wiederholungen ändern, Ziehen-Umordnen usw.
+   für jeden Plan automatisch mit, ohne eigenen Code je Feature. */
+var POOL = {};
+var PLANS = [];
+var DAYS = [];
+var activePlanId = MINMAX_PLAN_ID;
+var DAY_OF_EX = {};
+
+function mergeIntoPool(e, dayId, planId){
+  if(e.empty){ POOL[e.id] = { id:e.id, empty:true, dayId:dayId, planId:planId }; return; }
+  POOL[e.id] = { id:e.id, n:e.n, sets:e.sets, rmin:e.rmin, rmax:e.rmax,
+                 p:e.p, planTrend:e.planTrend || null, dayId:dayId, planId:planId,
+                 bodyweight: !!e.bodyweight, retired: !!e.retired };
+}
+
+/** Baut PLANS (MinMax + alle userPlans) und POOL für alle fest im Code
+    stehenden MinMax-Übungen neu. mergeCustomEx() mischt danach die
+    getauschten/eigenen/leeren Übungen aller Pläne dazu. */
+function buildPlansAndPool(){
+  POOL = {};
+  BASE_DAYS.forEach(function(d){
+    d.ex.forEach(function(e){ mergeIntoPool(e, d.id, MINMAX_PLAN_ID); });
+  });
+  PLANS = [{ id:MINMAX_PLAN_ID, name:"MinMax Workout", builtin:true, days:BASE_DAYS.map(function(d){
     /* retired = aus dem Plan genommen. Die Übung bleibt im POOL, damit ihr
        bisheriger Verlauf lesbar und im Fortschritt abrufbar bleibt — sie
        steht nur nicht mehr im Trainingstag. */
-    base: d.ex.filter(function(e){ return !e.retired; }).map(function(e){ return e.id; })
-  };
-});
+    return { id:d.id, name:d.name, short:d.short, base: d.ex.filter(function(e){ return !e.retired; }).map(function(e){ return e.id; }) };
+  }) }];
+  userPlans.forEach(function(p){
+    PLANS.push({ id:p.id, name:p.name, builtin:false, days:p.days.map(function(d){
+      return { id:d.id, name:d.name, short:d.name.slice(0, 6), base:d.base.slice() };
+    }) });
+  });
+}
 
-const EX_BY_ID = POOL;
-var DAY_OF_EX = {};
+/** Mischt customEx (getauschte, eigene und leere Slot-Übungen, plan-
+    übergreifend) in POOL — dieselbe Stelle, die auch der MinMax-
+    Übungstausch seit je nutzt. */
+function mergeCustomEx(){
+  Object.keys(customEx).forEach(function(id){
+    var e = customEx[id];
+    if(e && (e.empty || (typeof e.n === "string" && e.n))) POOL[id] = e;
+  });
+}
+
+function planById(id){
+  for(var i=0;i<PLANS.length;i++) if(PLANS[i].id === id) return PLANS[i];
+  return null;
+}
+
+/** DAYS = die Tage des aktiven Plans, als eigene mutierbare Kopien — base
+    bleibt die ursprüngliche Slot-Zuordnung des Plans, ex wird von
+    applyPlan() aus base + planOrder gebildet. */
+function daysForActivePlan(){
+  var plan = planById(activePlanId) || PLANS[0];
+  activePlanId = plan.id;
+  return plan.days.map(function(d){
+    return { id:d.id, name:d.name, short:d.short, ex:[], base:d.base.slice(), planId:plan.id };
+  });
+}
+
+/** Baut PLANS/POOL/DAYS komplett neu — beim Start und immer, wenn sich
+    userPlans/customEx strukturell ändern (neuer Plan, neuer Slot,
+    eintreffender Sync, Planwechsel). */
+function rebuildPlanRegistry(){
+  buildPlansAndPool();
+  mergeCustomEx();
+  DAYS = daysForActivePlan();
+  applyPlan();
+}
 
 function dayById(id){
   for(var i=0;i<DAYS.length;i++) if(DAYS[i].id === id) return DAYS[i];
@@ -805,12 +920,14 @@ function specText(ex){
   return (ex.sets != null ? ex.sets : "–") + "×" + repsText(ex);
 }
 
-/** Übungen mit Historie oder aus dem Basisplan, die aktuell in keinem Tag stehen. */
+/** Übungen mit Historie oder aus dem Basisplan des AKTIVEN Plans, die
+    aktuell in keinem seiner Tage stehen. Planübergreifend gefiltert —
+    sonst würden Übungen aus ganz anderen Trainingsplänen hier auftauchen. */
 function replacedExercises(){
   var current = {};
   DAYS.forEach(function(d){ d.ex.forEach(function(e){ current[e.id] = true; }); });
   return Object.keys(POOL)
-    .filter(function(id){ return !current[id]; })
+    .filter(function(id){ return POOL[id].planId === activePlanId && !POOL[id].empty && !current[id]; })
     .map(function(id){ return POOL[id]; })
     .sort(function(a,b){ return a.n.localeCompare(b.n, "de"); });
 }
@@ -830,6 +947,7 @@ const K_EXSPEC   = "trainingsplan.v1.exerciseSpec";
 const K_SESSIONS = "trainingsplan.v1.sessions";
 const K_DRAFTS   = "trainingsplan.v1.drafts";
 const K_UI       = "trainingsplan.v1.ui";
+const K_PLANS    = "trainingsplan.v1.plans";
 
 const store = (function(){
   var ok = true;
@@ -859,10 +977,14 @@ var drafts   = store.read(K_DRAFTS, {});
 var ui       = store.read(K_UI, {});
 /** planOrder: {dayId:[exId,…]} — nur belegt, wo getauscht wurde */
 var planOrder = store.read(K_PLAN, {});
-/** customEx: {exId:{id,n,s,p,dayId}} — selbst eingetragene Übungen */
+/** customEx: {exId:{id,n,s,p,dayId,planId}} — selbst eingetragene und
+    leere (noch nicht ausgefüllte) Übungen, plan- und tagübergreifend */
 var customEx  = store.read(K_CUSTOMEX, {});
 /** exSpec: {exId:{sets,rmin,rmax}} — geänderte Sätze/Wiederholungen */
 var exSpec    = store.read(K_EXSPEC, {});
+/** userPlans: [{id,name,days:[{id,name,base:[exId,…]}]}] — zusätzliche,
+    komplett in der App angelegte Trainingspläne neben MinMax Workout */
+var userPlans = store.read(K_PLANS, []);
 
 if(!Array.isArray(sessions)) sessions = [];
 if(!drafts || typeof drafts !== "object") drafts = {};
@@ -870,11 +992,13 @@ if(!ui || typeof ui !== "object") ui = {};
 if(!planOrder || typeof planOrder !== "object") planOrder = {};
 if(!customEx || typeof customEx !== "object") customEx = {};
 if(!exSpec || typeof exSpec !== "object") exSpec = {};
-
-Object.keys(customEx).forEach(function(id){
-  var e = customEx[id];
-  if(e && typeof e.n === "string" && e.n) POOL[id] = e;
+if(!Array.isArray(userPlans)) userPlans = [];
+userPlans = userPlans.filter(function(p){
+  return p && typeof p.id === "string" && typeof p.name === "string" && Array.isArray(p.days);
 });
+
+activePlanId = (typeof ui.activePlanId === "string" && ui.activePlanId) ? ui.activePlanId : MINMAX_PLAN_ID;
+rebuildPlanRegistry();
 
 function saveSessions(){ sessions.sort(function(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }); store.write(K_SESSIONS, sessions); }
 function saveDrafts(){ store.write(K_DRAFTS, drafts); }
@@ -883,6 +1007,7 @@ function savePlan(){
   store.write(K_PLAN, planOrder);
   store.write(K_CUSTOMEX, customEx);
   store.write(K_EXSPEC, exSpec);
+  store.write(K_PLANS, userPlans);
 }
 
 /* ============================================================
@@ -1094,7 +1219,29 @@ function refreshHistory(exId){
 /* ============================================================
    7. Übungskarte
    ============================================================ */
+/** Noch nicht ausgefüllter Slot eines selbst angelegten Trainingsplans:
+    nur die Positionsziffer und ein grosses Plus, das den Ausfüll-Dialog
+    öffnet. Kein Tausch-Button, kein Zug-Anfasser — beides ergibt für eine
+    Übung ohne Namen keinen Sinn. */
+function buildEmptyExerciseSlot(ex, idx){
+  var card = h("article", { class:"ex ex-empty", "data-ex":ex.id });
+  var idxDot = h("span", { class:"idx-dot", text:String(idx+1) });
+  card.appendChild(h("div", { class:"ex-head" }, [ h("span", { class:"ex-idx" }, [ idxDot ]) ]));
+
+  var addBtn = h("button", { class:"ex-empty-add", type:"button",
+    "aria-label":"Übung " + (idx+1) + " hinzufügen" });
+  var pi = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
+    "stroke-width":"2.4", "stroke-linecap":"round", "aria-hidden":"true" });
+  svg("path", { d:"M12 5v14M5 12h14" }, pi);
+  addBtn.appendChild(pi);
+  addBtn.addEventListener("click", function(){ openFillSlot(ex.id); });
+  card.appendChild(addBtn);
+
+  return card;
+}
+
 function buildExercise(ex, idx){
+  if(ex.empty) return buildEmptyExerciseSlot(ex, idx);
   var d = drafts[ex.id] || {};
   var card = h("article", { class:"ex", "data-ex":ex.id });
 
@@ -1511,7 +1658,7 @@ function updateSaveBar(dayId){
     hint.textContent = n === 0
       ? (open ? "Mit dem grünen Haken bestätigen, was du absolviert hast."
               : "Trage mindestens ein Gewicht oder eine Tendenz ein.")
-      : n + " von " + day.ex.length + " Übungen " + (n === 1 ? "wird" : "werden")
+      : n + " von " + day.ex.filter(function(e){ return !e.empty; }).length + " Übungen " + (n === 1 ? "wird" : "werden")
         + " mit dem heutigen Datum gespeichert." + openTxt;
   }
   if(pre){
@@ -1565,6 +1712,11 @@ function buildDayView(day){
   var list = h("div", { class:"ex-list" });
   day.ex.forEach(function(e, i){ list.appendChild(buildExercise(e, i)); });
   view.appendChild(list);
+
+  /* Nur selbst angelegte Pläne dürfen wachsen — MinMax' Tage stehen fest
+     im Code, dort gibt es "neue Übung hinzufügen" per Anfrage im Chat. */
+  var plan = planById(day.planId);
+  if(plan && !plan.builtin) view.appendChild(buildAddSlotRow(day));
 
   var allBtn = h("button", { class:"btn-confirm-all", type:"button", id:"confirmall-"+day.id,
     title:"Alle eingetragenen Werte als absolviert bestätigen",
@@ -1680,6 +1832,7 @@ function commitDay(day, date, entries, count){
   var view = document.querySelector('.view[data-view="' + day.id + '"]');
   if(view){
     day.ex.forEach(function(e){
+      if(e.empty) return;
       var card = view.querySelector('.ex[data-ex="' + CSS.escape(e.id) + '"]');
       if(!card) return;
       var inp = card.querySelector("input");
@@ -1719,8 +1872,10 @@ function buildProgressView(){
   sel.appendChild(g1);
 
   DAYS.forEach(function(d){
+    var filled = d.ex.filter(function(e){ return !e.empty; });
+    if(!filled.length) return;
     var g = h("optgroup", { label:"Einzelübung · " + d.name });
-    d.ex.forEach(function(e){ g.appendChild(h("option", { value:"ex:"+e.id, text:e.n })); });
+    filled.forEach(function(e){ g.appendChild(h("option", { value:"ex:"+e.id, text:e.n })); });
     sel.appendChild(g);
   });
 
@@ -1780,7 +1935,7 @@ function collectSeries(){
   var metric = ui.metric || "day:total";
   var parts = metric.split(":");
   if(parts[0] === "ex"){
-    var ex = EX_BY_ID[parts[1]];
+    var ex = POOL[parts[1]];
     if(!ex) return { title:"Fortschritt", sub:"", series:[] };
     var home = DAY_OF_EX[ex.id];
     var inPlan = home && home.ex.some(function(e){ return e.id === ex.id; });
@@ -1796,10 +1951,11 @@ function collectSeries(){
     };
   }
   var day = DAYS.filter(function(d){ return d.id === parts[1]; })[0] || DAYS[0];
+  var filled = day.ex.filter(function(e){ return !e.empty; });
   return {
     title: day.name,
-    sub: day.ex.length + " Übungen · Gewichtsverlauf",
-    series: day.ex.map(function(e, i){ return { id:e.id, name:e.n, slot:i % 8, points:historyOf(e.id) }; })
+    sub: filled.length + " Übungen · Gewichtsverlauf",
+    series: filled.map(function(e, i){ return { id:e.id, name:e.n, slot:i % 8, points:historyOf(e.id) }; })
   };
 }
 
@@ -2121,7 +2277,7 @@ function importData(){
       if(!parsed || !Array.isArray(parsed.sessions)){ toast("Kein gültiger Trainingsplan-Export"); return; }
 
       /* Getauschte Übungen zuerst übernehmen — sonst fielen ihre Werte
-         unten durch die EX_BY_ID-Prüfung. */
+         unten durch die POOL-Prüfung. */
       if(parsed.plan && typeof parsed.plan === "object"){
         var ex = parsed.plan.exercises;
         if(ex && typeof ex === "object"){
@@ -2164,7 +2320,7 @@ function importData(){
         }
         if(!target){ target = { date:s.date, dayId:s.dayId, entries:{} }; sessions.push(target); }
         for(var k in s.entries){
-          if(!EX_BY_ID[k]) continue;
+          if(!POOL[k]) continue;
           var e = s.entries[k];
           var w = (e && typeof e.w === "number" && isFinite(e.w)) ? e.w : null;
           var t = (e && ["up","hold","down"].indexOf(e.t) >= 0) ? e.t : null;
@@ -2434,10 +2590,16 @@ function slugId(name){
   return id;
 }
 
+/** Nur innerhalb des aktiven Plans — sonst könnte ein Tausch versehentlich
+    die Historie einer gleichnamigen Übung aus einem ANDEREN Trainingsplan
+    übernehmen. */
 function findByName(name){
   var key = name.trim().toLowerCase();
   var ids = Object.keys(POOL);
-  for(var i=0;i<ids.length;i++) if(POOL[ids[i]].n.trim().toLowerCase() === key) return POOL[ids[i]];
+  for(var i=0;i<ids.length;i++){
+    var e = POOL[ids[i]];
+    if(e.planId === activePlanId && !e.empty && e.n && e.n.trim().toLowerCase() === key) return e;
+  }
   return null;
 }
 
@@ -2472,7 +2634,7 @@ function swapExercise(dayId, oldId, rawName){
   } else {
     newId = slugId(name);
     POOL[newId] = { id:newId, n:name, sets:old.sets, rmin:old.rmin, rmax:old.rmax,
-                    p:"", planTrend:null, dayId:dayId, bodyweight: !!old.bodyweight };
+                    p:"", planTrend:null, dayId:dayId, planId:old.planId, bodyweight: !!old.bodyweight };
     customEx[newId] = POOL[newId];
   }
 
@@ -2538,13 +2700,15 @@ function renderSwap(){
     autocomplete:"off", enterkeyhint:"done", maxlength:"40", placeholder:"Name der neuen Übung" });
   body.appendChild(inp);
 
-  /* Bereits bekannte Übungen vorschlagen — die Auswahl einer davon
-     führt ihre vorhandene Historie wieder mit dem Slot zusammen. */
+  /* Bereits bekannte Übungen DES AKTIVEN PLANS vorschlagen — die Auswahl
+     einer davon führt ihre vorhandene Historie wieder mit dem Slot
+     zusammen. Planübergreifend würde das versehentlich Historie aus
+     einem anderen Trainingsplan in diesen Slot ziehen. */
   var dl = h("datalist", { id:"swap-known" });
   var seen = {};
   day.ex.forEach(function(e){ seen[e.id] = true; });
   Object.keys(POOL).forEach(function(id){
-    if(seen[id]) return;
+    if(seen[id] || POOL[id].planId !== activePlanId || POOL[id].empty) return;
     dl.appendChild(h("option", { value:POOL[id].n }));
   });
   body.appendChild(dl);
@@ -2584,6 +2748,368 @@ function renderSwap(){
 function wireSwapUi(){
   document.getElementById("swap-cancel").addEventListener("click", closeSwap);
   document.getElementById("swap-dialog").addEventListener("close", function(){ swapCtx = null; });
+}
+
+/* ============================================================
+   10c. Übung zu einem selbst angelegten Plan hinzufügen
+   ============================================================ */
+function buildAddSlotRow(day){
+  var row = h("button", { class:"ex-add-slot", type:"button",
+    "aria-label":"Neue Übung zu " + day.name + " hinzufügen" });
+  var pi = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
+    "stroke-width":"2.2", "stroke-linecap":"round", "aria-hidden":"true" });
+  svg("path", { d:"M12 5v14M5 12h14" }, pi);
+  row.appendChild(pi);
+  row.appendChild(document.createTextNode("Übung hinzufügen"));
+  row.addEventListener("click", function(){ addSlotToDay(day); });
+  return row;
+}
+
+/** Fügt einen neuen leeren Slot an — persistiert nur in userPlans/customEx,
+    PLANS/POOL/DAYS werden danach komplett neu aus dieser Quelle gebaut. */
+function addSlotToDay(day){
+  var up = userPlans.filter(function(p){ return p.id === day.planId; })[0];
+  if(!up) return;
+  var ud = up.days.filter(function(d){ return d.id === day.id; })[0];
+  if(!ud) return;
+
+  var id = day.id + "-s" + (ud.base.length + 1);
+  while(POOL[id]) id = day.id + "-s" + Math.random().toString(36).slice(2, 6);
+  customEx[id] = { id:id, empty:true, dayId:day.id, planId:day.planId };
+  ud.base.push(id);
+  if(Array.isArray(planOrder[day.id])) planOrder[day.id].push(id);
+
+  savePlan();
+  rebuildPlanRegistry();
+  Sync.pushPlan();
+  rebuildAll();
+  openFillSlot(id);
+}
+
+var fillSlotCtx = null;
+
+function openFillSlot(exId){
+  if(!POOL[exId]) return;
+  fillSlotCtx = { exId:exId, error:null };
+  renderFillSlot();
+  var dlg = document.getElementById("fillslot-dialog");
+  if(typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+  var inp = document.getElementById("fillslot-name");
+  if(inp) setTimeout(function(){ inp.focus(); }, 60);
+}
+
+function closeFillSlot(){
+  var dlg = document.getElementById("fillslot-dialog");
+  if(typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
+  fillSlotCtx = null;
+}
+
+function renderFillSlot(){
+  if(!fillSlotCtx) return;
+  var body = document.getElementById("fillslot-dlg-body");
+  var lead = document.getElementById("fillslot-dlg-lead");
+  while(body.firstChild) body.removeChild(body.firstChild);
+
+  var ex  = POOL[fillSlotCtx.exId];
+  var day = ex ? dayById(ex.dayId) : null;
+  if(!ex || !day){ closeFillSlot(); return; }
+
+  lead.textContent = "Neue Übung in " + day.name + ".";
+  if(fillSlotCtx.error) body.appendChild(h("p", { class:"dlg-err", text:fillSlotCtx.error }));
+
+  body.appendChild(h("label", { class:"swap-label", for:"fillslot-name", text:"Name" }));
+  var nameInp = h("input", { class:"swap-input", id:"fillslot-name", type:"text",
+    autocomplete:"off", enterkeyhint:"next", maxlength:"40", placeholder:"Name der Übung" });
+  body.appendChild(nameInp);
+
+  var fields = h("div", { class:"spec-fields" });
+  function numField(label, ref){
+    var wrap = h("label", { class:"spec-f" });
+    wrap.appendChild(h("span", { text:label }));
+    var inp = h("input", { type:"text", inputmode:"numeric", autocomplete:"off",
+      enterkeyhint:"done", maxlength:"2", "aria-label":label });
+    inp.addEventListener("input", function(){ inp.value = inp.value.replace(/[^0-9]/g, "").slice(0, 2); });
+    inp.addEventListener("focus", function(){ inp.select(); });
+    wrap.appendChild(inp);
+    fields.appendChild(wrap);
+    ref.push(inp);
+  }
+  var inputs = [];
+  numField("Sätze", inputs);
+  numField("Wdh. von", inputs);
+  fields.appendChild(h("span", { class:"spec-dash", text:"–" }));
+  numField("bis", inputs);
+  body.appendChild(fields);
+  body.appendChild(h("p", { class:"dlg-note", text:"Für eine feste Wiederholungszahl beide Felder gleich setzen." }));
+
+  function submit(){
+    var name = nameInp.value.trim().replace(/\s+/g, " ");
+    if(!name){ fillSlotCtx.error = "Bitte einen Namen eingeben."; renderFillSlot(); return; }
+    if(name.length > 40){ fillSlotCtx.error = "Der Name ist zu lang (maximal 40 Zeichen)."; renderFillSlot(); return; }
+    var dup = day.ex.some(function(e){ return e.id !== ex.id && !e.empty && e.n && e.n.trim().toLowerCase() === name.toLowerCase(); });
+    if(dup){ fillSlotCtx.error = "„" + name + "“ steht schon in diesem Trainingstag."; renderFillSlot(); return; }
+    var vals = inputs.map(function(i){ return parseInt(i.value, 10); });
+    if(vals.some(function(v){ return !isFinite(v) || v < 1 || v > 99; })){
+      fillSlotCtx.error = "Bitte Sätze und Wiederholungen zwischen 1 und 99 eingeben.";
+      renderFillSlot();
+      return;
+    }
+    var lo = Math.min(vals[1], vals[2]), hi = Math.max(vals[1], vals[2]);
+    var e = customEx[ex.id];
+    if(!e){ closeFillSlot(); return; }
+    delete e.empty;
+    e.n = name; e.sets = vals[0]; e.rmin = lo; e.rmax = hi > lo ? hi : null; e.p = "";
+    savePlan();
+    closeFillSlot();
+    rebuildPlanRegistry();
+    Sync.pushPlan();
+    rebuildAll();
+    toast("„" + name + "“ hinzugefügt");
+  }
+  nameInp.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); inputs[0].focus(); inputs[0].select(); } });
+  inputs.forEach(function(inp){
+    inp.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); submit(); } });
+  });
+
+  var go = h("button", { class:"btn-line primary", type:"button", text:"Fertig" });
+  go.addEventListener("click", submit);
+  body.appendChild(go);
+  var cancel = h("button", { class:"btn-line", type:"button", text:"Abbrechen" });
+  cancel.addEventListener("click", closeFillSlot);
+  body.appendChild(cancel);
+}
+
+function wireFillSlotUi(){
+  document.getElementById("fillslot-dialog").addEventListener("close", function(){ fillSlotCtx = null; });
+}
+
+/* ============================================================
+   10d. Trainingsplan wechseln / neu anlegen
+   ============================================================ */
+function renderPlanBar(){
+  var bar = document.getElementById("plan-bar");
+  while(bar.firstChild) bar.removeChild(bar.firstChild);
+  PLANS.forEach(function(plan){
+    var b = h("button", { class:"plan-btn" + (plan.id === activePlanId ? " is-active" : ""),
+      type:"button", title:plan.name, "aria-pressed": plan.id === activePlanId ? "true" : "false",
+      text:plan.name });
+    b.addEventListener("click", function(){ if(plan.id !== activePlanId) switchPlan(plan.id); });
+    bar.appendChild(b);
+  });
+  var add = h("button", { class:"plan-btn-new", type:"button", "aria-label":"Neuen Trainingsplan anlegen" });
+  var pi = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
+    "stroke-width":"2.2", "stroke-linecap":"round", "aria-hidden":"true" });
+  svg("path", { d:"M12 5v14M5 12h14" }, pi);
+  add.appendChild(pi);
+  add.addEventListener("click", openNewPlan);
+  bar.appendChild(add);
+
+  var activeBtn = bar.querySelector(".plan-btn.is-active");
+  if(activeBtn) activeBtn.scrollIntoView({ inline:"nearest", block:"nearest" });
+}
+
+/** Day-ids sind planübergreifend eindeutig (mit der Plan-id vorangestellt),
+    deshalb genügt rebuildAll()s eigener Rücksprung-auf-ersten-Tag — ein
+    ui.tab aus dem alten Plan kann nie zufällig zu einem Tag des neuen
+    passen. "Fortschritt" bleibt ausgewählt, wenn man dort schon war. */
+function switchPlan(planId){
+  if(planId === activePlanId || !planById(planId)) return;
+  activePlanId = planId;
+  ui.activePlanId = planId;
+  DAYS = daysForActivePlan();
+  applyPlan();
+  hiddenSeries = {};
+  ui.metric = "day:" + DAYS[0].id;
+  saveUi();
+  renderPlanBar();
+  buildTabs();
+  rebuildAll();
+  window.scrollTo({ top:0, behavior:"auto" });
+}
+
+function slugText(s){
+  return String(s).toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/ß/g, "ss").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 20) || "tag";
+}
+
+var newPlanCtx = null;
+
+function openNewPlan(){
+  newPlanCtx = { step:"name", name:"", dayCount:4, dayNames:[], slotCount:5, error:null };
+  renderNewPlan();
+  var dlg = document.getElementById("newplan-dialog");
+  if(typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+}
+
+function closeNewPlan(){
+  var dlg = document.getElementById("newplan-dialog");
+  if(typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
+  newPlanCtx = null;
+}
+
+/** Vierstufiger Assistent in EINEM Dialog (Name -> Tage/Woche -> Tagesnamen
+    -> Übungen je Tag) — jeder Schritt baut .dlg-body neu, wie renderSwap()
+    es für den Übungstausch schon macht. */
+function renderNewPlan(){
+  if(!newPlanCtx) return;
+  var body = document.getElementById("newplan-dlg-body");
+  var lead = document.getElementById("newplan-dlg-lead");
+  while(body.firstChild) body.removeChild(body.firstChild);
+  var c = newPlanCtx;
+  var focusEl = null;
+
+  if(c.error) body.appendChild(h("p", { class:"dlg-err", text:c.error }));
+
+  function numField(labelText, value){
+    var wrap = h("label", { class:"spec-f" });
+    wrap.appendChild(h("span", { text:labelText }));
+    var inp = h("input", { type:"text", inputmode:"numeric", autocomplete:"off",
+      enterkeyhint:"done", maxlength:"2", "aria-label":labelText });
+    inp.value = value != null ? String(value) : "";
+    inp.addEventListener("input", function(){ inp.value = inp.value.replace(/[^0-9]/g, "").slice(0, 2); });
+    inp.addEventListener("focus", function(){ inp.select(); });
+    wrap.appendChild(inp);
+    return { wrap:wrap, inp:inp };
+  }
+
+  function addActions(back, go, goLabel){
+    var row = h("div", { class:"dlg-actions" });
+    var backBtn = h("button", { class:"btn-line", type:"button", text: back ? "Zurück" : "Abbrechen" });
+    backBtn.addEventListener("click", back || closeNewPlan);
+    row.appendChild(backBtn);
+    var goBtn = h("button", { class:"btn-line primary", type:"button", text:goLabel });
+    goBtn.addEventListener("click", go);
+    row.appendChild(goBtn);
+    body.appendChild(row);
+  }
+
+  if(c.step === "name"){
+    lead.textContent = "Wie soll der neue Trainingsplan heissen?";
+    body.appendChild(h("label", { class:"swap-label", for:"newplan-name", text:"Name" }));
+    var nameInp = h("input", { class:"swap-input", id:"newplan-name", type:"text",
+      autocomplete:"off", enterkeyhint:"next", maxlength:"40", placeholder:"z. B. Push Pull Legs" });
+    nameInp.value = c.name;
+    body.appendChild(nameInp);
+    focusEl = nameInp;
+
+    function goName(){
+      var name = nameInp.value.trim().replace(/\s+/g, " ");
+      if(!name){ c.error = "Bitte einen Namen eingeben."; renderNewPlan(); return; }
+      if(name.length > 40){ c.error = "Der Name ist zu lang (maximal 40 Zeichen)."; renderNewPlan(); return; }
+      if(PLANS.some(function(p){ return p.name.trim().toLowerCase() === name.toLowerCase(); })){
+        c.error = "„" + name + "“ gibt es schon."; renderNewPlan(); return;
+      }
+      c.name = name; c.error = null; c.step = "days"; renderNewPlan();
+    }
+    nameInp.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); goName(); } });
+    addActions(null, goName, "Weiter");
+
+  } else if(c.step === "days"){
+    lead.textContent = "Wie viele Trainingstage pro Woche hat „" + c.name + "“?";
+    var f = numField("Trainingstage", c.dayCount);
+    body.appendChild(h("div", { class:"spec-fields" }, [ f.wrap ]));
+    focusEl = f.inp;
+
+    function goDays(){
+      var n = parseInt(f.inp.value, 10);
+      if(!isFinite(n) || n < 1 || n > 10){ c.error = "Bitte eine Zahl zwischen 1 und 10 eingeben."; renderNewPlan(); return; }
+      var old = c.dayNames;
+      c.dayNames = [];
+      for(var i=0;i<n;i++) c.dayNames.push(old[i] || "");
+      c.dayCount = n; c.error = null; c.step = "daynames"; renderNewPlan();
+    }
+    f.inp.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); goDays(); } });
+    addActions(function(){ c.step = "name"; renderNewPlan(); }, goDays, "Weiter");
+
+  } else if(c.step === "daynames"){
+    lead.textContent = "Wie heissen die Trainingstage?";
+    var inputs = [];
+    c.dayNames.forEach(function(val, i){
+      body.appendChild(h("label", { class:"swap-label", text:"Tag " + (i+1) }));
+      var inp = h("input", { class:"swap-input", type:"text", autocomplete:"off",
+        enterkeyhint: i === c.dayNames.length - 1 ? "done" : "next", maxlength:"30", placeholder:"z. B. Push" });
+      inp.value = val;
+      body.appendChild(inp);
+      inputs.push(inp);
+    });
+    focusEl = inputs[0];
+
+    function goNames(){
+      var names = inputs.map(function(inp){ return inp.value.trim().replace(/\s+/g, " "); });
+      if(names.some(function(n){ return !n; })){ c.error = "Bitte für jeden Tag einen Namen eingeben."; renderNewPlan(); return; }
+      c.dayNames = names; c.error = null; c.step = "slots"; renderNewPlan();
+    }
+    inputs.forEach(function(inp, i){
+      inp.addEventListener("keydown", function(e){
+        if(e.key !== "Enter") return;
+        e.preventDefault();
+        if(i < inputs.length - 1) inputs[i+1].focus(); else goNames();
+      });
+    });
+    addActions(function(){ c.step = "days"; renderNewPlan(); }, goNames, "Weiter");
+
+  } else if(c.step === "slots"){
+    lead.textContent = "Wie viele Übungen soll jeder Tag anfangs haben?";
+    var f2 = numField("Übungen pro Tag", c.slotCount);
+    body.appendChild(h("div", { class:"spec-fields" }, [ f2.wrap ]));
+    body.appendChild(h("p", { class:"dlg-note",
+      text:"Lässt sich jederzeit erweitern — jede Übung wird einzeln über das Plus in der leeren Box ausgefüllt." }));
+    focusEl = f2.inp;
+
+    function createPlan(){
+      var n = parseInt(f2.inp.value, 10);
+      if(!isFinite(n) || n < 1 || n > 20){ c.error = "Bitte eine Zahl zwischen 1 und 20 eingeben."; renderNewPlan(); return; }
+      c.slotCount = n; c.error = null;
+      commitNewPlan(c);
+    }
+    f2.inp.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); createPlan(); } });
+    addActions(function(){ c.step = "daynames"; renderNewPlan(); }, createPlan, "Trainingsplan erstellen");
+  }
+
+  if(focusEl) setTimeout(function(){ focusEl.focus(); if(focusEl.select) focusEl.select(); }, 60);
+}
+
+function commitNewPlan(c){
+  var planId = "plan-" + Math.random().toString(36).slice(2, 8);
+  while(planById(planId)) planId = "plan-" + Math.random().toString(36).slice(2, 8);
+
+  var usedDaySlugs = {};
+  var days = c.dayNames.map(function(dayName){
+    var base = slugText(dayName), slug = base, n = 2;
+    while(usedDaySlugs[slug]) slug = base + "-" + (n++);
+    usedDaySlugs[slug] = true;
+    var dayId = planId + "-" + slug;
+
+    var slotIds = [];
+    for(var i=0;i<c.slotCount;i++){
+      var sid = dayId + "-s" + (i+1);
+      slotIds.push(sid);
+      customEx[sid] = { id:sid, empty:true, dayId:dayId, planId:planId };
+    }
+    return { id:dayId, name:dayName, base:slotIds };
+  });
+
+  userPlans.push({ id:planId, name:c.name, days:days });
+  savePlan();
+
+  activePlanId = planId;
+  ui.activePlanId = planId;
+  rebuildPlanRegistry();
+  ui.metric = "day:" + DAYS[0].id;
+  saveUi();
+  Sync.pushPlan();
+
+  closeNewPlan();
+  renderPlanBar();
+  buildTabs();
+  rebuildAll();
+  window.scrollTo({ top:0, behavior:"auto" });
+  toast("„" + c.name + "“ angelegt");
+}
+
+function wireNewPlanUi(){
+  document.getElementById("newplan-dialog").addEventListener("close", function(){ newPlanCtx = null; });
 }
 
 /* ============================================================
@@ -2696,29 +3222,35 @@ const Sync = (function(){
   function pushPlan(){
     if(!M || !uid) return Promise.resolve();
     return M.F.setDoc(planRef(), {
-      order: planOrder, exercises: customEx, spec: exSpec,
+      order: planOrder, exercises: customEx, spec: exSpec, plans: userPlans,
       updatedAt: M.F.serverTimestamp()
     }, { merge:true });
   }
 
+  /** activePlanId bleibt bewusst rein lokal (wie ui.tab) — ein anderes
+      Gerät legt hier keinen Planwechsel fest. Existiert der aktive Plan
+      nach dem Merge nicht mehr, fällt daysForActivePlan() auf MinMax
+      zurück. */
   function subscribePlan(){
     if(!M || !uid) return;
     unsubPlan = M.F.onSnapshot(planRef(), function(snap){
       var v = snap.data();
       if(!v) return;
-      if(v.exercises && typeof v.exercises === "object"){
-        customEx = v.exercises;
-        Object.keys(customEx).forEach(function(id){
-          var e = customEx[id];
-          if(e && typeof e.n === "string" && e.n) POOL[id] = e;
-        });
-      }
+      if(v.exercises && typeof v.exercises === "object") customEx = v.exercises;
       if(v.order && typeof v.order === "object") planOrder = v.order;
       if(v.spec && typeof v.spec === "object") exSpec = v.spec;
+      if(Array.isArray(v.plans)){
+        userPlans = v.plans.filter(function(p){
+          return p && typeof p.id === "string" && typeof p.name === "string" && Array.isArray(p.days);
+        });
+      }
       store.write(K_PLAN, planOrder);
       store.write(K_CUSTOMEX, customEx);
       store.write(K_EXSPEC, exSpec);
-      applyPlan();
+      store.write(K_PLANS, userPlans);
+      rebuildPlanRegistry();
+      renderPlanBar();
+      buildTabs();
       rebuildAll();
     }, function(){});
   }
@@ -2800,7 +3332,7 @@ const SYNC_CHIP = {
   "signed-out": { dot:"pending", label:"Anmelden" },
   syncing:      { dot:"pending", label:"Sync …" },
   pending:      { dot:"pending", label:"Wartet" },
-  ready:        { dot:"ok",      label:"Sync aktiv" },
+  ready:        { dot:"ok",      label:"Sync" },
   error:        { dot:"err",     label:"Sync-Fehler" }
 };
 
@@ -2959,18 +3491,21 @@ const TAB_ICONS = {
   upper:   ["M4 9v6","M20 9v6","M7 7v10","M17 7v10","M7 12h10"],
   lower:   ["M7 4v6a5 5 0 0 0 10 0V4","M9 20h6","M12 15v5"],
   arms:    ["M6 6a3 3 0 0 1 3 3v3a3 3 0 0 1-6 0V9","M18 6a3 3 0 0 0-3 3v3a3 3 0 0 0 6 0V9","M9 12h6"],
-  progress:["M4 19h16","M6 15l4-5 3 3 5-7"]
+  progress:["M4 19h16","M6 15l4-5 3 3 5-7"],
+  /* Tage selbst angelegter Pläne haben keinen eigenen Icon-Eintrag. */
+  default: ["M4 12h16","M7 8v8","M17 8v8"]
 };
 
 function buildTabs(){
   var bar = document.querySelector(".tabbar");
+  while(bar.firstChild) bar.removeChild(bar.firstChild);
   var items = DAYS.map(function(d){ return { id:d.id, label:d.short }; });
   items.push({ id:"progress", label:"Fortschritt" });
 
   items.forEach(function(it){
     var b = h("button", { type:"button", role:"tab", id:"tab-"+it.id, "aria-controls":"panel-"+it.id, "aria-selected":"false" });
     var ic = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
-    (TAB_ICONS[it.id] || []).forEach(function(d){ svg("path", { d:d }, ic); });
+    (TAB_ICONS[it.id] || TAB_ICONS.default).forEach(function(d){ svg("path", { d:d }, ic); });
     b.appendChild(ic);
     b.appendChild(h("span", { text:it.label }));
     b.addEventListener("click", function(){
@@ -3023,17 +3558,20 @@ function rebuildAll(){
   renderProgress();
 }
 
-applyPlan();
-
 /* Die Plan-Vorgabe "+" (z. B. HipThrust 110 kg +) steht als Hinweis in der
    Karte, wird aber NICHT in den Schalter vorbelegt: eine Vorauswahl würde
    sonst als Eingabe zählen und die Übung in jede gespeicherte Einheit
    schreiben, auch wenn sie gar nicht trainiert wurde. */
 
+/* rebuildPlanRegistry() beim Laden von userPlans (Abschnitt 2) hat DAYS
+   bereits samt applyPlan() aufgebaut — hier nur noch die Oberfläche. */
+renderPlanBar();
 buildTabs();
 wireSyncUi();
 wireSwapUi();
 wireSpecUi();
+wireFillSlotUi();
+wireNewPlanUi();
 renderChip();
 rebuildAll();
 Sync.init();

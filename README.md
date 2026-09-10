@@ -234,6 +234,37 @@ Sätze und Wiederholungen des Slots werden übernommen.
 Der angepasste Plan wird lokal gespeichert, liegt im JSON-Export mit drin und
 wird bei aktiviertem Sync unter `users/{uid}/state/plan` mitsynchronisiert.
 
+### Mehrere Trainingspläne
+
+MinMax Workout ist ein Trainingsplan wie jeder andere — in der Kopfzeile steht
+er als einer von mehreren kleinen Plan-Buttons; ein Antippen wechselt den
+aktiven Plan, ab fünf Plänen wird die Reihe seitlich scrollbar. Das **+** am
+Ende legt einen neuen, komplett selbst zusammengestellten Plan an:
+
+1. Name des Plans
+2. Trainingstage pro Woche
+3. Name je Trainingstag (frei, z. B. „Push")
+4. Anzahl Übungen je Tag zum Start
+
+Jeder Tag startet danach mit leeren Übungs-Boxen — nur eine Positionsziffer und
+ein grosses **+**. Antippen öffnet ein kleines Fenster für Name, Sätze und
+Wiederholungen; danach verhält sich die Box wie jede andere Übungskarte
+(Gewicht protokollieren, Senken/Halten/Steigern, Mini-Verlauf, Tauschen,
+Ziehen-Umordnen — alles ohne Unterschied zu MinMax Workout). Über **Übung
+hinzufügen** am Ende jedes Tages lassen sich jederzeit weitere Boxen ergänzen;
+das gilt nur für selbst angelegte Pläne, MinMax' Tage stehen fest im Code.
+
+**Fortschritt** zeigt immer nur Trainingstage und Übungen des gerade aktiven
+Plans — beim Tab-Wechsel zurück auf einen Trainingstag springt die App auf
+dessen ersten Tag, „Fortschritt" selbst bleibt aber ausgewählt, falls man
+gerade dort war.
+
+Übungsnamen dürfen sich zwischen Plänen wiederholen (z. B. „Kniebeugen" in
+zwei verschiedenen Plänen) — es entstehen zwei unabhängige Übungen mit
+komplett getrennter Historie, kein Zusammenführen über den Namen. Alle Pläne
+liegen lokal gespeichert, im JSON-Export und werden bei aktiviertem Sync
+zusammen mit dem MinMax-Plan unter `users/{uid}/state/plan` synchronisiert.
+
 ## Werte korrigieren
 
 ### Letzte Gewichte übernehmen
