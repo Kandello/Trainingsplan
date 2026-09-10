@@ -29,6 +29,7 @@
   --good-text:#006300;
   --critical:#d03b3b;
   --hold:#2a78d6;
+  --warning:#c98500;
   /* Vorschlagswert: dunkler als das UI-Blau, damit die Zahl als Normaltext
      lesbar bleibt (5,39:1 statt 4,19:1 auf hellem Grund). */
   --suggest:#1f66bd;
@@ -57,6 +58,7 @@
     --good-text:#0ca30c;
     --critical:#d03b3b;
     --hold:#3987e5;
+    --warning:#eda100;
     --suggest:#3987e5;
 
     --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
@@ -619,20 +621,27 @@ tbody td.na{color:var(--muted)}
 .tools-hint{margin-top:7px;font-size:11.5px;color:var(--muted);text-align:center}
 
 /* ---------- Tab bar ---------- */
+/* Flex statt eines fest auf 5 Spalten kodierten Grids: MinMax hat immer
+   4 Tage + Fortschritt = 5 Tabs, aber ein selbst angelegter Plan kann bis zu
+   zehn Trainingstage haben (+ Fortschritt) — ein festes 5-Spalten-Grid würde
+   ab dem sechsten Tab zweizeilig umbrechen. flex:1 1 0 verteilt die Breite
+   gleichmässig auf jede tatsächliche Tab-Zahl, genau wie bei 5 Tabs zuvor. */
 .tabbar{
   position:fixed;left:0;right:0;bottom:0;z-index:30;
-  display:grid;grid-template-columns:repeat(5,1fr);
+  display:flex;
   padding:6px 4px calc(env(safe-area-inset-bottom) + 6px);
   background:color-mix(in srgb, var(--plane) 92%, transparent);
   backdrop-filter:saturate(1.4) blur(12px);
   border-top:1px solid var(--border);
 }
 .tabbar button{
+  flex:1 1 0;min-width:0;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
   min-height:50px;border-radius:10px;
   font-size:10.5px;font-weight:600;color:var(--muted);letter-spacing:-0.01em;
 }
 .tabbar button svg{width:21px;height:21px;stroke-width:1.7}
+.tabbar button span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tabbar button[aria-selected="true"]{color:var(--text-1)}
 .tabbar button[aria-selected="true"] svg{stroke-width:2.2}
 
@@ -2249,7 +2258,7 @@ function exportData(){
   var payload = {
     app:"trainingsplan", version:2, exported:new Date().toISOString(),
     sessions:sessions,
-    plan:{ order:planOrder, exercises:customEx, spec:exSpec }
+    plan:{ order:planOrder, exercises:customEx, spec:exSpec, plans:userPlans }
   };
   var blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
   var url = URL.createObjectURL(blob);
@@ -2276,17 +2285,42 @@ function importData(){
       catch(e){ toast("Datei konnte nicht gelesen werden"); return; }
       if(!parsed || !Array.isArray(parsed.sessions)){ toast("Kein gültiger Trainingsplan-Export"); return; }
 
-      /* Getauschte Übungen zuerst übernehmen — sonst fielen ihre Werte
-         unten durch die POOL-Prüfung. */
+      /* Reihenfolge wichtig: Pläne vor Übungen vor Sätzen/Reihenfolge vor
+         Sessions — jede Stufe prüft gegen das, was die vorherige einträgt
+         (Sessions z. B. gegen POOL, das erst nach den Übungen vollständig
+         ist). Alte Exporte ohne "plans" laufen unverändert weiter durch. */
       if(parsed.plan && typeof parsed.plan === "object"){
+        var pl = parsed.plan.plans;
+        if(Array.isArray(pl)){
+          pl.forEach(function(p){
+            if(!p || p.id === MINMAX_PLAN_ID || typeof p.id !== "string"
+               || typeof p.name !== "string" || !Array.isArray(p.days)) return;
+            var days = p.days
+              .filter(function(d){ return d && typeof d.id === "string" && typeof d.name === "string" && Array.isArray(d.base); })
+              .map(function(d){ return { id:d.id, name:d.name, base:d.base.filter(function(id){ return typeof id === "string"; }) }; });
+            if(!days.length) return;
+            var idx = -1;
+            for(var i=0;i<userPlans.length;i++) if(userPlans[i].id === p.id){ idx = i; break; }
+            var entry = { id:p.id, name:p.name, days:days };
+            if(idx >= 0) userPlans[idx] = entry; else userPlans.push(entry);
+          });
+        }
+
+        /* Getauschte, eigene UND noch leere Übungen übernehmen — leere Slots
+           haben kein "n" und fielen sonst durch die Prüfung, die früher nur
+           benannte Übungen kannte (aus der Zeit vor eigenen Plänen). */
         var ex = parsed.plan.exercises;
         if(ex && typeof ex === "object"){
           Object.keys(ex).forEach(function(id){
             var e = ex[id];
-            if(!e || typeof e.n !== "string" || !e.n) return;
-            customEx[id] = { id:id, n:e.n, sets:e.sets, rmin:e.rmin, rmax:e.rmax,
-                             p:e.p || "", planTrend:null, dayId:e.dayId || null,
-                             bodyweight: !!e.bodyweight };
+            if(!e || typeof e.dayId !== "string") return;
+            if(e.empty){
+              customEx[id] = { id:id, empty:true, dayId:e.dayId, planId:e.planId || MINMAX_PLAN_ID };
+            } else if(typeof e.n === "string" && e.n){
+              customEx[id] = { id:id, n:e.n, sets:e.sets, rmin:e.rmin, rmax:e.rmax,
+                               p:e.p || "", planTrend:null, dayId:e.dayId,
+                               planId:e.planId || MINMAX_PLAN_ID, bodyweight: !!e.bodyweight };
+            } else return;
             POOL[id] = customEx[id];
           });
         }
@@ -2298,22 +2332,32 @@ function importData(){
             exSpec[id] = { sets:o.sets, rmin:o.rmin, rmax:o.rmax != null ? o.rmax : null };
           });
         }
+        /* Global statt nur gegen den gerade aktiven Plan geprüft — sonst
+           ginge die Reihenfolge aller Tage anderer Pläne beim Import verloren. */
         var ord = parsed.plan.order;
         if(ord && typeof ord === "object"){
-          DAYS.forEach(function(d){
-            if(Array.isArray(ord[d.id]) && ord[d.id].every(function(id){ return !!POOL[id]; })){
-              planOrder[d.id] = ord[d.id];
+          Object.keys(ord).forEach(function(dayId){
+            var idsArr = ord[dayId];
+            if(Array.isArray(idsArr) && idsArr.length
+               && idsArr.every(function(id){ return POOL[id] && POOL[id].dayId === dayId; })){
+              planOrder[dayId] = idsArr;
             }
           });
         }
         savePlan();
-        applyPlan();
+        rebuildPlanRegistry();
       }
+
+      /* Über alle Pläne hinweg, nicht nur den aktiven — sonst gingen
+         importierte Sessions anderer, gerade nicht angezeigter Pläne
+         stillschweigend verloren. */
+      var knownDays = {};
+      PLANS.forEach(function(p){ p.days.forEach(function(d){ knownDays[d.id] = true; }); });
 
       var added = 0;
       parsed.sessions.forEach(function(s){
         if(!s || typeof s.date !== "string" || !s.entries) return;
-        if(!DAYS.some(function(d){ return d.id === s.dayId; })) return;
+        if(!knownDays[s.dayId]) return;
         var target = null;
         for(var i=0;i<sessions.length;i++){
           if(sessions[i].dayId === s.dayId && sessions[i].date === s.date){ target = sessions[i]; break; }
@@ -2330,6 +2374,8 @@ function importData(){
         }
       });
       saveSessions();
+      renderPlanBar();
+      buildTabs();
       rebuildAll();
       toast(added ? plural(added, "Wert", "Werte") + " importiert" : "Nichts zu importieren");
     };
@@ -3047,7 +3093,13 @@ function renderNewPlan(){
         if(i < inputs.length - 1) inputs[i+1].focus(); else goNames();
       });
     });
-    addActions(function(){ c.step = "days"; renderNewPlan(); }, goNames, "Weiter");
+    /* Getipptes sichern, auch wenn "Zurück" statt "Weiter" gedrückt wird —
+       sonst gehen bereits eingegebene Tagesnamen beim Ändern der Tageszahl
+       verloren, weil nur goNames() (also "Weiter") sie sonst übernimmt. */
+    addActions(function(){
+      c.dayNames = inputs.map(function(inp){ return inp.value; });
+      c.step = "days"; renderNewPlan();
+    }, goNames, "Weiter");
 
   } else if(c.step === "slots"){
     lead.textContent = "Wie viele Übungen soll jeder Tag anfangs haben?";
