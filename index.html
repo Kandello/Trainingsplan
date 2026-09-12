@@ -3459,6 +3459,16 @@ const Sync = (function(){
     },
     signIn: async function(){
       if(!M) return;
+      /* Popup-Anmeldung ist auf mobilen Browsern unzuverlässig (Google
+         empfiehlt dort ausdrücklich Redirect) — auf Mobilgeräten deshalb
+         direkt Redirect statt erst ein Popup zu versuchen, das dort auf
+         unvorhersehbare Weise fehlschlagen kann. */
+      var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if(isMobile){
+        try { await M.F.signInWithRedirect(M.auth, new M.F.GoogleAuthProvider()); }
+        catch(e){ set("error", { error:describe(e) }); }
+        return;
+      }
       try {
         await M.F.signInWithPopup(M.auth, new M.F.GoogleAuthProvider());
       } catch(e){
