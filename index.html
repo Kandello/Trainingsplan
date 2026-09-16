@@ -3345,7 +3345,7 @@ const Sync = (function(){
         }
         uid = user.uid;
         set("syncing", { email:user.email || user.displayName || "angemeldet", error:null });
-        pushAll().then(pushPlan).then(subscribe).catch(function(e){ set("error", { error:describe(e) }); });
+        pushAll().then(pullPlanOnce).then(pushPlan).then(subscribe).catch(function(e){ set("error", { error:describe(e) }); });
       });
     } catch(e){
       set("error", { error: navigator.onLine ? describe(e) : "Offline — Sync startet, sobald wieder Netz da ist." });
@@ -3402,27 +3402,48 @@ const Sync = (function(){
       Gerät legt hier keinen Planwechsel fest. Existiert der aktive Plan
       nach dem Merge nicht mehr, fällt daysForActivePlan() auf MinMax
       zurück. */
+  function applyRemotePlan(v){
+    if(!v) return;
+    if(v.exercises && typeof v.exercises === "object") customEx = v.exercises;
+    if(v.order && typeof v.order === "object") planOrder = v.order;
+    if(v.spec && typeof v.spec === "object") exSpec = v.spec;
+    if(Array.isArray(v.plans)){
+      userPlans = v.plans.filter(function(p){
+        return p && typeof p.id === "string" && typeof p.name === "string" && Array.isArray(p.days);
+      });
+    }
+    store.write(K_PLAN, planOrder);
+    store.write(K_CUSTOMEX, customEx);
+    store.write(K_EXSPEC, exSpec);
+    store.write(K_PLANS, userPlans);
+    rebuildPlanRegistry();
+    renderPlanBar();
+    buildTabs();
+    rebuildAll();
+  }
+
+  /** Einmaliges Abholen des Cloud-Stands, bevor pushPlan() lokale Werte
+      hochschreibt. Ohne das würde ein Gerät mit leerem/zurückgesetztem
+      lokalem Speicher (z.B. nach "Website-Daten löschen") beim nächsten
+      Sign-in den Cloud-Stand mit seinen leeren Werten überschreiben, noch
+      bevor subscribePlan() das erste Mal empfangen hat. Läuft über
+      onSnapshot statt getDoc, weil kein Firestore-Read-Export dafür
+      gebündelt ist — beim ersten Treffer sofort wieder abgemeldet. */
+  function pullPlanOnce(){
+    if(!M || !uid) return Promise.resolve();
+    return new Promise(function(resolve){
+      var stop = M.F.onSnapshot(planRef(), function(snap){
+        applyRemotePlan(snap.data());
+        stop();
+        resolve();
+      }, function(){ stop(); resolve(); });
+    });
+  }
+
   function subscribePlan(){
     if(!M || !uid) return;
     unsubPlan = M.F.onSnapshot(planRef(), function(snap){
-      var v = snap.data();
-      if(!v) return;
-      if(v.exercises && typeof v.exercises === "object") customEx = v.exercises;
-      if(v.order && typeof v.order === "object") planOrder = v.order;
-      if(v.spec && typeof v.spec === "object") exSpec = v.spec;
-      if(Array.isArray(v.plans)){
-        userPlans = v.plans.filter(function(p){
-          return p && typeof p.id === "string" && typeof p.name === "string" && Array.isArray(p.days);
-        });
-      }
-      store.write(K_PLAN, planOrder);
-      store.write(K_CUSTOMEX, customEx);
-      store.write(K_EXSPEC, exSpec);
-      store.write(K_PLANS, userPlans);
-      rebuildPlanRegistry();
-      renderPlanBar();
-      buildTabs();
-      rebuildAll();
+      applyRemotePlan(snap.data());
     }, function(){});
   }
 
