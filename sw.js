@@ -1,4 +1,4 @@
-const CACHE = "trainingsplan-v3";
+const CACHE = "trainingsplan-v4";
 const ASSETS = [
   "./", "./index.html", "./firebase-config.js", "./vendor/firebase.js",
   "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg"
@@ -37,16 +37,20 @@ self.addEventListener("fetch", (event) => {
   // und dürfen nicht abgefangen werden. Ebenso alles andere von fremden Hosts.
   if (url.origin !== self.location.origin) return;
 
-  // Das gebündelte SDK ändert sich nur bei einem Update: cache-first.
+  // Das gebündelte SDK ist groß, darum stale-while-revalidate statt network-first:
+  // Cache-Treffer wird sofort ausgeliefert, im Hintergrund läuft aber immer ein
+  // Refetch mit, der den Cache für den nächsten Aufruf aktuell hält. Reines
+  // cache-first ohne Revalidierung (frühere Version) hielt eine veraltete SDK-
+  // Version dauerhaft im Cache fest, auch nach einem Deploy mit neuem Bundle.
   if (url.pathname.endsWith("/vendor/firebase.js")) {
     event.respondWith(
-      caches.match(event.request).then((hit) =>
-        hit || fetch(event.request.url, { cache: "reload" }).then((res) => {
-          if (res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(event.request, copy)).catch(() => {});
-          }
-          return res;
+      caches.open(CACHE).then((c) =>
+        c.match(event.request).then((hit) => {
+          const network = fetch(event.request.url, { cache: "no-store" }).then((res) => {
+            if (res.ok) c.put(event.request, res.clone());
+            return res;
+          }).catch(() => null);
+          return hit || network;
         })
       )
     );
