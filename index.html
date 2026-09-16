@@ -3362,6 +3362,20 @@ const Sync = (function(){
     return (e && e.message) ? String(e.message) : "Unbekannter Fehler";
   }
 
+  /** signInWithRedirect() löst erst auf, wenn die Navigation zu Google
+      tatsächlich losläuft — ist der Netzwerkpfad dorthin blockiert (VPN,
+      Privates DNS, Firewall), hängt der Aufruf sonst minutenlang fest,
+      ohne dass je ein Fehler/Zustand sichtbar wird. Erzwingt stattdessen
+      nach ms eine klare, handlungsfähige Fehlermeldung. Bewusst nicht auf
+      signInWithPopup() angewendet: dessen Promise wartet legitim auf die
+      Kontoauswahl des Menschen und darf nicht künstlich abbrechen. */
+  function withTimeout(promise, ms, message){
+    return new Promise(function(resolve, reject){
+      var t = setTimeout(function(){ reject(new Error(message)); }, ms);
+      promise.then(function(v){ clearTimeout(t); resolve(v); }, function(e){ clearTimeout(t); reject(e); });
+    });
+  }
+
   function ref(s){ return M.F.doc(M.db, "users", uid, "sessions", s.dayId + "_" + s.date); }
 
   function push(s){
@@ -3498,13 +3512,15 @@ const Sync = (function(){
     },
     signIn: async function(){
       if(!M) return;
+      var REDIRECT_TIMEOUT_MS = 12000;
+      var TIMEOUT_MSG = "Zeitüberschreitung — Google war über dieses Netzwerk nicht erreichbar. Bitte prüfen: aktives VPN, oder unter Einstellungen → Netzwerk & Internet → Privates DNS auf \"Automatisch\" stellen.";
       /* Popup-Anmeldung ist auf mobilen Browsern unzuverlässig (Google
          empfiehlt dort ausdrücklich Redirect) — auf Mobilgeräten deshalb
          direkt Redirect statt erst ein Popup zu versuchen, das dort auf
          unvorhersehbare Weise fehlschlagen kann. */
       var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       if(isMobile){
-        try { await M.F.signInWithRedirect(M.auth, new M.F.GoogleAuthProvider()); }
+        try { await withTimeout(M.F.signInWithRedirect(M.auth, new M.F.GoogleAuthProvider()), REDIRECT_TIMEOUT_MS, TIMEOUT_MSG); }
         catch(e){ set("error", { error:describe(e) }); }
         return;
       }
@@ -3513,7 +3529,7 @@ const Sync = (function(){
       } catch(e){
         var c = (e && e.code) || "";
         if(c === "auth/popup-blocked" || c === "auth/popup-closed-by-user" || c === "auth/cancelled-popup-request"){
-          try { await M.F.signInWithRedirect(M.auth, new M.F.GoogleAuthProvider()); return; }
+          try { await withTimeout(M.F.signInWithRedirect(M.auth, new M.F.GoogleAuthProvider()), REDIRECT_TIMEOUT_MS, TIMEOUT_MSG); return; }
           catch(e2){ set("error", { error:describe(e2) }); return; }
         }
         set("error", { error:describe(e) });
