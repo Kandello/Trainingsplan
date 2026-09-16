@@ -3510,20 +3510,18 @@ const Sync = (function(){
       M = null; uid = null;
       set("unconfigured", { email:null, error:null });
     },
+    /* Popup zuerst, auf allen Geräten inkl. Mobil: signInWithRedirect() kann
+       den Rücksprung nach Google nicht mehr zuordnen, wenn der Browser
+       Storage zwischen App-Origin und Firebase-authDomain trennt (Storage
+       Partitioning) — dann kommt weder ein Fehler noch eine Anmeldung
+       zurück, auf jedem Browser-Engine gleichermaßen (bestätigt an einem
+       echten Android-Gerät: Redirect blieb dauerhaft ergebnislos, Popup
+       meldete sofort erfolgreich an). Redirect bleibt der Rückfall für den
+       Fall, dass ein Browser Popups grundsätzlich blockiert. */
     signIn: async function(){
       if(!M) return;
       var REDIRECT_TIMEOUT_MS = 12000;
       var TIMEOUT_MSG = "Zeitüberschreitung — Google war über dieses Netzwerk nicht erreichbar. Bitte prüfen: aktives VPN, oder unter Einstellungen → Netzwerk & Internet → Privates DNS auf \"Automatisch\" stellen.";
-      /* Popup-Anmeldung ist auf mobilen Browsern unzuverlässig (Google
-         empfiehlt dort ausdrücklich Redirect) — auf Mobilgeräten deshalb
-         direkt Redirect statt erst ein Popup zu versuchen, das dort auf
-         unvorhersehbare Weise fehlschlagen kann. */
-      var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      if(isMobile){
-        try { await withTimeout(M.F.signInWithRedirect(M.auth, new M.F.GoogleAuthProvider()), REDIRECT_TIMEOUT_MS, TIMEOUT_MSG); }
-        catch(e){ set("error", { error:describe(e) }); }
-        return;
-      }
       try {
         await M.F.signInWithPopup(M.auth, new M.F.GoogleAuthProvider());
       } catch(e){
@@ -3534,11 +3532,6 @@ const Sync = (function(){
         }
         set("error", { error:describe(e) });
       }
-    },
-    signInPopup: async function(){
-      if(!M) return;
-      try { await M.F.signInWithPopup(M.auth, new M.F.GoogleAuthProvider()); }
-      catch(e){ set("error", { error:describe(e) }); }
     },
     signOut: async function(){
       if(!M) return;
@@ -3665,15 +3658,6 @@ function renderDialog(){
     var bIn = h("button", { class:"btn-line primary", type:"button", text:"Mit Google anmelden" });
     bIn.addEventListener("click", function(){ Sync.signIn(); });
     body.appendChild(bIn);
-    /* Diagnose-/Ausweich-Option: signInWithRedirect() kann den Rücksprung
-       nach Google nicht mehr zuordnen, wenn der Browser Storage zwischen
-       App-Origin und Firebase-authDomain trennt (Storage Partitioning) —
-       dann kommt weder ein Fehler noch eine Anmeldung zurück. Popup nutzt
-       stattdessen eine direkte Verbindung zum öffnenden Fenster und ist
-       davon nicht betroffen. */
-    var bPopup = h("button", { class:"btn-line", type:"button", text:"Popup-Anmeldung stattdessen versuchen" });
-    bPopup.addEventListener("click", function(){ Sync.signInPopup(); });
-    body.appendChild(bPopup);
     var bReset = h("button", { class:"btn-line", type:"button", text:"Konfiguration zurücksetzen" });
     bReset.addEventListener("click", function(){ Sync.clearConfig(); });
     body.appendChild(bReset);
