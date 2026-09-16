@@ -3535,6 +3535,11 @@ const Sync = (function(){
         set("error", { error:describe(e) });
       }
     },
+    signInPopup: async function(){
+      if(!M) return;
+      try { await M.F.signInWithPopup(M.auth, new M.F.GoogleAuthProvider()); }
+      catch(e){ set("error", { error:describe(e) }); }
+    },
     signOut: async function(){
       if(!M) return;
       if(unsub){ unsub(); unsub = null; }
@@ -3660,6 +3665,15 @@ function renderDialog(){
     var bIn = h("button", { class:"btn-line primary", type:"button", text:"Mit Google anmelden" });
     bIn.addEventListener("click", function(){ Sync.signIn(); });
     body.appendChild(bIn);
+    /* Diagnose-/Ausweich-Option: signInWithRedirect() kann den Rücksprung
+       nach Google nicht mehr zuordnen, wenn der Browser Storage zwischen
+       App-Origin und Firebase-authDomain trennt (Storage Partitioning) —
+       dann kommt weder ein Fehler noch eine Anmeldung zurück. Popup nutzt
+       stattdessen eine direkte Verbindung zum öffnenden Fenster und ist
+       davon nicht betroffen. */
+    var bPopup = h("button", { class:"btn-line", type:"button", text:"Popup-Anmeldung stattdessen versuchen" });
+    bPopup.addEventListener("click", function(){ Sync.signInPopup(); });
+    body.appendChild(bPopup);
     var bReset = h("button", { class:"btn-line", type:"button", text:"Konfiguration zurücksetzen" });
     bReset.addEventListener("click", function(){ Sync.clearConfig(); });
     body.appendChild(bReset);
