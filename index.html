@@ -3319,12 +3319,30 @@ const Sync = (function(){
 
       M = { app:app, db:db, auth:auth, F:F };
 
-      try { await F.getRedirectResult(auth); } catch(e){}
+      /* Ergebnis eines evtl. laufenden Redirect-Logins abholen. Löst nur
+         dann auf/ab, wenn wirklich einer im Gang war (sonst schlicht null)
+         — ein Fehler hier ist also echt und darf nicht stillschweigend
+         verschwinden, sonst sieht man beim Scheitern nur ein kurzes "Lädt…"
+         und landet ohne jede Erklärung wieder bei "Anmelden". redirectFailed
+         verhindert, dass der gleich folgende onAuthStateChanged-Aufruf (der
+         nach einem gescheiterten Redirect ganz normal mit user=null feuert)
+         die gerade gezeigte Fehlermeldung sofort wieder überschreibt. */
+      var redirectFailed = false;
+      try { await F.getRedirectResult(auth); }
+      catch(e){
+        redirectFailed = true;
+        set("error", { error: navigator.onLine ? describe(e) : "Offline — Sync startet, sobald wieder Netz da ist." });
+      }
 
       F.onAuthStateChanged(auth, function(user){
         if(unsub){ unsub(); unsub = null; }
         if(unsubPlan){ unsubPlan(); unsubPlan = null; }
-        if(!user){ uid = null; set("signed-out", { email:null }); return; }
+        if(!user){
+          uid = null;
+          if(redirectFailed){ redirectFailed = false; return; }
+          set("signed-out", { email:null });
+          return;
+        }
         uid = user.uid;
         set("syncing", { email:user.email || user.displayName || "angemeldet", error:null });
         pushAll().then(pushPlan).then(subscribe).catch(function(e){ set("error", { error:describe(e) }); });
