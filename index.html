@@ -3465,7 +3465,8 @@ function wireColorUi(){
    ist. Ohne Konfiguration bleibt die App rein lokal.
    ============================================================ */
 const K_FBCFG = "trainingsplan.v1.firebaseConfig";
-const SDK_URL = "./vendor/firebase.js";
+// Content version must also be present in sw.js; old offline SDKs lack sync exports.
+const SDK_URL = "./vendor/firebase.js?v=b82c7e203593";
 const FIREBASE_PROJECT_ID = "minmax-workouttracker";
 
 const Sync = (function(){
@@ -3578,6 +3579,9 @@ const Sync = (function(){
     set("loading",{project:conf.projectId});
     try {
       var F = await import(SDK_URL);
+      if(typeof F.getDocsFromServer!=='function' || typeof F.getDocFromServer!=='function'){
+        throw new Error('Das Firebase-Modul ist veraltet. Bitte die App vollständig schließen und mit Internetverbindung erneut öffnen.');
+      }
 
       var app = F.getApps().length ? F.getApp() : F.initializeApp(conf);
       if(app.options.projectId !== FIREBASE_PROJECT_ID) throw new Error("Die aktive Firebase-App gehört nicht zu MinMax Workouttracker.");

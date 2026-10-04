@@ -1,6 +1,6 @@
-const CACHE = "trainingsplan-v9";
+const CACHE = "trainingsplan-v10";
 const ASSETS = [
-  "./", "./index.html", "./firebase-config.js", "./vendor/firebase.js",
+  "./", "./index.html", "./firebase-config.js", "./vendor/firebase.js?v=b82c7e203593",
   "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg"
 ];
 
@@ -37,26 +37,6 @@ self.addEventListener("fetch", (event) => {
   // und dürfen nicht abgefangen werden. Ebenso alles andere von fremden Hosts.
   if (url.origin !== self.location.origin) return;
 
-  // Das gebündelte SDK ist groß, darum stale-while-revalidate statt network-first:
-  // Cache-Treffer wird sofort ausgeliefert, im Hintergrund läuft aber immer ein
-  // Refetch mit, der den Cache für den nächsten Aufruf aktuell hält. Reines
-  // cache-first ohne Revalidierung (frühere Version) hielt eine veraltete SDK-
-  // Version dauerhaft im Cache fest, auch nach einem Deploy mit neuem Bundle.
-  if (url.pathname.endsWith("/vendor/firebase.js")) {
-    event.respondWith(
-      caches.open(CACHE).then((c) =>
-        c.match(event.request).then((hit) => {
-          const network = fetch(event.request.url, { cache: "no-store" }).then((res) => {
-            if (res.ok) c.put(event.request, res.clone());
-            return res;
-          }).catch(() => null);
-          return hit || network;
-        })
-      )
-    );
-    return;
-  }
-
   // Eigene Dateien: network-first, damit ein Deploy ankommt — Cache als Rückfall.
   // fetch(event.request) allein bleibt "network-first" nur dem Namen nach: der
   // Cache-Modus einer normalen Anfrage ist "default" und darf vom gewoehnlichen
@@ -74,6 +54,14 @@ self.addEventListener("fetch", (event) => {
         }
         return res;
       })
-      .catch(() => caches.match(event.request).then((hit) => hit || caches.match("./index.html")))
+      .catch(async () => {
+        const hit = await caches.match(event.request);
+        if (hit) return hit;
+        // Never serve HTML in place of a missing JavaScript module.
+        if (event.request.mode === "navigate") {
+          return (await caches.match("./index.html")) || Response.error();
+        }
+        return Response.error();
+      })
   );
 });
