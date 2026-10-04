@@ -4,6 +4,18 @@ Mobile-first Web-App zum Erfassen der Trainingsgewichte und zum Verfolgen des
 Fortschritts. Läuft offline und gleicht die gespeicherten Einheiten zwischen
 Handy und PC ab.
 
+Das zugehörige Firebase-Projekt ist **Minmax Workouttracker** mit der
+Projekt-ID `minmax-workouttracker`. Veröffentlicht wird die App über
+[GitHub Pages](https://kandello.github.io/Trainingsplan/).
+Eine gespeicherte Browser-Konfiguration für ein anderes Projekt blockiert den
+Sync und lässt sich im Sync-Dialog zurücksetzen.
+
+Neben jedem Übungsnamen zeigt ▼ / blauer ● / ▲ die letzte gespeicherte
+Empfehlung an. Grün bedeutet einen vom Server bestätigten Abgleich.
+Fehlgeschlagene Änderungen und Löschungen bleiben in einer lokalen,
+kontogebundenen Warteschlange; „Erneut abgleichen“ wiederholt den Abgleich.
+„Datensicherung herunterladen“ enthält auch die lokale Wiederherstellungskopie.
+
 ## Nutzung
 
 Die App ist eine statische Seite ohne Build-Schritt.
@@ -21,16 +33,16 @@ GitHub Pages ist das gegeben.
 ## Geräte-Sync einrichten
 
 Ohne Einrichtung läuft die App rein lokal. Für den Abgleich zwischen
-Android-Handy und PC-Firefox einmalig ein kostenloses Firebase-Projekt anlegen.
+Android-Handy und PC-Firefox das bestehende Firebase-Projekt `minmax-workouttracker` verwenden.
 Dieselbe Anleitung steht auch in der App hinter dem Sync-Button oben rechts.
 
 Die Beschriftungen der Firebase-Konsole ändern sich gelegentlich; deshalb steht
 jeweils dabei, wo der Punkt sitzt.
 
-**1. Projekt anlegen**
+**1. Bestehendes Projekt öffnen**
 - [console.firebase.google.com](https://console.firebase.google.com) öffnen.
-- „Projekt erstellen" → Name vergeben, z. B. `trainingsplan`.
-- Google Analytics kann abgewählt werden, wird nicht gebraucht.
+- **Minmax Workouttracker** auswählen und die Projekt-ID `minmax-workouttracker` prüfen.
+- Die folgenden Einrichtungsschritte gelten, soweit noch nicht eingerichtet.
 
 **2. Firestore-Datenbank anlegen**
 - Linke Seitenleiste → „Erstellen" (engl. *Build*) → „Firestore Database".
@@ -117,19 +129,15 @@ im Repo, damit die App auch bei schlechtem Empfang vollständig lädt.
 `vendor/firebase.js` ist ein eingecheckter Build. Neu erzeugen mit:
 
 ```sh
-npm i firebase@10.14.1 esbuild
-cat > entry.js <<'EOF'
-export { initializeApp, getApps, getApp } from "firebase/app";
-export { getAuth, onAuthStateChanged, signInWithPopup, signInWithRedirect,
-         getRedirectResult, signOut, GoogleAuthProvider, connectAuthEmulator,
-         signInWithCredential } from "firebase/auth";
-export { initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
-         collection, doc, setDoc, deleteDoc, deleteField, onSnapshot,
-         serverTimestamp, connectFirestoreEmulator } from "firebase/firestore";
-EOF
-npx esbuild entry.js --bundle --format=esm --minify --target=es2020 \
-  --outfile=vendor/firebase.js
+npm ci --prefix tools
+node tools/node_modules/esbuild/bin/esbuild ./tools/firebase-entry.js --bundle --format=esm --minify --target=es2020 --outfile=./vendor/firebase.js
 ```
+
+### Lokale Prüfungen
+
+`npm ci --prefix tools` installiert die Entwicklungsabhängigkeiten.
+`node tools/test.cjs` prüft die App mit simuliertem Firebase, ohne Cloud-Zugriffe.
+Der SDK-Einstieg liegt in `tools/firebase-entry.js`.
 
 ## Speicherung
 
@@ -152,7 +160,7 @@ als JSON; der Import ergänzt bestehende Einheiten, statt sie zu überschreiben.
 
 ## Trainingsplan
 
-Vier Trainingstage in der Reihenfolge des Plans: **Total Body** (6 Übungen),
+Vier Trainingstage in der Reihenfolge des Plans: **Total Body** (7 Übungen),
 **Upper Body** (7), **Lower Body** (5), **Arms & Delts** (6).
 
 Aus dem Foto-Plan herausgenommen: `LegPress` (Lower Body), `DBWristCurl` und
@@ -330,6 +338,25 @@ neueste zuerst. Eine Einheit antippen klappt sie auf:
 werden Löschungen mit übertragen, statt vom anderen Gerät zurückzukehren.
 
 ## Diagramm-Farben
+
+### Eigene Farben und Looks
+
+Über den Farbbutton öffnet sich „Farben & Looks“. Farbsets ändern Hintergrund
+und Übungsboxen gemeinsam mit einem Klick. „Diesen Look merken“ speichert die
+Kombination als einen von bis zu acht Lieblingslooks.
+
+Unter „Einzelfarbe“ wählt man Hintergrund oder Übungsboxen. Hex-Werte (auch
+dreistellig) und getrennte Regler mit Zahlenfeldern für Farbton, Sättigung und
+Helligkeit ermöglichen eine genaue Auswahl. Die Vorschau verändert noch nicht
+die App; erst „Farbe übernehmen“ speichert die Auswahl. Zu dunkle Farben zeigen
+vorher ausdrücklich die aufgehellte Variante für den dunklen Text der App.
+Die letzten zwölf übernommenen Farben lassen sich per Klick wiederverwenden.
+
+Farben, Favoriten und zuletzt verwendete Farben bleiben auf diesem Gerät
+gespeichert. „Zurücksetzen“ stellt den Standardlook wieder her; Favoriten und
+Farbverlauf bleiben erhalten.
+
+### Verlaufskurven
 
 Die Verlaufskurven nutzen eine achtstufige kategoriale Palette, die in hellem
 und dunklem Modus gegen Rot-/Grünschwäche geprüft ist (Protanopie und

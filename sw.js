@@ -1,4 +1,4 @@
-const CACHE = "trainingsplan-v4";
+const CACHE = "trainingsplan-v7";
 const ASSETS = [
   "./", "./index.html", "./firebase-config.js", "./vendor/firebase.js",
   "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg"
@@ -23,7 +23,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("trainingsplan-v") && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

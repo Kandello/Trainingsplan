@@ -263,18 +263,42 @@ dialog textarea{
   border-radius:var(--r-sm);padding:8px 10px;
 }
 
-/* Eigene Farben: Zeile aus Beschriftung + rundem, nativem Farbwähler.
-   Der native Picker öffnet auf dem Handy das systemeigene Farbrad. */
-.color-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
-.color-row span{font-size:14px;font-weight:600}
-.color-swatch{
-  -webkit-appearance:none;appearance:none;
-  width:42px;height:42px;padding:0;flex:0 0 auto;
-  border:1.5px solid var(--border);border-radius:999px;background:none;cursor:pointer;
-}
-.color-swatch::-webkit-color-swatch-wrapper{padding:0;border-radius:999px}
-.color-swatch::-webkit-color-swatch{border:none;border-radius:999px}
-.color-swatch::-moz-color-swatch{border:none;border-radius:999px}
+/* Der Farbdialog bleibt neutral, auch während sich der App-Hintergrund ändert. */
+dialog#color-dialog{width:min(520px,calc(100vw - 24px));--plane:#f9f9f7}
+#color-dialog .dlg-inner{display:flex;flex-direction:column;max-height:calc(100dvh - 40px)}
+#color-dlg-body{overflow-y:auto;min-height:0;padding:2px 3px 4px;margin-left:-3px;margin-right:-3px;gap:16px}
+#color-dialog .dlg-actions{flex-shrink:0}
+.color-section h3{font-size:13px;font-weight:650;margin-bottom:8px}
+.color-switch{display:flex;gap:4px;padding:4px;background:var(--sunken);border-radius:12px}
+.color-switch button{flex:1;min-width:0;min-height:44px;padding:6px;border-radius:9px;font-size:13px;font-weight:600}
+.color-switch button[aria-pressed="true"]{background:var(--surface-1);box-shadow:0 1px 4px #00000012}
+.look-preview{background:var(--look-bg);border:1px solid var(--border);border-radius:12px;padding:12px;color:#0b0b0b}
+.look-preview-card{background:var(--look-box);border:1px solid #00000014;border-radius:9px;padding:10px;font-size:13px;font-weight:600}
+.look-values{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px;font-size:11px;color:#52514e;font-variant-numeric:tabular-nums}
+.color-favorite{margin-top:8px;min-height:44px;width:100%;border:1px solid var(--border);border-radius:9px;font-size:13px;font-weight:600}
+.look-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.look-button{width:100%;padding:6px;border:1.5px solid var(--border);border-radius:11px;text-align:left;min-height:76px}
+.look-button[aria-pressed="true"]{border-color:var(--hold);box-shadow:0 0 0 1px var(--hold)}
+.look-mini{display:block;background:var(--look-bg);padding:8px;border:1px solid #0000000c;border-radius:6px}
+.look-mini span{display:block;height:15px;background:var(--look-box);border:1px solid #00000014;border-radius:3px}
+.look-name{display:block;margin-top:5px;font-size:11.5px;font-weight:600}
+.color-hex-row{display:flex;gap:10px;align-items:center;margin-top:12px}
+.color-candidate{width:48px;height:48px;flex-shrink:0;border:1px solid #00000024;border-radius:10px}
+.color-hex-field{flex:1;min-width:0}
+.color-hex-field label{display:block;font-size:12px;font-weight:600;margin-bottom:4px}
+.color-hex-field input{width:100%;height:44px;min-width:0;padding:0 12px;border:1px solid var(--ring);border-radius:9px;background:var(--surface-1);font:600 16px ui-monospace,monospace;text-transform:uppercase}
+.color-hex-field input[aria-invalid="true"]{border-color:var(--critical)}
+.color-control{display:grid;grid-template-columns:minmax(0,1fr) 72px;gap:5px 12px;margin-top:12px;align-items:center}
+.color-control label{grid-column:1/-1;font-size:12px;font-weight:600}
+.color-control input[type="number"]{width:100%;height:44px;border:1px solid var(--ring);border-radius:9px;text-align:center;font:inherit;background:var(--surface-1)}
+.color-control input[type="range"]{appearance:none;-webkit-appearance:none;width:100%;height:18px;margin:13px 0;border:1px solid #00000020;border-radius:999px;cursor:pointer;touch-action:pan-y}
+.color-control input[type="range"]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid #52514e;box-shadow:0 1px 3px #00000030}
+.color-control input[type="range"]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:2px solid #52514e;box-shadow:0 1px 3px #00000030}
+.color-feedback{font-size:12px;line-height:1.5;color:var(--text-2);margin:12px 0 8px;min-height:36px}
+.color-history{display:flex;flex-wrap:wrap;gap:8px}
+.color-chip{width:44px;height:44px;border:1px solid #00000026;border-radius:10px}
+.color-chip[aria-pressed="true"]{outline:2px solid var(--hold);outline-offset:2px}
+@media(max-width:350px){.look-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 /* ---------- Layout ---------- */
 main{padding:14px 12px calc(env(safe-area-inset-bottom) + 88px);max-width:720px;margin:0 auto}
@@ -666,6 +690,8 @@ tbody td.na{color:var(--muted)}
   .ex-line{gap:14px}
   .wfield{width:150px}
 }
+.last-trend{display:inline-block;margin-left:.5em;font-size:16px;vertical-align:middle}
+.last-trend.hold{color:#2563eb}.last-trend.up{color:var(--good)}.last-trend.down{color:var(--critical)}
 </style>
 </head>
 <body>
@@ -735,8 +761,8 @@ tbody td.na{color:var(--muted)}
 
 <dialog id="color-dialog" aria-labelledby="color-dlg-title">
   <div class="dlg-inner">
-    <h2 id="color-dlg-title">Eigene Farben</h2>
-    <p class="dlg-lead">Nur auf diesem Gerät sichtbar.</p>
+    <h2 id="color-dlg-title">Farben & Looks</h2>
+    <p class="dlg-lead">Farbsets wirken sofort. Eigene Farben vor dem Übernehmen prüfen. Nur auf diesem Gerät.</p>
     <div class="dlg-body" id="color-dlg-body"></div>
     <div class="dlg-actions">
       <button class="btn-line" type="button" id="color-reset">Zurücksetzen</button>
@@ -984,7 +1010,7 @@ const store = (function(){
   catch(e){ ok = false; }
   var mem = {};
   return {
-    available: ok,
+    get available(){ return ok; },
     read: function(key, fallback){
       try {
         var raw = ok ? localStorage.getItem(key) : mem[key];
@@ -994,7 +1020,10 @@ const store = (function(){
     write: function(key, value){
       var raw = JSON.stringify(value);
       try { if(ok) localStorage.setItem(key, raw); else mem[key]=raw; }
-      catch(e){ mem[key]=raw; }
+      catch(e){
+        ok = false;
+        throw new Error('Datensicherung im Browser fehlgeschlagen. Bitte Speicher freigeben und erneut öffnen.');
+      }
     }
   };
 })();
@@ -1017,6 +1046,12 @@ var userPlans = store.read(K_PLANS, []);
 /** theme: {bg, box} — eigene Hex-Farben für Hintergrund und Übungs-Boxen,
     rein lokal auf diesem Gerät (kein Sync, wie ui/activePlanId). */
 var theme = store.read(K_THEME, {});
+// Keep an immutable recovery copy before any cloud callback.
+const K_RECOVERY = "trainingsplan.v2.recovery";
+if(!store.read(K_RECOVERY, null)){
+  store.write(K_RECOVERY, { sessions:sessions, drafts:drafts,
+    plan:{order:planOrder,exercises:customEx,spec:exSpec,plans:userPlans}, savedAt:new Date().toISOString() });
+}
 
 if(!Array.isArray(sessions)) sessions = [];
 if(!drafts || typeof drafts !== "object") drafts = {};
@@ -1059,7 +1094,7 @@ function ensureLight(hex, minLum){
   var lum = (0.299*r + 0.587*g + 0.114*b) / 255;
   if(lum >= minLum) return hex;
   var t = (minLum - lum) / (1 - lum);
-  function mix(c){ return Math.round(c + (255-c)*t).toString(16).padStart(2,"0"); }
+  function mix(c){ return Math.ceil(c + (255-c)*t).toString(16).padStart(2,"0"); }
   return "#" + mix(r) + mix(g) + mix(b);
 }
 
@@ -1118,6 +1153,21 @@ function historyOf(exId){
   }
   out.sort(function(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
   return out;
+}
+function lastTrend(exId){
+  var found = null;
+  sessions.forEach(function(s){
+    var e = s.entries && s.entries[exId];
+    if(e && (!found || s.date >= found.date)) found = {date:s.date,t:e.t};
+  });
+  return found && found.t;
+}
+function buildTrendHint(exId){
+  var trend = lastTrend(exId);
+  var info = TRENDS.find(function(t){return t.t === trend;});
+  return h('span', {class:'last-trend ' + (trend || ''), 'data-trend-ex':exId,
+    text:info ? info.gly : '', title:info ? info.label + ' – Empfehlung aus dem letzten Training' : '',
+    'aria-label':info ? info.label + ' – Empfehlung aus dem letzten Training' : ''});
 }
 function lastWeight(exId){ var h = historyOf(exId); return h.length ? h[h.length-1].w : null; }
 function lastSessionOf(dayId){
@@ -1330,7 +1380,7 @@ function buildExercise(ex, idx){
 
   card.appendChild(h("div", { class:"ex-head" }, [
     idxWrap,
-    h("h3",   { class:"ex-name", text:ex.n }),
+    h("h3", { class:"ex-name" }, [document.createTextNode(ex.n), buildTrendHint(ex.id)]),
     swapBtn
   ]));
 
@@ -1905,6 +1955,8 @@ function commitDay(day, date, entries, count){
       inp.placeholder = w != null ? fmtKg(w) : "0";
       card.querySelectorAll(".seg button").forEach(function(b){ b.setAttribute("aria-checked","false"); b.tabIndex = 0; });
       refreshHistory(e.id);
+      var hint = view.querySelector('[data-trend-ex="' + CSS.escape(e.id) + '"]');
+      if(hint) hint.replaceWith(buildTrendHint(e.id));
     });
     var meta = view.querySelector(".day-meta");
     if(meta) meta.textContent = "Zuletzt " + DF_LONG.format(isoToDate(date));
@@ -2308,7 +2360,7 @@ function drawTable(allSeries){
    ============================================================ */
 function exportData(){
   var payload = {
-    app:"trainingsplan", version:2, exported:new Date().toISOString(),
+    app:"trainingsplan", version:3, recovery:store.read(K_RECOVERY,null), exported:new Date().toISOString(),
     sessions:sessions,
     plan:{ order:planOrder, exercises:customEx, spec:exSpec, plans:userPlans }
   };
@@ -3217,51 +3269,185 @@ function wireNewPlanUi(){
 }
 
 /* ============================================================
-   10e. Eigene Farben
-   ------------------------------------------------------------
-   Zwei native Farbwähler (Hintergrund, Übungs-Boxen) — rein lokal,
-   kein Sync. ensureLight() (Abschnitt 2) hellt eine zu dunkle Wahl
-   automatisch auf, damit der feste (dunkle) Text lesbar bleibt.
+   10e. Farben & Looks — lokale Farbsets, Favoriten und präzise Eingabe
    ============================================================ */
-function renderColorDialog(){
-  var body = document.getElementById("color-dlg-body");
-  while(body.firstChild) body.removeChild(body.firstChild);
+const COLOR_DEFAULT = {bg:'#f9f9f7',box:'#fcfcfb'};
+const COLOR_SETS = [
+  {name:'Original',bg:'#f9f9f7',box:'#fcfcfb'},
+  {name:'Salbei',bg:'#e7eee5',box:'#f5f8f2'},
+  {name:'Sand',bg:'#f0e7d8',box:'#fffaf0'},
+  {name:'Eisblau',bg:'#e3edf5',box:'#f4f9fd'},
+  {name:'Flieder',bg:'#eee6f4',box:'#faf5ff'},
+  {name:'Rosé',bg:'#f4e5e5',box:'#fff7f5'}
+];
+const K_COLORS = 'trainingsplan.v1.colors';
+var colorLibrary = store.read(K_COLORS, {});
+if(!colorLibrary || typeof colorLibrary !== 'object') colorLibrary={};
+colorLibrary.favorites = (Array.isArray(colorLibrary.favorites) ? colorLibrary.favorites : [])
+  .filter(function(p){return p && normalizeHex(p.bg) && normalizeHex(p.box);})
+  .slice(0,8).map(function(p){return {bg:normalizeHex(p.bg),box:normalizeHex(p.box)};});
+colorLibrary.recent = (Array.isArray(colorLibrary.recent) ? colorLibrary.recent : [])
+  .map(normalizeHex).filter(Boolean).filter(function(c,i,a){return a.indexOf(c)===i;}).slice(0,12);
+var colorMode='looks', colorTarget='bg';
 
-  function row(labelText, key, fallback){
-    var r = h("div", { class:"color-row" });
-    r.appendChild(h("span", { text:labelText }));
-    var inp = h("input", { type:"color", class:"color-swatch", "aria-label":labelText });
-    inp.value = theme[key] || fallback;
-    inp.addEventListener("input", function(){
-      /* Zu dunkle Wahl sofort aufhellen — Vorschau-Kreis und tatsächlich
-         angewendete Farbe zeigen dadurch immer dasselbe. */
-      var safe = ensureLight(inp.value, 0.75);
-      inp.value = safe;
-      theme[key] = safe;
-      saveTheme();
-      applyTheme();
-    });
-    r.appendChild(inp);
-    body.appendChild(r);
-  }
-  row("Hintergrund", "bg", "#f9f9f7");
-  row("Übungs-Boxen", "box", "#fcfcfb");
+function normalizeHex(value){
+  var match=String(value).trim().match(/^#?([a-f\d]{3}|[a-f\d]{6})$/i);
+  if(!match) return null;
+  var hex=match[1].toLowerCase();
+  if(hex.length===3) hex=hex.split('').map(function(c){return c+c;}).join('');
+  return '#'+hex;
 }
+function hexToHsl(hex){
+  var rgb=[1,3,5].map(function(i){return parseInt(hex.slice(i,i+2),16)/255;});
+  var max=Math.max.apply(null,rgb),min=Math.min.apply(null,rgb),d=max-min,l=(max+min)/2,s=0,hue=0;
+  if(d){
+    s=d/(1-Math.abs(2*l-1));
+    if(max===rgb[0]) hue=((rgb[1]-rgb[2])/d)%6;
+    else if(max===rgb[1]) hue=(rgb[2]-rgb[0])/d+2;
+    else hue=(rgb[0]-rgb[1])/d+4;
+    hue=(hue*60+360)%360;
+  }
+  return {h:Math.round(hue),s:Math.round(s*100),l:Math.round(l*100)};
+}
+function hslToHex(hsl){
+  var hue=((hsl.h%360)+360)%360,s=hsl.s/100,l=hsl.l/100;
+  var c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((hue/60)%2-1)),m=l-c/2;
+  var rgb=hue<60?[c,x,0]:hue<120?[x,c,0]:hue<180?[0,c,x]:hue<240?[0,x,c]:hue<300?[x,0,c]:[c,0,x];
+  return '#'+rgb.map(function(v){return Math.round((v+m)*255).toString(16).padStart(2,'0');}).join('');
+}
+function currentLook(){return {bg:normalizeHex(theme.bg || COLOR_DEFAULT.bg),box:normalizeHex(theme.box || COLOR_DEFAULT.box)};}
+function sameLook(a,b){return a.bg===b.bg && a.box===b.box;}
+function rememberColors(colors){
+  colors.forEach(function(hex){colorLibrary.recent=[hex].concat(colorLibrary.recent.filter(function(c){return c!==hex;})).slice(0,12);});
+  store.write(K_COLORS,colorLibrary);
+}
+function useLook(look,focusId,changedKey){
+  theme={bg:ensureLight(look.bg,0.75),box:ensureLight(look.box,0.75)};
+  saveTheme();applyTheme();rememberColors(changedKey ? [theme[changedKey]] : [theme.box,theme.bg]);renderColorDialog(focusId);
+}
+function lookStyle(node,look){node.style.setProperty('--look-bg',look.bg);node.style.setProperty('--look-box',look.box);}
 
+function renderColorDialog(focusId){
+  var body=document.getElementById('color-dlg-body');
+  body.replaceChildren();
+  var current=currentLook();
+  var modes=h('div',{class:'color-switch','aria-label':'Art der Farbauswahl'});
+  [{id:'looks',name:'Farbsets'},{id:'custom',name:'Einzelfarbe'}].forEach(function(mode){
+    var b=h('button',{type:'button',id:'color-mode-'+mode.id,text:mode.name,'aria-pressed':String(colorMode===mode.id)});
+    b.addEventListener('click',function(){colorMode=mode.id;renderColorDialog(b.id);});modes.appendChild(b);
+  });
+  body.appendChild(modes);
+
+  var preview=h('div',{class:'look-preview',id:'color-look-preview'});lookStyle(preview,current);
+  preview.appendChild(h('div',{class:'look-preview-card',text:'Aktueller Look · Übungsboxen'}));
+  var values=h('div',{class:'look-values'});
+  values.appendChild(h('span',{text:'Hintergrund '+current.bg.toUpperCase()}));
+  values.appendChild(h('span',{text:'Boxen '+current.box.toUpperCase()}));preview.appendChild(values);body.appendChild(preview);
+  var saved=colorLibrary.favorites.some(function(p){return sameLook(p,current);});
+  var favorite=h('button',{type:'button',class:'color-favorite',id:'color-save-look',text:saved?'★ Favorit entfernen':'☆ Diesen Look merken','aria-pressed':String(saved)});
+  favorite.addEventListener('click',function(){
+    if(saved) colorLibrary.favorites=colorLibrary.favorites.filter(function(p){return !sameLook(p,current);});
+    else {
+      if(colorLibrary.favorites.length>=8){toast('Bis zu 8 Lieblingslooks. Entferne zuerst einen Favoriten.');return;}
+      colorLibrary.favorites.push(current);
+    }
+    store.write(K_COLORS,colorLibrary);renderColorDialog(favorite.id);
+  });body.appendChild(favorite);
+
+  function section(title){var s=h('section',{class:'color-section'});s.appendChild(h('h3',{text:title}));body.appendChild(s);return s;}
+  function lookButtons(parent,looks,prefix){
+    var grid=h('div',{class:'look-grid'});
+    looks.forEach(function(look,i){
+      var name=look.name || 'Mein Look '+(i+1);
+      var button=h('button',{type:'button',class:'look-button',id:prefix+i,'aria-pressed':String(sameLook(current,look)),
+        'aria-label':name+', Hintergrund '+look.bg+', Boxen '+look.box,title:'Hintergrund '+look.bg+' · Boxen '+look.box});
+      lookStyle(button,look);
+      button.appendChild(h('span',{class:'look-mini','aria-hidden':'true'},[h('span')]));
+      button.appendChild(h('span',{class:'look-name',text:name}));
+      button.addEventListener('click',function(){useLook(look,button.id);});grid.appendChild(button);
+    });parent.appendChild(grid);
+  }
+  if(colorMode==='looks'){
+    lookButtons(section('Abgestimmte Farbsets'),COLOR_SETS,'color-set-');
+    var favorites=section('Lieblingslooks');
+    if(colorLibrary.favorites.length) lookButtons(favorites,colorLibrary.favorites,'color-favorite-');
+    else favorites.appendChild(h('p',{class:'dlg-note',text:'Speichere oben einen Look aus Hintergrund und Boxen. Danach reicht ein Klick zum Wiederverwenden.'}));
+  } else {
+    var editor=section('Eigene Farbe');
+    var targets=h('div',{class:'color-switch','aria-label':'Farbe ändern für'});
+    [{key:'bg',name:'Hintergrund'},{key:'box',name:'Übungsboxen'}].forEach(function(target){
+      var button=h('button',{type:'button',id:'color-target-'+target.key,text:target.name,'aria-pressed':String(colorTarget===target.key)});
+      button.addEventListener('click',function(){colorTarget=target.key;renderColorDialog(button.id);});targets.appendChild(button);
+    });editor.appendChild(targets);
+    var candidate=current[colorTarget],hsl=hexToHsl(candidate),valid=true,controls=[];
+    var hexRow=h('div',{class:'color-hex-row'});
+    var swatch=h('div',{class:'color-candidate','aria-hidden':'true'});hexRow.appendChild(swatch);
+    var field=h('div',{class:'color-hex-field'});
+    field.appendChild(h('label',{for:'color-hex',text:'Hex-Farbwert'}));
+    var hex=h('input',{type:'text',id:'color-hex',value:candidate.toUpperCase(),maxlength:'7',spellcheck:'false',autocomplete:'off','aria-describedby':'color-feedback','aria-invalid':'false'});
+    field.appendChild(hex);hexRow.appendChild(field);editor.appendChild(hexRow);
+    var feedback=h('p',{id:'color-feedback',class:'color-feedback',role:'status'});
+    var draftPreview=h('div',{class:'look-preview',id:'color-draft-preview','aria-label':'Vorschau nach Übernahme'},[
+      h('div',{class:'look-preview-card',text:'Vorschau · Übungsboxen'})
+    ]);
+    var apply=h('button',{type:'button',class:'btn-line primary',id:'color-apply',text:'Farbe übernehmen'});
+    function update(syncHex){
+      var safe=ensureLight(candidate,0.75);
+      swatch.style.backgroundColor=candidate;
+      var draft=currentLook();draft[colorTarget]=safe;lookStyle(draftPreview,draft);
+      controls.forEach(function(ctrl){ctrl.range.value=hsl[ctrl.key];ctrl.number.value=hsl[ctrl.key];ctrl.number.setAttribute('aria-invalid','false');});
+      if(syncHex) hex.value=candidate.toUpperCase();
+      hex.setAttribute('aria-invalid',String(!valid));apply.disabled=!valid;
+      if(!valid) feedback.textContent='Bitte einen gültigen Hex-Wert eingeben, z. B. #E7EEE5 oder #ABC.';
+      else feedback.textContent=safe===candidate?'Diese Farbe wird exakt als '+candidate.toUpperCase()+' übernommen.':'Die App hat dunklen Text. Gewählt: '+candidate.toUpperCase()+'. Als helle Variante wird '+safe.toUpperCase()+' übernommen.';
+      apply.textContent=safe===candidate?'Farbe übernehmen':'Aufgehellte Farbe übernehmen';
+      controls[0].range.style.background='linear-gradient(to right,#ff0000,#ffff00,#00ff00,#00ffff,#0000ff,#ff00ff,#ff0000)';
+      controls[1].range.style.background='linear-gradient(to right,hsl('+hsl.h+' 0% '+hsl.l+'%),hsl('+hsl.h+' 100% '+hsl.l+'%))';
+      controls[2].range.style.background='linear-gradient(to right,#000,hsl('+hsl.h+' '+hsl.s+'% 50%),#fff)';
+    }
+    [{key:'h',label:'Farbton (°)',max:360},{key:'s',label:'Sättigung (%)',max:100},{key:'l',label:'Helligkeit (%)',max:100}].forEach(function(channel){
+      var row=h('div',{class:'color-control'}),id='color-'+channel.key;
+      row.appendChild(h('label',{for:id,text:channel.label}));
+      var range=h('input',{type:'range',id:id,min:'0',max:String(channel.max),step:'1','aria-label':channel.label});
+      var number=h('input',{type:'number',id:id+'-number',min:'0',max:String(channel.max),step:'1',inputmode:'numeric','aria-label':channel.label+' genauer Wert'});
+      function change(input){
+        var value=Number(input.value);
+        if(input.value==='' || !Number.isInteger(value) || value<0 || value>channel.max){number.setAttribute('aria-invalid','true');apply.disabled=true;feedback.textContent='Bitte '+channel.label+' zwischen 0 und '+channel.max+' eingeben.';return;}
+        hsl[channel.key]=value;candidate=hslToHex(hsl);valid=true;update(true);
+      }
+      range.addEventListener('input',function(){change(range);});number.addEventListener('input',function(){change(number);});
+      row.appendChild(range);row.appendChild(number);editor.appendChild(row);controls.push({key:channel.key,range:range,number:number});
+    });
+    hex.addEventListener('input',function(){var parsed=normalizeHex(hex.value);valid=!!parsed;if(valid){candidate=parsed;hsl=hexToHsl(candidate);}update(false);});
+    hex.addEventListener('blur',function(){if(valid) hex.value=candidate.toUpperCase();});
+    hex.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();if(!apply.disabled) apply.click();}});
+    apply.addEventListener('click',function(){if(apply.disabled)return;var look=currentLook();look[colorTarget]=ensureLight(candidate,0.75);useLook(look,apply.id,colorTarget);});
+    editor.appendChild(feedback);editor.appendChild(draftPreview);editor.appendChild(apply);update(false);
+
+    var history=section('Zuletzt verwendete Farben');
+    if(colorLibrary.recent.length){
+      var chips=h('div',{class:'color-history'});
+      colorLibrary.recent.forEach(function(color,i){
+        var button=h('button',{type:'button',class:'color-chip',id:'color-recent-'+i,title:color.toUpperCase(),
+          'aria-label':color.toUpperCase()+' für '+(colorTarget==='bg'?'Hintergrund':'Übungsboxen')+' verwenden','aria-pressed':String(current[colorTarget]===color)});
+        button.style.backgroundColor=color;
+        button.addEventListener('click',function(){var look=currentLook();look[colorTarget]=color;useLook(look,'color-target-'+colorTarget,colorTarget);});chips.appendChild(button);
+      });history.appendChild(chips);
+    } else history.appendChild(h('p',{class:'dlg-note',text:'Übernommene Farben erscheinen hier und lassen sich mit einem Klick erneut verwenden.'}));
+  }
+  if(focusId){var focus=document.getElementById(focusId);if(focus)focus.focus({preventScroll:true});}
+}
 function wireColorUi(){
-  var dlg = document.getElementById("color-dialog");
-  document.getElementById("color-btn").addEventListener("click", function(){
+  var dlg=document.getElementById('color-dialog');
+  document.getElementById('color-btn').addEventListener('click',function(){
     renderColorDialog();
-    if(typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+    if(typeof dlg.showModal==='function')dlg.showModal();else dlg.setAttribute('open','');
   });
-  document.getElementById("color-close").addEventListener("click", function(){
-    if(typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
+  document.getElementById('color-close').addEventListener('click',function(){
+    if(typeof dlg.close==='function')dlg.close();else dlg.removeAttribute('open');
   });
-  document.getElementById("color-reset").addEventListener("click", function(){
-    theme = {};
-    saveTheme();
-    applyTheme();
-    renderColorDialog();
+  document.getElementById('color-reset').addEventListener('click',function(){
+    theme={};saveTheme();applyTheme();renderColorDialog('color-reset');
   });
 }
 
@@ -3276,9 +3462,86 @@ function wireColorUi(){
    ============================================================ */
 const K_FBCFG = "trainingsplan.v1.firebaseConfig";
 const SDK_URL = "./vendor/firebase.js";
+const FIREBASE_PROJECT_ID = "minmax-workouttracker";
 
 const Sync = (function(){
-  var st = { status:"unconfigured", email:null, error:null, pending:false };
+  var st = { status:"unconfigured", email:null, error:null, pending:false, serverCount:null, checkedAt:null };
+  const K_OUTBOX = 'trainingsplan.v2.outbox';
+  var outbox = store.read(K_OUTBOX, {}), generation = 0, started = false, lastSnapshot = null;
+  function sessionKey(s){ return s.dayId + '_' + s.date; }
+  function mergeSessions(local, remote){
+    var result = new Map(remote.map(function(s){ return [sessionKey(s), JSON.parse(JSON.stringify(s))]; }));
+    local.forEach(function(s){
+      var existing = result.get(sessionKey(s));
+      if(!existing) result.set(sessionKey(s), JSON.parse(JSON.stringify(s)));
+      else Object.keys(s.entries || {}).forEach(function(id){
+        if(!Object.prototype.hasOwnProperty.call(existing.entries, id)) existing.entries[id] = s.entries[id];
+      });
+    });
+    return Array.from(result.values()).sort(function(a,b){ return a.date.localeCompare(b.date); });
+  }
+  function queued(operation, id, data){
+    if(!store.available) throw new Error('Browser-Speicher nicht verfügbar; bitte Daten exportieren.');
+    var owner = uid || 'local';
+    var item = {operation:operation,owner:owner,id:id,data:data ? JSON.parse(JSON.stringify(data)) : null,token:Date.now() + '-' + Math.random()};
+    outbox[owner + ':' + id] = item;
+    store.write(K_OUTBOX,outbox);
+    return item;
+  }
+  function failure(e){ set('error',{error:describe(e)}); }
+  function acknowledge(item){
+    var k = item.owner + ':' + item.id;
+    if(outbox[k] && outbox[k].token === item.token){ delete outbox[k]; store.write(K_OUTBOX,outbox); }
+    if(lastSnapshot) applySessionsSnapshot(lastSnapshot);
+  }
+  async function flush(){
+    var owner=uid;
+    for(var k of Object.keys(outbox)){
+      if(owner!==uid) return;
+      var item = outbox[k];
+      if(item.owner !== uid && item.owner !== 'local') continue;
+      if(item.operation === 'delete') await removeSession(item.data);
+      else if(item.operation === 'entry') await removeEntry(item.data.session,item.data.exId);
+      else if(item.operation === 'entryDeletes') await removeEntries(item.data.session,item.data.exIds);
+      else if(item.operation === 'plan') await M.F.setDoc(planRef(),Object.assign({},item.data,{updatedAt:M.F.serverTimestamp()}));
+      else await push(item.data);
+      acknowledge(item);
+    }
+  }
+  async function reconcile(epoch){
+    if(epoch !== generation) return;
+    var snapshot = await M.F.getDocsFromServer(M.F.collection(M.db,'users',uid,'sessions'));
+    if(epoch !== generation) return;
+    var remote = [];
+    snapshot.forEach(function(d){var v=d.data();if(v && v.date && v.dayId && v.entries) remote.push({date:v.date,dayId:v.dayId,entries:v.entries});});
+    var merged = mergeSessions(sessions,remote);
+    // Upload only records/entries absent on the server, not stale local values.
+    for(var s of merged){
+      if(epoch !== generation) return;
+      var r = remote.find(function(v){return sessionKey(v)===sessionKey(s);});
+      var missing = {};
+      Object.keys(s.entries).forEach(function(id){if(!r || !Object.prototype.hasOwnProperty.call(r.entries,id)) missing[id]=s.entries[id];});
+      if(Object.keys(missing).length) await push({date:s.date,dayId:s.dayId,entries:missing});
+      if(epoch !== generation) return;
+    }
+    sessions=merged;
+    Object.values(outbox).forEach(function(item){
+      if(item.owner!==uid && item.owner!=='local') return;
+      if(item.operation==='plan') return;
+      var idx=sessions.findIndex(function(s){return sessionKey(s)===item.id;});
+      if(item.operation==='delete'){if(idx>=0) sessions.splice(idx,1);}
+      else if(item.operation==='entryDeletes' && idx>=0){item.data.exIds.forEach(function(id){delete sessions[idx].entries[id];});}
+      else if(item.operation==='push' || item.operation==='replace'){
+        if(idx>=0) sessions[idx]=item.data;else sessions.push(item.data);
+      }
+    });
+    saveSessions(); refreshFromData(); renderLog();
+    await pullPlanOnce(epoch);
+    if(epoch !== generation) return;
+    await pushPlan();
+    await flush();
+    if(epoch === generation) subscribe();
+  }
   var M = null, unsub = null, unsubPlan = null, uid = null;
 
   function readConfig(){
@@ -3298,13 +3561,22 @@ const Sync = (function(){
   }
 
   async function boot(){
+    if(started) return;
+    started = true;
+    if(!store.available){started=false;set('error',{error:'Browser-Speicher nicht verfügbar. Bitte zuerst Daten exportieren.'});return;}
     var conf = readConfig();
-    if(!conf){ set("unconfigured"); return; }
-    set("loading");
+    if(!conf){ started=false; set("unconfigured"); return; }
+    if(conf.projectId !== FIREBASE_PROJECT_ID){
+      started=false;
+      set("error",{project:conf.projectId,error:"Die gespeicherte Konfiguration gehört zu einem anderen Firebase-Projekt. Bitte Konfiguration zurücksetzen, um MinMax Workouttracker zu verwenden."});
+      return;
+    }
+    set("loading",{project:conf.projectId});
     try {
       var F = await import(SDK_URL);
 
       var app = F.getApps().length ? F.getApp() : F.initializeApp(conf);
+      if(app.options.projectId !== FIREBASE_PROJECT_ID) throw new Error("Die aktive Firebase-App gehört nicht zu MinMax Workouttracker.");
       var db  = F.initializeFirestore(app, {
         localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() })
       });
@@ -3335,9 +3607,11 @@ const Sync = (function(){
       }
 
       F.onAuthStateChanged(auth, function(user){
+        var epoch = ++generation;
+        lastSnapshot=null;
         if(unsub){ unsub(); unsub = null; }
         if(unsubPlan){ unsubPlan(); unsubPlan = null; }
-        if(!user){
+        if(!user || user.isAnonymous){
           uid = null;
           if(redirectFailed){ redirectFailed = false; return; }
           set("signed-out", { email:null });
@@ -3345,9 +3619,10 @@ const Sync = (function(){
         }
         uid = user.uid;
         set("syncing", { email:user.email || user.displayName || "angemeldet", error:null });
-        pushAll().then(pullPlanOnce).then(pushPlan).then(subscribe).catch(function(e){ set("error", { error:describe(e) }); });
+        reconcile(epoch).catch(function(e){ if(epoch === generation) failure(e); });
       });
     } catch(e){
+      started=false;
       set("error", { error: navigator.onLine ? describe(e) : "Offline — Sync startet, sobald wieder Netz da ist." });
     }
   }
@@ -3397,9 +3672,10 @@ const Sync = (function(){
     return M.F.setDoc(ref(s), patch, { merge:true });
   }
 
-  function pushAll(){
-    if(!M || !uid) return Promise.resolve();
-    return Promise.all(sessions.map(function(s){ return push(s).catch(function(){}); }));
+  function removeEntries(s, ids){
+    var patch={entries:{},updatedAt:M.F.serverTimestamp()};
+    ids.forEach(function(id){patch.entries[id]=M.F.deleteField();});
+    return M.F.setDoc(ref(s),patch,{merge:true});
   }
 
   function planRef(){ return M.F.doc(M.db, "users", uid, "state", "plan"); }
@@ -3409,7 +3685,7 @@ const Sync = (function(){
     return M.F.setDoc(planRef(), {
       order: planOrder, exercises: customEx, spec: exSpec, plans: userPlans,
       updatedAt: M.F.serverTimestamp()
-    }, { merge:true });
+    });
   }
 
   /** activePlanId bleibt bewusst rein lokal (wie ui.tab) — ein anderes
@@ -3436,36 +3712,35 @@ const Sync = (function(){
     rebuildAll();
   }
 
-  /** Einmaliges Abholen des Cloud-Stands, bevor pushPlan() lokale Werte
-      hochschreibt. Ohne das würde ein Gerät mit leerem/zurückgesetztem
-      lokalem Speicher (z.B. nach "Website-Daten löschen") beim nächsten
-      Sign-in den Cloud-Stand mit seinen leeren Werten überschreiben, noch
-      bevor subscribePlan() das erste Mal empfangen hat. Läuft über
-      onSnapshot statt getDoc, weil kein Firestore-Read-Export dafür
-      gebündelt ist — beim ersten Treffer sofort wieder abgemeldet. */
-  function pullPlanOnce(){
-    if(!M || !uid) return Promise.resolve();
-    return new Promise(function(resolve){
-      var stop = M.F.onSnapshot(planRef(), function(snap){
-        applyRemotePlan(snap.data());
-        stop();
-        resolve();
-      }, function(){ stop(); resolve(); });
-    });
+  /** Server zuerst lesen; lokale zusätzliche Pläne und noch ausstehende
+      Planänderungen erhalten, bevor der gemeinsame Stand geschrieben wird. */
+  async function pullPlanOnce(epoch){
+    var snap = await M.F.getDocFromServer(planRef());
+    if(epoch!==generation) return;
+    var local = {order:planOrder,exercises:customEx,spec:exSpec,plans:userPlans};
+    var remote=snap.data();
+    if(!remote) return;
+    var pendingPlan=Object.values(outbox).find(function(item){return item.operation==='plan' && (item.owner===uid || item.owner==='local');});
+    if(pendingPlan) local=pendingPlan.data;
+    // Cloud values win collisions, local-only plans and exercises survive.
+    var plans = (remote.plans || []).slice();
+    local.plans.forEach(function(p){if(!plans.some(function(r){return r.id===p.id;})) plans.push(p);});
+    applyRemotePlan({order:pendingPlan ? Object.assign({},remote.order,local.order) : Object.assign({},local.order,remote.order),
+      exercises:Object.assign({},local.exercises,remote.exercises,pendingPlan ? local.exercises : {}),
+      spec:Object.assign({},local.spec,remote.spec,pendingPlan ? local.spec : {}),plans:plans});
   }
 
   function subscribePlan(){
     if(!M || !uid) return;
-    unsubPlan = M.F.onSnapshot(planRef(), function(snap){
+    unsubPlan = M.F.onSnapshot(planRef(), {includeMetadataChanges:true}, function(snap){
+      if(snap.metadata.fromCache || snap.metadata.hasPendingWrites) return;
+      if(Object.values(outbox).some(function(item){return item.operation==='plan' && (item.owner===uid || item.owner==='local');})) return;
       applyRemotePlan(snap.data());
-    }, function(){});
+    }, failure);
   }
 
-  function subscribe(){
-    if(!M || !uid) return;
-    subscribePlan();
-    var col = M.F.collection(M.db, "users", uid, "sessions");
-    unsub = M.F.onSnapshot(col, function(snap){
+  function applySessionsSnapshot(snap){
+      lastSnapshot=snap;
       var remote = [];
       snap.forEach(function(d){
         var v = d.data();
@@ -3473,13 +3748,23 @@ const Sync = (function(){
           remote.push({ date:v.date, dayId:v.dayId, entries:v.entries });
         }
       });
+      // A cache snapshot may be empty/incomplete and must never erase local history.
+      if(snap.metadata.fromCache){ if(st.status!=='error') set('pending'); return; }
+      var outstanding = Object.values(outbox).filter(function(item){return item.owner===uid || item.owner==='local';});
+      if(outstanding.length){ if(st.status!=='error') set('pending'); return; }
       sessions = remote;
       saveSessions();
       st.pending = snap.metadata.hasPendingWrites;
-      set(st.pending ? "pending" : "ready", { error:null });
+      if(st.status!=='error') set(st.pending ? "pending" : "ready", { error:null,serverCount:remote.length,checkedAt:new Date().toISOString() });
       refreshFromData();
       renderLog();
-    }, function(err){
+  }
+
+  function subscribe(){
+    if(!M || !uid) return;
+    subscribePlan();
+    var col = M.F.collection(M.db, "users", uid, "sessions");
+    unsub = M.F.onSnapshot(col, {includeMetadataChanges:true}, applySessionsSnapshot, function(err){
       set("error", { error:describe(err) });
     });
   }
@@ -3488,10 +3773,17 @@ const Sync = (function(){
     state: st,
     configured: function(){ return !!readConfig(); },
     init: boot,
-    push: function(s){ push(s).catch(function(){}); },
-    pushPlan: function(){ if(M && uid) pushPlan().catch(function(){}); },
-    removeSession: function(s){ removeSession(s).catch(function(){}); },
-    removeEntry: function(s, exId){ removeEntry(s, exId).catch(function(){}); },
+    push: function(s){var item=queued('push',sessionKey(s),s);if(M && uid){set('pending');push(s).then(function(){acknowledge(item);}).catch(failure);}},
+    pushPlan: function(){var item=queued('plan','plan',{order:planOrder,exercises:customEx,spec:exSpec,plans:userPlans});if(M && uid){set('pending');pushPlan().then(function(){acknowledge(item);}).catch(failure);}},
+    removeSession: function(s){var item=queued('delete',sessionKey(s),s);if(M && uid) removeSession(s).then(function(){acknowledge(item);}).catch(failure);},
+    removeEntry: function(s,exId){
+      var key=(uid || 'local') + ':' + sessionKey(s), previous=outbox[key];
+      var ids=previous && previous.operation==='entryDeletes' ? previous.data.exIds.slice() : [];
+      if(ids.indexOf(exId)<0) ids.push(exId);
+      var item=queued('entryDeletes',sessionKey(s),{session:s,exIds:ids});
+      if(M && uid) removeEntries(s,ids).then(function(){acknowledge(item);}).catch(failure);
+    },
+    retry: function(){if(!M || !uid) return boot();set('syncing');lastSnapshot=null;var epoch=++generation;if(unsub){unsub();unsub=null;}if(unsubPlan){unsubPlan();unsubPlan=null;}reconcile(epoch).catch(function(e){if(epoch===generation) failure(e);});},
     saveConfig: function(text){
       var obj;
       try {
@@ -3499,16 +3791,17 @@ const Sync = (function(){
         obj = (new Function("return (" + t + ")"))();
       } catch(e){ return "Konnte nicht gelesen werden — bitte das komplette firebaseConfig-Objekt einfügen."; }
       if(!obj || !obj.apiKey || !obj.projectId) return "Es fehlen apiKey oder projectId.";
+      if(obj.projectId !== FIREBASE_PROJECT_ID) return "Für MinMax ist ausschließlich das Firebase-Projekt " + FIREBASE_PROJECT_ID + " zulässig.";
       store.write(K_FBCFG, obj);
-      boot();
+      location.reload();
       return null;
     },
     clearConfig: function(){
       store.write(K_FBCFG, null);
       if(unsub){ unsub(); unsub = null; }
       if(unsubPlan){ unsubPlan(); unsubPlan = null; }
-      M = null; uid = null;
-      set("unconfigured", { email:null, error:null });
+      M = null; uid = null; started=false; ++generation;
+      location.reload();
     },
     /* Popup zuerst, auf allen Geräten inkl. Mobil: signInWithRedirect() kann
        den Rücksprung nach Google nicht mehr zuordnen, wenn der Browser
@@ -3526,8 +3819,10 @@ const Sync = (function(){
         await M.F.signInWithPopup(M.auth, new M.F.GoogleAuthProvider());
       } catch(e){
         var c = (e && e.code) || "";
-        if(c === "auth/popup-blocked" || c === "auth/popup-closed-by-user" || c === "auth/cancelled-popup-request"){
-          try { await withTimeout(M.F.signInWithRedirect(M.auth, new M.F.GoogleAuthProvider()), REDIRECT_TIMEOUT_MS, TIMEOUT_MSG); return; }
+        if(c === "auth/popup-blocked"){
+          try {
+            await withTimeout(M.F.signInWithRedirect(M.auth,new M.F.GoogleAuthProvider()),REDIRECT_TIMEOUT_MS,TIMEOUT_MSG); return;
+          }
           catch(e2){ set("error", { error:describe(e2) }); return; }
         }
         set("error", { error:describe(e) });
@@ -3548,7 +3843,7 @@ const SYNC_CHIP = {
   "signed-out": { dot:"pending", label:"Anmelden" },
   syncing:      { dot:"pending", label:"Sync …" },
   pending:      { dot:"pending", label:"Wartet" },
-  ready:        { dot:"ok",      label:"Sync" },
+  ready:        { dot:"ok",      label:"Synchronisiert" },
   error:        { dot:"err",     label:"Sync-Fehler" }
 };
 
@@ -3562,11 +3857,11 @@ function renderChip(){
 /* Schritt-für-Schritt-Anleitung. Die Beschriftungen der Firebase-Konsole
    können sich ändern; deshalb steht überall dabei, wo der Punkt sitzt. */
 const SETUP_STEPS = [
-  { t:"Projekt anlegen", d:[
+  { t:"MinMax-Projekt öffnen", d:[
     "console.firebase.google.com öffnen, mit dem Google-Konto anmelden.",
-    "„Projekt erstellen“ → Name vergeben, z. B. trainingsplan.",
-    "Google Analytics kannst du abwählen — wird nicht gebraucht.",
-    "Auf „Projekt erstellen“ klicken und warten, bis die Übersicht erscheint."
+    "Das bestehende Projekt „Minmax Workouttracker“ auswählen.",
+    "Unter Projekteinstellungen die Projekt-ID minmax-workouttracker prüfen.",
+    "Die folgenden Schritte gelten, soweit noch nicht eingerichtet."
   ]},
   { t:"Firestore-Datenbank anlegen", d:[
     "Linke Seitenleiste → unter „Projektverknüpfungen“ auf „Firestore“.",
@@ -3633,7 +3928,7 @@ function renderDialog(){
   }
 
   if(s.status === "unconfigured"){
-    lead.textContent = "Noch nicht eingerichtet — die Daten liegen nur auf diesem Gerät. Für den Abgleich zwischen Handy und PC einmalig ein kostenloses Firebase-Projekt anlegen.";
+    lead.textContent = "Noch nicht eingerichtet — die Daten liegen nur auf diesem Gerät. Für den Abgleich das bestehende Firebase-Projekt Minmax Workouttracker verwenden.";
     body.appendChild(buildSetupGuide());
 
     var ta = h("textarea", { spellcheck:"false", "aria-label":"Firebase-Konfiguration",
@@ -3658,10 +3953,17 @@ function renderDialog(){
     var bIn = h("button", { class:"btn-line primary", type:"button", text:"Mit Google anmelden" });
     bIn.addEventListener("click", function(){ Sync.signIn(); });
     body.appendChild(bIn);
+    var bBackup=h('button',{class:'btn-line',type:'button',text:'Datensicherung herunterladen'});
+    bBackup.addEventListener('click',exportData);body.appendChild(bBackup);
     var bReset = h("button", { class:"btn-line", type:"button", text:"Konfiguration zurücksetzen" });
     bReset.addEventListener("click", function(){ Sync.clearConfig(); });
     body.appendChild(bReset);
     return;
+  }
+
+  if(s.status === "error"){
+    var reset = h("button",{class:"btn-line",type:"button",text:"Konfiguration zurücksetzen"});
+    reset.addEventListener("click",function(){Sync.clearConfig();}); body.appendChild(reset);
   }
 
   lead.textContent = s.status === "ready"
@@ -3671,7 +3973,7 @@ function renderDialog(){
       : "Wird abgeglichen …";
 
   var dl = document.createElement("dl");
-  [["Konto", s.email || "—"], ["Einheiten", String(sessions.length)],
+  [["Konto", s.email || "—"], ["Firebase-Projekt", s.project || "—"], ["Lokal", String(sessions.length)], ["In der Cloud", s.serverCount == null ? "Noch nicht bestätigt" : String(s.serverCount)],
    ["Status", (SYNC_CHIP[s.status] || {}).label || "—"]].forEach(function(pair){
     var row = h("div", { class:"dlg-row" });
     row.appendChild(h("dt", { text:pair[0] }));
@@ -3680,6 +3982,10 @@ function renderDialog(){
   });
   body.appendChild(dl);
 
+  var retry = h('button',{class:'btn-line',type:'button',text:'Erneut abgleichen'});
+  retry.addEventListener('click',function(){Sync.retry();}); body.appendChild(retry);
+  var backup = h('button',{class:'btn-line',type:'button',text:'Datensicherung herunterladen'});
+  backup.addEventListener('click',exportData);body.appendChild(backup);
   var bOut = h("button", { class:"btn-line", type:"button", text:"Abmelden" });
   bOut.addEventListener("click", function(){ Sync.signOut(); });
   body.appendChild(bOut);
@@ -3695,7 +4001,7 @@ function wireSyncUi(){
     if(typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
   });
   window.addEventListener("online", function(){
-    if(Sync.state.status === "error" && Sync.configured()) Sync.init();
+    if(Sync.configured()) Sync.retry();
   });
 }
 
@@ -3752,6 +4058,8 @@ function refreshFromData(){
     }
     day.ex.forEach(function(e){
       refreshHistory(e.id);
+      var hint = view.querySelector('[data-trend-ex="' + CSS.escape(e.id) + '"]');
+      if(hint) hint.replaceWith(buildTrendHint(e.id));
       var inp = view.querySelector('.ex[data-ex="' + CSS.escape(e.id) + '"] input');
       if(inp && document.activeElement !== inp){
         var w = lastWeight(e.id);
