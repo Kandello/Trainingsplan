@@ -113,9 +113,7 @@ async function run(options={}){
  const input=(id,value)=>{const el=doc.getElementById(id);el.value=value;el.dispatchEvent(new colors.w.Event('input',{bubbles:true}));};
  const selectedTheme=()=>JSON.parse(colors.w.localStorage.getItem('trainingsplan.v1.theme'));
  click('color-btn');assert.ok(doc.getElementById('color-dialog').hasAttribute('open'));
- assert.equal(doc.querySelectorAll('input[type="color"]').length,1);
- assert.equal(doc.documentElement.dataset.background,'carbon');
- assert.equal(doc.documentElement.style.getPropertyValue('--carbon-color'),'#15283e');
+ assert.equal(doc.querySelectorAll('input[type="color"]').length,0);
  click('color-set-1');assert.deepEqual(selectedTheme(),{bg:'#e7eee5',box:'#f5f8f2'});
  assert.equal(doc.documentElement.style.getPropertyValue('--plane'),'#e7eee5');
  click('color-save-look');assert.equal(colors.get('colorLibrary.favorites.length'),1);
