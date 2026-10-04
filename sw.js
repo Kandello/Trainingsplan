@@ -1,4 +1,4 @@
-const CACHE = "trainingsplan-v7";
+const CACHE = "trainingsplan-v8";
 const ASSETS = [
   "./", "./index.html", "./firebase-config.js", "./vendor/firebase.js",
   "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg"
