@@ -16,6 +16,16 @@ Fehlgeschlagene Änderungen und Löschungen bleiben in einer lokalen,
 kontogebundenen Warteschlange; „Erneut abgleichen“ wiederholt den Abgleich.
 „Datensicherung herunterladen“ enthält auch die lokale Wiederherstellungskopie.
 
+Die helle Oberfläche verwendet Blau-Grau, Navy und weiße Eingabefelder.
+„Dein Training“ zählt bestätigte Übungen; leere Plätze werden nicht mitgezählt.
+Eigene Farbsets bleiben lokal gespeichert und erhalten.
+
+Prüfungen: `node tools/test.cjs` und `node tools/test-sdk.cjs`.
+Für optionale Browserprüfungen und Screenshots mit isolierten Beispieldaten:
+`npm install --prefix tools --no-save --package-lock=false playwright`,
+danach `node tools/preview.cjs` (verwendet eine lokale Edge-Installation).
+Screenshots werden im nicht veröffentlichten Ordner `artifacts/` abgelegt.
+
 ## Nutzung
 
 Die App ist eine statische Seite ohne Build-Schritt.
