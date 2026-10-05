@@ -13,6 +13,7 @@ async function run(options={}){
  const w=dom.window;
  w.scrollTo=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};w.CSS={escape:s=>s};
  const documents=new Map();
+ if(options.remotePlan)documents.set('users/google-user/state/plan',structuredClone(options.remotePlan));
  (options.remote||[]).forEach(s=>documents.set('users/google-user/sessions/'+sessionKey(s),structuredClone(s)));
  const auth={currentUser:options.signedOut?null:{uid:'google-user',email:'test@example.com',isAnonymous:false}};
  let authCallback, listeners=[], failWrites=!!options.failWrites;
@@ -45,6 +46,7 @@ async function run(options={}){
   signOut:async()=>{auth.currentUser=null;authCallback(null);}
  };
  w.MockFirebase=F;
+ w.eval(fs.readFileSync('studio-data.js','utf8'));
  if(options.local)w.localStorage.setItem('trainingsplan.v1.sessions',JSON.stringify(options.local));
  if(options.outbox)w.localStorage.setItem('trainingsplan.v2.outbox',JSON.stringify(options.outbox));
  if(options.config)w.localStorage.setItem('trainingsplan.v1.firebaseConfig',JSON.stringify(options.config));
@@ -186,6 +188,12 @@ async function run(options={}){
  large.get('customEx=Object.fromEntries(Object.entries(customEx).map(([id,e])=>[id,{id,empty:true,dayId:e.dayId,planId:e.planId}]));rebuildPlanRegistry();rebuildAll()');
  assert.equal(large.w.document.getElementById('summary-title-large-day').textContent,'Noch keine Übungen');
  assert.equal(large.w.document.getElementById('summary-progress-large-day').hidden,true);large.dom.window.close();
+ const studioRemote={order:{},spec:{},plans:[{id:'studio-cloud',name:'Cloud Studio',builder:{input:{days:1,years:0},templateId:'full'},days:[{id:'studio-cloud-day',name:'Ganzkörper',base:['studio-cloud-ex','studio-empty']}]}],exercises:{'studio-cloud-ex':{id:'studio-cloud-ex',n:'Brustpresse',catalogueId:'wger-129',dayId:'studio-cloud-day',planId:'studio-cloud',sets:2,rmin:8,rmax:12,p:''},'studio-empty':{id:'studio-empty',empty:true,targetMuscle:'back',dayId:'studio-cloud-day',planId:'studio-cloud'}}};
+ const syncedStudio=await run({local,remotePlan:studioRemote});
+ assert.equal(syncedStudio.get('userPlans[0].builder.templateId'),'full');assert.equal(syncedStudio.get('customEx["studio-cloud-ex"].catalogueId'),'wger-129');assert.equal(syncedStudio.get('customEx["studio-empty"].targetMuscle'),'back');
+ syncedStudio.setFailure(true);syncedStudio.get('Sync.pushPlan()');await syncedStudio.settle();assert.equal(syncedStudio.get('Sync.state.status'),'error');syncedStudio.setFailure(false);syncedStudio.get('Sync.retry()');await syncedStudio.settle();assert.equal(syncedStudio.get('Sync.state.status'),'ready');
+ const cloudState=syncedStudio.documents.get('users/google-user/state/plan');assert.equal(cloudState.plans[0].builder.templateId,'full');assert.equal(cloudState.exercises['studio-cloud-ex'].catalogueId,'wger-129');assert.equal(cloudState.exercises['studio-empty'].targetMuscle,'back');assert.equal(syncedStudio.get('sessions[0].entries["tb-lying-leg-curl"].w'),20);syncedStudio.dom.window.close();
+ console.log('PASS: Studio metadata through cloud pull, failed push and retry; existing local sessions survive');
  console.log('PASS: live training summary, individual/all confirmations, save reset, empty slots, 13-exercise progress and empty days');
  console.log('PASS: color sets, favorites/reload, exact hex, HSL controls, invalid values, explicit lightening, recent colors, reset and local isolation');
  console.log('PASS: MinMax plan/configuration, project isolation, cloud/local merge, backup, trend icons, cache protection, failed writes/retry, deletions, custom plans and Google login');

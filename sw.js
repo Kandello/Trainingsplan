@@ -1,7 +1,26 @@
-const CACHE = "trainingsplan-v13";
+const CACHE = "trainingsplan-v14";
 const ASSETS = [
   "./", "./index.html", "./firebase-config.js", "./vendor/firebase.js?v=b82c7e203593",
-  "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg"
+  "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg",
+  "./studio-data.js",
+  "./assets/studio/abs.webp",
+  "./assets/studio/band.webp",
+  "./assets/studio/barbell.webp",
+  "./assets/studio/bodyweight.webp",
+  "./assets/studio/cable.webp",
+  "./assets/studio/calf.webp",
+  "./assets/studio/chest.webp",
+  "./assets/studio/curl.webp",
+  "./assets/studio/dumbbell.webp",
+  "./assets/studio/equipment.webp",
+  "./assets/studio/extension.webp",
+  "./assets/studio/hip.webp",
+  "./assets/studio/kettlebell.webp",
+  "./assets/studio/legpress.webp",
+  "./assets/studio/pecdeck.webp",
+  "./assets/studio/pulldown.webp",
+  "./assets/studio/row.webp",
+  "./assets/studio/shoulder.webp"
 ];
 
 self.addEventListener("install", (event) => {

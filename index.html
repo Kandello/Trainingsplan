@@ -761,6 +761,24 @@ main{padding-top:20px}
 @media(max-width:399px){.ex-body{flex-direction:column;align-items:stretch}.seg{flex:none;width:100%}.seg button{min-height:44px;flex-direction:row;font-size:11px;gap:5px}}
 @media(min-width:720px){.app-header{padding-left:max(16px,calc((100vw - 688px)/2));padding-right:max(16px,calc((100vw - 688px)/2))}.wfield{width:150px}.seg button{font-size:12px;flex-direction:row;gap:5px}.tabbar{padding-left:max(4px,calc((100vw - 720px)/2));padding-right:max(4px,calc((100vw - 720px)/2))}}
 </style>
+<style>
+/* MinMax Studio: isolated builder surfaces preserve personal training colors. */
+#studio-dialog{width:min(760px,calc(100% - 24px));max-height:calc(100dvh - 24px);padding:0;border:1px solid #d8e3ee;border-radius:20px;color:#172b44;background:#fff;box-shadow:0 24px 80px #172b4433}
+#studio-dialog::backdrop{background:#10243b88;backdrop-filter:blur(4px)}
+.studio-shell{display:flex;flex-direction:column;max-height:calc(100dvh - 28px)}
+.studio-head{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #e5edf4;flex-shrink:0;background:#fff}
+.studio-head h2{flex:1;font-size:17px;text-align:center}.studio-icon{display:inline-grid;place-items:center;min-width:44px;min-height:44px;border-radius:12px;color:#172b44}.studio-icon:hover{background:#eaf2fa}.studio-icon svg{width:22px;height:22px}
+.studio-body{padding:24px;overflow-y:auto;overscroll-behavior:contain;min-height:0}.studio-body h3{font-size:clamp(25px,5vw,32px);line-height:1.14;letter-spacing:-.8px;margin:0 0 10px}.studio-lead{color:#4f6379;margin-bottom:20px}.studio-eyebrow{font-size:12px;font-weight:750;letter-spacing:1.7px;text-transform:uppercase;color:#2d69ad;margin-bottom:10px}
+.studio-footer{padding:14px 24px;border-top:1px solid #e5edf4;background:#fff;flex-shrink:0;display:flex;gap:10px;align-items:center}.studio-footer .studio-primary{flex:1}.studio-primary,.studio-secondary{min-height:48px;padding:12px 18px;border-radius:12px;font-weight:700}.studio-primary{background:#2d69ad;color:white;box-shadow:0 4px 12px #2d69ad20}.studio-primary:disabled{background:#e0e7ee;color:#596c80;box-shadow:none;cursor:default}.studio-secondary{border:1px solid #c8d8e8;background:#fff;color:#172b44}.studio-primary:hover:not(:disabled){background:#245a97}.studio-primary:focus-visible,.studio-secondary:focus-visible{outline-offset:3px}
+.studio-grid{display:grid;gap:12px}.studio-choice{position:relative;text-align:left;padding:20px;border:1px solid #d8e3ee;border-radius:16px;background:#fff;min-height:76px;display:block;width:100%;box-shadow:0 3px 10px #172b4404}.studio-choice strong{display:block;font-size:18px;margin-bottom:5px}.studio-choice span{color:#4f6379;display:block}.studio-choice.is-selected{background:#172b44;border-color:#172b44;color:#fff;box-shadow:0 8px 22px #172b4424}.studio-choice.is-selected span{color:#d3e3f3}.studio-choice.is-selected::after{content:'✓';position:absolute;right:14px;top:14px;font-size:15px;background:#fff;color:#2d69ad;border-radius:50%;width:25px;height:25px;display:grid;place-items:center}.studio-choice.is-selected strong{padding-right:28px}
+.studio-home-hero{background:linear-gradient(125deg,#172b44,#28517b);color:#fff;padding:24px;border-radius:18px;margin-bottom:20px}.studio-home-hero h3{color:#fff}.studio-home-hero p{color:#d5e4f3}.studio-home-hero .studio-eyebrow{color:#a5cdf5}.studio-home-hero .studio-meta{margin-top:14px;color:#d5e4f3}.studio-meta{font-size:13px;color:#4f6379}.studio-stepper{display:flex;gap:5px;margin:0 0 26px}.studio-stepper span{height:6px;flex:1;border-radius:9px;background:#e2ebf4}.studio-stepper .is-done{background:#2d69ad}.studio-step-label{font-size:13px;color:#4f6379;margin-bottom:10px}
+.studio-label{display:block;font-weight:650;font-size:14px;margin:16px 0 7px}.studio-input,.studio-select{width:100%;min-height:48px;background:#fff;color:#172b44;border:1px solid #c8d8e8;border-radius:11px;padding:11px 13px;font:inherit;min-width:0}.studio-input:focus,.studio-select:focus{outline:2px solid #2d69ad;outline-offset:1px}.studio-number-row{display:flex;gap:10px;align-items:center}.studio-number-row .studio-input{flex:1}.studio-number-row .studio-secondary{flex:1}.studio-chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.studio-chip{min-height:44px;padding:9px 14px;background:#eef4fa;border:1px solid #dae6f1;border-radius:10px;font-size:14px}.studio-chip.is-selected{background:#d9eaff;color:#175b9e;border-color:#96bee9;font-weight:700}.studio-range{width:100%;height:44px;accent-color:#2d69ad}.studio-value{font-size:44px;line-height:1.2;font-weight:750;letter-spacing:-1px}.studio-unit{font-size:16px;font-weight:500;color:#4f6379}.studio-note{margin:14px 0;color:#4f6379;font-size:14px}.studio-error{padding:12px;border:1px solid #e8aab0;background:#fff0f1;color:#913541;border-radius:12px;margin-bottom:12px}.studio-info-note{background:#edf5ff;padding:13px;border-radius:12px;color:#30597e;font-size:14px;margin-bottom:14px}
+.studio-template{border:1px solid #d8e3ee;border-radius:16px;background:#fff;overflow:hidden;margin-bottom:9px}.studio-template.is-open{border:2px solid #2d69ad;background:linear-gradient(150deg,#f1f8ff,#e8f2ff);box-shadow:0 4px 10px #2d69ad19,0 1px 2px #172b4410}.studio-template-toggle{width:100%;display:flex;gap:10px;align-items:center;min-height:56px;padding:12px 16px;text-align:left}.studio-template-toggle strong{flex:1;min-width:0;font-size:15px}.studio-pill{padding:5px 9px;border-radius:8px;background:#e5effa;color:#385d88;font-size:12px;white-space:nowrap}.studio-chevron{width:18px;height:18px;flex-shrink:0}.studio-template-content{padding:0 16px 16px;font-size:14px;color:#35577d}.studio-template-content>p{padding-top:12px;border-top:1px solid #cfdfef}.studio-template-content h4{display:inline-block;border-radius:7px;padding:4px 9px;margin:14px 0 5px;font-size:13px;color:#146637;background:#dbf2e0}.studio-template-content h4.caution{color:#805615;background:#ffedc9}.studio-template-content ul{padding-left:19px;margin:5px 0;display:grid;gap:5px}.studio-selected-caption{font-size:13px;color:#2d69ad;text-align:center;margin-bottom:8px}
+.studio-day-tabs{display:flex;gap:8px;overflow:auto;margin-bottom:16px;padding-bottom:4px}.studio-day-tabs button{flex-shrink:0}.studio-editor-row{border:1px solid #d8e3ee;background:#f6f9fc;border-radius:16px;padding:14px;margin:10px 0}.studio-ex-title{display:flex;gap:12px;align-items:center}.studio-ex-title strong{flex:1;min-width:0;font-size:16px}.studio-thumb{width:68px;height:68px;object-fit:contain;border-radius:12px;background:#f0f5f9;flex-shrink:0}.studio-editor-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.studio-editor-actions button{min-height:44px;padding:8px 10px;border-radius:9px;border:1px solid #d8e3ee;background:white;font-size:13px}.studio-specs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.studio-specs label{font-size:12px;color:#4f6379}.studio-specs input{margin-top:4px;min-height:44px;padding:8px}.studio-empty{border-style:dashed;background:#f6faff}.studio-list-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.studio-results{display:grid;gap:9px;margin-top:12px}.studio-result{border:1px solid #d8e3ee;border-radius:14px;padding:10px;display:flex;gap:10px;align-items:center;background:#fff}.studio-result-main{flex:1;min-width:0}.studio-result-main strong{font-size:15px;display:block;overflow-wrap:anywhere}.studio-result-main .studio-meta{margin:4px 0}.studio-result-actions{display:flex;gap:4px}.studio-info-card{background:#f0f5f9;border:1px solid #d8e3ee;border-radius:16px;padding:16px;margin-top:12px}.studio-info-card h4{margin:0 0 8px}.studio-info-card p{font-size:14px;line-height:1.55}.studio-info-card ul{padding-left:19px;margin-bottom:0}.studio-info-card.cues{border-left:4px solid #2d69ad;background:#edf5ff}.studio-info-image{display:block;width:100%;height:190px;object-fit:contain;background:#f0f5f9;border-radius:16px;margin:16px 0}.studio-info-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.studio-info-links a{text-decoration:none;text-align:center}.studio-attribution{font-size:12px;color:#4f6379;margin-top:18px;overflow-wrap:anywhere}.studio-attribution a{color:#245a97}.studio-pick-library{margin:10px 0;width:100%}
+@media(min-width:650px){.studio-home-grid{grid-template-columns:1fr 1fr}.studio-home-grid>:first-child{grid-column:1/-1}.studio-editor-row{padding:18px}.studio-body{padding:28px 32px}.studio-footer{padding:16px 32px}}
+@media(max-width:440px){#studio-dialog{width:100%;max-width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0;margin:0}.studio-shell{height:100dvh;max-height:100dvh}.studio-body{padding:22px 18px}.studio-footer{padding:12px 18px calc(12px + env(safe-area-inset-bottom))}.studio-head{padding-top:calc(8px + env(safe-area-inset-top))}.studio-choice{padding:18px}.studio-number-row{flex-wrap:wrap}.studio-result{gap:8px}.studio-result .studio-thumb{width:55px;height:55px}.studio-result-actions{flex-direction:column}.studio-result-actions .studio-icon{min-height:44px;min-width:44px}.studio-template-toggle{padding:12px}.studio-template-content{padding:0 12px 14px}}
+@media(prefers-reduced-motion:reduce){#studio-dialog *{scroll-behavior:auto}}
+</style>
 </head>
 <body>
 
@@ -819,6 +837,18 @@ main{padding-top:20px}
   </div>
 </dialog>
 
+<dialog id="studio-dialog" aria-labelledby="studio-title">
+  <div class="studio-shell">
+    <header class="studio-head">
+      <button class="studio-icon" id="studio-back" type="button" aria-label="Zurück"></button>
+      <h2 id="studio-title">MinMax Studio</h2>
+      <button class="studio-icon" id="studio-close" type="button" aria-label="Baukasten schließen"></button>
+    </header>
+    <div class="studio-body" id="studio-body"></div>
+    <footer class="studio-footer" id="studio-footer"></footer>
+  </div>
+</dialog>
+
 <dialog id="fillslot-dialog" aria-labelledby="fillslot-dlg-title">
   <div class="dlg-inner">
     <h2 id="fillslot-dlg-title">Übung hinzufügen</h2>
@@ -853,6 +883,7 @@ main{padding-top:20px}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="firebase-config.js"></script>
+<script src="studio-data.js"></script>
 <script>
 (function(){
 "use strict";
@@ -1450,10 +1481,17 @@ function buildExercise(ex, idx){
     title:"Gedrückt halten und ziehen, um die Reihenfolge zu ändern" });
   idxWrap.appendChild(idxHit);
 
+  var exerciseInfo = null;
+  if(window.MinMaxStudio && ex.catalogueId && window.MinMaxStudio.byId[ex.catalogueId]){
+    exerciseInfo=h('button',{class:'studio-icon',type:'button','aria-label':'Information zu '+ex.n});
+    var ii=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.8','aria-hidden':'true'});
+    svg('circle',{cx:12,cy:12,r:9},ii);svg('path',{d:'M12 11v6m0-10v.1','stroke-linecap':'round'},ii);
+    exerciseInfo.appendChild(ii);exerciseInfo.addEventListener('click',function(){StudioUI.openInfo(ex.catalogueId);});
+  }
   card.appendChild(h("div", { class:"ex-head" }, [
     idxWrap,
     h("h3", { class:"ex-name" }, [document.createTextNode(ex.n), buildTrendHint(ex.id)]),
-    swapBtn
+    exerciseInfo, swapBtn
   ]));
 
   wireReorderHandle(idxHit, card, ex);
@@ -2507,6 +2545,7 @@ function importData(){
             var idx = -1;
             for(var i=0;i<userPlans.length;i++) if(userPlans[i].id === p.id){ idx = i; break; }
             var entry = { id:p.id, name:p.name, days:days };
+            if(p.builder && typeof p.builder === "object") entry.builder = p.builder;
             if(idx >= 0) userPlans[idx] = entry; else userPlans.push(entry);
           });
         }
@@ -2521,11 +2560,13 @@ function importData(){
             if(!e || typeof e.dayId !== "string") return;
             if(e.empty){
               customEx[id] = { id:id, empty:true, dayId:e.dayId, planId:e.planId || MINMAX_PLAN_ID };
+              if(typeof e.targetMuscle === "string") customEx[id].targetMuscle=e.targetMuscle;
             } else if(typeof e.n === "string" && e.n){
               customEx[id] = { id:id, n:e.n, sets:e.sets, rmin:e.rmin, rmax:e.rmax,
                                p:e.p || "", planTrend:null, dayId:e.dayId,
                                planId:e.planId || MINMAX_PLAN_ID, bodyweight: !!e.bodyweight };
             } else return;
+            if(typeof e.catalogueId === "string") customEx[id].catalogueId=e.catalogueId;
             POOL[id] = customEx[id];
           });
         }
@@ -2941,6 +2982,10 @@ function renderSwap(){
 
   lead.textContent = "\u201E" + ex.n + "\u201C in " + day.name
     + " ersetzen. Der bisherige Verlauf bleibt erhalten und ist im Fortschritt weiter abrufbar.";
+  if(window.MinMaxStudio){
+    var library=h('button',{class:'studio-secondary studio-pick-library',type:'button',text:'Aus Übungsbibliothek wählen'});
+    library.addEventListener('click',function(){var id=ex.id;closeSwap();StudioUI.openPicker(id);});body.appendChild(library);
+  }
 
   if(swapCtx.error) body.appendChild(h("p", { class:"dlg-err", text:swapCtx.error }));
 
@@ -3066,6 +3111,10 @@ function renderFillSlot(){
   if(!ex || !day){ closeFillSlot(); return; }
 
   lead.textContent = "Neue Übung in " + day.name + ".";
+  if(window.MinMaxStudio){
+    var library=h('button',{class:'studio-secondary studio-pick-library',type:'button',text:'Aus Übungsbibliothek wählen'});
+    library.addEventListener('click',function(){var id=ex.id;closeFillSlot();StudioUI.openPicker(id);});body.appendChild(library);
+  }
   if(fillSlotCtx.error) body.appendChild(h("p", { class:"dlg-err", text:fillSlotCtx.error }));
 
   body.appendChild(h("label", { class:"swap-label", for:"fillslot-name", text:"Name" }));
@@ -3184,9 +3233,105 @@ function slugText(s){
     .replace(/ß/g, "ss").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 20) || "tag";
 }
 
+/* STUDIO UI START */
+/* Embedded in index.html by embed-studio.cjs; uses the existing app store and sync. */
+var StudioUI=(function(){
+  var infoOnly=false;
+  var S=window.MinMaxStudio, KEY='trainingsplan.v1.builderDraft', state=null, picker=null, info=null, previous=null;
+  var dlg=document.getElementById('studio-dialog'),body=document.getElementById('studio-body'),footer=document.getElementById('studio-footer');
+  var paths={back:'M19 12H5m6-6-6 6 6 6',close:'m6 6 12 12M18 6 6 18',down:'m6 9 6 6 6-6',up:'m6 15 6-6 6 6',info:'M12 11v6m0-10v.1',plus:'M12 5v14M5 12h14',arrow:'M5 12h14m-6-6 6 6-6 6',search:'m16 16 4 4M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0'};
+  function icon(name){var s=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.8','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'});if(name==='info')svg('circle',{cx:12,cy:12,r:9},s);svg('path',{d:paths[name]||paths.arrow},s);return s;}
+  function button(label,fn,cls){var b=h('button',{type:'button',class:cls||'studio-secondary',text:label});b.addEventListener('click',fn);return b;}
+  function iconButton(name,label,fn){var b=button('',fn,'studio-icon');b.setAttribute('aria-label',label);b.appendChild(icon(name));return b;}
+  function fresh(){return {screen:'home',step:0,input:S.config(),draft:null,templateId:null,templateQuery:'',templateFilter:'',origin:'',selectedDay:0};}
+  function persist(){if(!state)return;try{store.write(KEY,state);}catch(e){toast(e.message);}}
+  function change(screen){state.screen=screen;persist();render();}
+  function title(text){document.getElementById('studio-title').textContent=text;}
+  function heading(text,lead){body.appendChild(h('h3',{text:text}));if(lead)body.appendChild(h('p',{class:'studio-lead',text:lead}));}
+  function note(text,cls){body.appendChild(h('p',{class:cls||'studio-note',text:text}));}
+  function action(text,fn,disabled){var b=button(text,fn,'studio-primary');b.disabled=!!disabled;footer.appendChild(b);return b;}
+  function field(label,value,fn,opts,parent){var wrap=h('label',{class:'studio-label',text:label}),inp=h('input',Object.assign({class:'studio-input',type:'text',maxlength:'80'},opts||{}));inp.value=value==null?'':String(value);wrap.appendChild(inp);(parent||body).appendChild(wrap);inp.addEventListener('input',function(){fn(inp.value,inp);persist();});return inp;}
+  function choice(label,detail,selected,fn){var b=button('',fn,'studio-choice'+(selected?' is-selected':''));b.setAttribute('aria-pressed',selected?'true':'false');b.appendChild(h('strong',{text:label}));if(detail)b.appendChild(h('span',{text:detail}));return b;}
+  function thumbnail(e,cls){var img=h('img',{class:cls||'studio-thumb',src:'assets/studio/'+e.image+'.webp',alt:'Geräteillustration: '+S.equipment[e.equipment],loading:'lazy',width:'68',height:'68'});img.addEventListener('error',function(){img.hidden=true;},{once:true});return img;}
+  function open(){if(!S)return;picker=null;info=null;infoOnly=false;var saved=store.read(KEY,null);state=saved&&saved.version!==-1&&saved.input&&['home','interview','templates','mode','manual','editor'].includes(saved.screen)?saved:fresh();state.input=S.config(state.input);if(state.draft&&(!Array.isArray(state.draft.days)||!state.draft.days.length||state.draft.days.some(function(d){return !d||typeof d.name!=='string'||!Array.isArray(d.exercises);})))state=fresh();render();show();}
+  function show(){if(!dlg.open){if(typeof dlg.showModal==='function')dlg.showModal();else dlg.setAttribute('open','');}}
+  function close(){persist();if(typeof dlg.close==='function')dlg.close();else dlg.removeAttribute('open');}
+  function back(){if(info){if(infoOnly){close();info=null;infoOnly=false;state=previous;previous=null;return;}info=null;render();return;}if(picker){if(picker.external){close();picker=null;return;}picker=null;render();return;}if(state.screen==='interview'){if(state.step>0){state.step--;persist();render();}else change('home');}else if(state.screen==='editor')change(state.origin==='interview'?'interview':state.origin==='template'?'mode':'manual');else if(state.screen==='mode')change('templates');else change('home');}
+  function render(){body.replaceChildren();footer.replaceChildren();body.scrollTop=0;document.getElementById('studio-back').disabled=false;
+    if(!S){title('Neuer Plan');heading('Bibliothek nicht verfügbar');note('Die manuelle Planerstellung bleibt verfügbar.');action('Manuellen Plan anlegen',function(){close();openLegacyNewPlan();});return;}
+    if(info){renderInfo();return;}if(picker){renderPicker();return;}
+    if(!state)state=fresh();
+    if(state.screen==='home')home();else if(state.screen==='interview')interview();else if(state.screen==='templates')templateList();else if(state.screen==='mode')mode();else if(state.screen==='manual')manual();else if(state.screen==='editor')editor();
+  }
+  function home(){title('MinMax Studio');document.getElementById('studio-back').disabled=true;var hero=h('div',{class:'studio-home-hero'});hero.appendChild(h('p',{class:'studio-eyebrow',text:'DEIN PLAN. DEIN TRAINING.'}));hero.appendChild(h('h3',{text:'Training, das zu dir passt.'}));hero.appendChild(h('p',{text:'Geführt starten, eine Vorlage anpassen oder frei zusammenstellen.'}));hero.appendChild(h('p',{class:'studio-meta',text:'1–5 Tage · 30–120 Minuten · Offline verfügbar'}));body.appendChild(hero);
+    if(state.draft||state.origin){body.appendChild(button('Gespeicherten Entwurf fortsetzen',function(){change(state.draft?'editor':state.origin==='interview'?'interview':state.origin==='template'?'templates':'manual');},'studio-primary'));note('Dein Entwurf bleibt auf diesem Gerät gespeichert.');}
+    var grid=h('div',{class:'studio-grid studio-home-grid'});
+    grid.appendChild(choice('Plan empfehlen','Sechs kurze Fragen. Ein passender Startplan.',false,function(){state.origin='interview';state.step=0;change('interview');}));
+    grid.appendChild(choice('Vorlage wählen','Zehn Strukturen mit verständlichen Vor- und Nachteilen.',false,function(){state.origin='template';change('templates');}));
+    grid.appendChild(choice('Selbst zusammenstellen','Trainingstage und Übungen ganz nach deinen Vorstellungen.',false,function(){state.origin='manual';change('manual');}));body.appendChild(grid);
+    if(state.draft||state.origin)footer.appendChild(button('Entwurf verwerfen',discard));else footer.appendChild(h('span',{class:'studio-meta',text:'Bestehende Pläne und Trainings bleiben erhalten.'}));
+  }
+  function discard(){askConfirm({title:'Entwurf verwerfen?',lead:'Nur dieser Baukasten-Entwurf wird entfernt. Deine gespeicherten Pläne bleiben erhalten.',okLabel:'Verwerfen',danger:true}).then(function(yes){if(yes){state=fresh();persist();render();}});}
+  var goalNames={muscle:'Muskelaufbau',strength:'Kraftzuwachs',max:'Maximalkraft'},levelNames={beginner:'Anfänger',intermediate:'Fortgeschritten',expert:'Experte'};
+  function interview(){title('Plan empfehlen');var c=state.input,step=state.step||0,bar=h('div',{class:'studio-stepper','aria-label':'Schritt '+(step+1)+' von 6'});for(var i=0;i<6;i++)bar.appendChild(h('span',{class:i<=step?'is-done':''}));body.appendChild(h('p',{class:'studio-step-label',text:(step+1)+' von 6'}));body.appendChild(bar);var grid=h('div',{class:'studio-grid'});
+    if(step===0){heading('Was möchtest du erreichen?','Dein Ziel bestimmt die Startvorgaben für Sätze und Wiederholungen.');Object.keys(goalNames).forEach(function(v){grid.appendChild(choice(goalNames[v],v==='muscle'?'Muskelmasse aufbauen.':v==='strength'?'In grundlegenden Bewegungen stärker werden.':'Schwerere Lasten kontrolliert bewegen.',c.goal===v,function(){c.goal=v;persist();render();}));});body.appendChild(grid);}
+    if(step===1){heading('Deine Erfahrung','Damit dein Plan zu deinem Können passt.');Object.keys(levelNames).forEach(function(v){grid.appendChild(choice(levelNames[v],v==='beginner'?'Du hast wenig oder keine Erfahrung im Krafttraining.':v==='intermediate'?'Du trainierst regelmäßig und kennst die Grundübungen.':'Du hast langjährige Erfahrung und trainierst strukturiert.',c.level===v,function(){c.level=v;persist();render();}));});body.appendChild(grid);var row=h('div',{class:'studio-number-row'});body.appendChild(h('p',{class:'studio-label',text:'Jahre durchgängigen Trainings'}));body.appendChild(row);row.appendChild(button('Ich starte gerade',function(){c.years=0;persist();render();}));field('Jahre',c.years,function(v){c.years=Math.max(0,Number(v.replace(',','.'))||0);},{inputmode:'decimal',maxlength:'5'},row);note('„Ich starte gerade“ setzt deine Erfahrung auf 0 Jahre.');}
+    if(step===2){heading('Wie oft hast du Zeit?','Wähle ein Pensum, das du regelmäßig einhalten kannst.');var chips=h('div',{class:'studio-chips'});for(var day=1;day<=5;day++)(function(v){var b=button(v+(v===1?' Tag':' Tage'),function(){c.days=v;persist();render();},'studio-chip'+(c.days===v?' is-selected':''));b.setAttribute('aria-pressed',String(c.days===v));chips.appendChild(b);})(day);body.appendChild(chips);note('Ein bis fünf Trainingstage pro Woche.');}
+    if(step===3){heading('Zeit für dein Training','Inklusive Aufwärmen, Pausen und Gerätewechseln.');var number=h('p',{class:'studio-value',text:c.minutes+' '});number.appendChild(h('span',{class:'studio-unit',text:'Minuten'}));body.appendChild(number);var range=h('input',{class:'studio-range',type:'range',min:'30',max:'120',step:'5','aria-label':'Minuten pro Training'});range.value=c.minutes;range.addEventListener('input',function(){c.minutes=Number(range.value);number.firstChild.textContent=c.minutes+' ';persist();});body.appendChild(range);note('30 Minuten bis 2 Stunden. Die Zeitangaben im Plan sind Schätzungen.');}
+    if(step===4){heading('Wie trainierst du gern?','Wir gehen von einem ausgestatteten Fitnessstudio aus.');[['machine','Maschinen','Einfach einzustellen und gut für den Einstieg.'],['mixed','Gemischt','Maschinen, Kabelzug und freie Gewichte.'],['free','Freie Gewichte','Kurzhanteln und Langhanteln im Vordergrund.']].forEach(function(v){grid.appendChild(choice(v[1],v[2],c.preference===v[0],function(){c.preference=v[0];persist();render();}));});body.appendChild(grid);}
+    if(step===5){heading('Deine Muskelprioritäten','Optional: bis zu drei Bereiche, in deiner gewünschten Reihenfolge.');var chips=h('div',{class:'studio-chips'});Object.keys(S.muscles).forEach(function(m){var n=c.priorities.indexOf(m),b=button((n>=0?(n+1)+'. ':'')+S.muscles[m],function(){if(n>=0)c.priorities.splice(n,1);else if(c.priorities.length<3)c.priorities.push(m);else{toast('Bis zu drei Prioritäten wählen.');return;}persist();render();},'studio-chip'+(n>=0?' is-selected':''));b.setAttribute('aria-pressed',String(n>=0));chips.appendChild(b);});body.appendChild(chips);note('Der restliche Körper bleibt im Plan berücksichtigt.');}
+    footer.appendChild(button('Zurück',back));action(step===5?'Plan erstellen':'Weiter',function(){if(step<5){state.step++;persist();render();}else{state.draft=S.generate(c);state.selectedDay=0;change('editor');}});
+  }
+  function templateList(){title('Vorlagen');heading('Deine Trainingsstruktur','10 Vorlagen · maximal 5 Tage');var search=field('Vorlage suchen',state.templateQuery||'',function(v){state.templateQuery=v;list();},{type:'search',placeholder:'Vorlage suchen'});var chips=h('div',{class:'studio-chips'});[['','Alle'],['low','1–3 Tage'],['high','4–5 Tage']].forEach(function(v){var b=button(v[1],function(){state.templateFilter=v[0];persist();render();},'studio-chip'+(state.templateFilter===v[0]?' is-selected':''));b.setAttribute('aria-pressed',String(state.templateFilter===v[0]));chips.appendChild(b);});body.appendChild(chips);var box=h('div');body.appendChild(box);var go=action('Vorlage bearbeiten',function(){change('mode');},!state.templateId);
+    function list(){box.replaceChildren();var matches=S.templates.filter(function(t){return S.normalize(t.name).includes(S.normalize(state.templateQuery))&&(!state.templateFilter||(state.templateFilter==='low'?Math.min.apply(null,t.days)<=3:Math.max.apply(null,t.days)>=4));});if(!matches.some(function(t){return t.id===state.templateId;})){state.templateId=null;go.disabled=true;persist();}if(!matches.length)box.appendChild(h('p',{class:'studio-note',text:'Keine passende Vorlage gefunden.'}));matches.forEach(function(t){var open=state.templateId===t.id,card=h('section',{class:'studio-template'+(open?' is-open':'')}),toggle=button('',function(){state.templateId=open?null:t.id;persist();list();},'studio-template-toggle');toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-controls','studio-template-'+t.id);toggle.appendChild(h('strong',{text:t.name}));toggle.appendChild(h('span',{class:'studio-pill',text:t.days.length>1?'1–3 Tage':t.days[0]+' Tage'}));var chevron=icon(open?'up':'down');chevron.classList.add('studio-chevron');toggle.appendChild(chevron);card.appendChild(toggle);if(open){var content=h('div',{class:'studio-template-content',id:'studio-template-'+t.id});content.appendChild(h('p',{text:t.description}));[['Vorteile',t.pros,''],['Zu beachten',t.cons,'caution']].forEach(function(group){content.appendChild(h('h4',{class:group[2],text:group[0]}));var ul=h('ul');group[1].forEach(function(s){ul.appendChild(h('li',{text:s}));});content.appendChild(ul);});card.appendChild(content);}box.appendChild(card);});go.disabled=!state.templateId;}
+    list();
+  }
+  function mode(){title('Vorlage bearbeiten');var t=S.templates.find(function(t){return t.id===state.templateId;});if(!t){change('templates');return;}heading(t.name,'Mit bewährten Übungen starten oder die Struktur selbst füllen.');if(t.id==='full'){state.input.days=Math.min(3,state.input.days);note('Wie viele Trainingstage möchtest du?');var chips=h('div',{class:'studio-chips'});[1,2,3].forEach(function(n){chips.appendChild(button(n+' '+(n===1?'Tag':'Tage'),function(){state.input.days=n;persist();render();},'studio-chip'+(state.input.days===n?' is-selected':'')));});body.appendChild(chips);}else state.input.days=t.days[0];var grid=h('div',{class:'studio-grid'});[['Mit Standardübungen',false,'Ein editierbarer Startplan mit einfachen Übungen.'],['Selbst füllen',true,'Muskelhinweise geben jedem leeren Platz eine Richtung.']].forEach(function(v){grid.appendChild(choice(v[0],v[2],false,function(){state.draft=S.create(t.id,state.input,v[1]);state.selectedDay=0;state.origin='template';change('editor');}));});body.appendChild(grid);footer.appendChild(button('Zurück',back));}
+  function manual(){title('Eigener Plan');heading('Dein Plan. Deine Auswahl.','Lege die Struktur fest. Übungen wählst du im nächsten Schritt.');field('Planname',state.manualName||'Mein Trainingsplan',function(v){state.manualName=v;});var chips=h('div',{class:'studio-chips'});body.appendChild(h('p',{class:'studio-label',text:'Trainingstage'}));[1,2,3,4,5].forEach(function(n){chips.appendChild(button(n+' '+(n===1?'Tag':'Tage'),function(){state.input.days=n;persist();render();},'studio-chip'+(state.input.days===n?' is-selected':'')));});body.appendChild(chips);field('Übungsplätze je Tag',state.slotCount||5,function(v){state.slotCount=Math.max(1,Math.min(20,parseInt(v,10)||1));},{type:'number',min:'1',max:'20',inputmode:'numeric'});action('Plan zusammenstellen',function(){state.draft={name:(state.manualName||'Mein Trainingsplan').trim(),input:S.config(state.input),days:Array.from({length:state.input.days},function(_,i){return {name:'Tag '+(i+1),exercises:Array.from({length:state.slotCount||5},function(){return {empty:true};})};})};state.selectedDay=0;state.origin='manual';change('editor');});}
+  function editor(){title('Plan bearbeiten');var draft=state.draft;if(!draft){change('home');return;}heading('Dein Trainingsplan','Alles bleibt anpassbar. Gespeichert wird erst am Ende.');if(draft.notice)note(draft.notice,'studio-info-note');field('Planname',draft.name,function(v){draft.name=v;});var tabs=h('div',{class:'studio-day-tabs'});state.selectedDay=Math.min(state.selectedDay||0,draft.days.length-1);draft.days.forEach(function(d,i){tabs.appendChild(button(d.name||'Tag '+(i+1),function(){state.selectedDay=i;persist();render();},'studio-chip'+(state.selectedDay===i?' is-selected':'')));});body.appendChild(tabs);var day=draft.days[state.selectedDay];field('Name des Trainingstags',day.name,function(v){day.name=v;});var duration=h('p',{class:'studio-note',id:'studio-duration'});body.appendChild(duration);function durationText(){duration.textContent=day.exercises.some(function(e){return !e.empty;})?'Geschätzte Dauer: '+S.estimate(day,draft.input)+' Min. · '+day.exercises.filter(function(e){return !e.empty;}).length+' Übungen':'Wähle Übungen für diesen Trainingstag.';}durationText();
+    day.exercises.forEach(function(row,i){var card=h('section',{class:'studio-editor-row'+(row.empty?' studio-empty':'')}),line=h('div',{class:'studio-ex-title'}),e=S.byId[row.catalogueId];if(e)line.appendChild(thumbnail(e));line.appendChild(h('strong',{text:(i+1)+'. '+(row.empty?(S.muscles[row.targetMuscle]||'Übung auswählen'):row.name)}));if(e)line.appendChild(iconButton('info','Information zu '+row.name,function(){info=e;render();}));card.appendChild(line);
+      if(!row.empty){var fields=h('div',{class:'studio-specs'});[['Sätze','sets'],['Wdh. von','rmin'],['Wdh. bis','rmax']].forEach(function(pair){field(pair[0],row[pair[1]],function(v){row[pair[1]]=Number(v);durationText();},{type:'number',min:'1',max:'99',inputmode:'numeric',maxlength:'2'},fields);});card.appendChild(fields);}
+      var actions=h('div',{class:'studio-editor-actions'});actions.appendChild(button(row.empty?'Übung wählen':'Ersetzen',function(){picker={day:state.selectedDay,row:i,query:'',muscle:row.targetMuscle||'',equipment:'',limit:30};render();}));if(i>0)actions.appendChild(button('↑ Nach oben',function(){var x=day.exercises.splice(i,1)[0];day.exercises.splice(i-1,0,x);persist();render();}));if(i<day.exercises.length-1)actions.appendChild(button('↓ Nach unten',function(){var x=day.exercises.splice(i,1)[0];day.exercises.splice(i+1,0,x);persist();render();}));actions.appendChild(button('Entfernen',function(){day.exercises.splice(i,1);persist();render();}));card.appendChild(actions);body.appendChild(card);
+    });body.appendChild(button('＋ Übung hinzufügen',function(){day.exercises.push({empty:true});persist();render();}));footer.appendChild(button('Zurück',back));action('Plan speichern',commit);
+  }
+  function renderPicker(){title('Übungen auswählen');heading('Finde deine Übung',S.catalogue.length+' Übungen · nach Muskel und Gerät filtern');var p=picker;
+    field('Übung suchen',p.query,function(v){p.query=v;p.limit=30;results();},{type:'search',placeholder:'Name oder englischer Begriff'});
+    var filters=h('div',{class:'studio-list-controls'});body.appendChild(filters);function select(label,options,value,fn){var wrap=h('label',{class:'studio-label',text:label}),sel=h('select',{class:'studio-select','aria-label':label});options.forEach(function(v){sel.appendChild(h('option',{value:v[0],text:v[1]}));});sel.value=value;sel.addEventListener('change',function(){fn(sel.value);p.limit=30;results();});wrap.appendChild(sel);filters.appendChild(wrap);}
+    select('Muskel',[['','Alle Muskeln'],['arms','Arme'],['legs','Beine']].concat(Object.keys(S.muscles).map(function(m){return [m,S.muscles[m]];})),p.muscle,function(v){p.muscle=v;});select('Gerät',[['','Alle Geräte']].concat(Object.keys(S.equipment).map(function(e){return [e,S.equipment[e]];})),p.equipment,function(v){p.equipment=v;});
+    var count=h('p',{class:'studio-meta','aria-live':'polite'}),list=h('div',{class:'studio-results'});body.appendChild(count);body.appendChild(list);footer.appendChild(button('Eigene Übung eingeben',manualExercise));
+    function results(){list.replaceChildren();var matches=S.search(p.query,p.muscle,p.equipment);count.textContent=matches.length+' passende Übungen';matches.slice(0,p.limit).forEach(function(e){var card=h('article',{class:'studio-result'});card.appendChild(thumbnail(e));var main=h('div',{class:'studio-result-main'});main.appendChild(h('strong',{text:e.name}));main.appendChild(h('p',{class:'studio-meta',text:e.muscles.map(function(m){return S.muscles[m];}).join(' · ')}));main.appendChild(h('span',{class:'studio-pill',text:S.equipment[e.equipment]}));if(p.muscle&&!e.muscles.includes(p.muscle)&&e.secondary.includes(p.muscle))main.appendChild(h('p',{class:'studio-meta',text:'Sekundär beteiligt'}));card.appendChild(main);var actions=h('div',{class:'studio-result-actions'});actions.appendChild(iconButton('info','Information zu '+e.name,function(){info=e;render();}));actions.appendChild(iconButton('plus',e.name+' auswählen',function(){selectExercise(e);}));card.appendChild(actions);list.appendChild(card);});if(matches.length>p.limit)list.appendChild(button('Weitere Übungen anzeigen',function(){p.limit+=30;results();}));if(!matches.length)list.appendChild(h('p',{class:'studio-note',text:'Keine Treffer. Ändere Suche oder Filter, oder gib eine eigene Übung ein.'}));}
+    results();
+  }
+  function renderInfo(){title('Übungswissen');var e=info;heading(e.name,e.muscles.map(function(m){return S.muscles[m];}).join(' · '));body.appendChild(thumbnail(e,'studio-info-image'));[['Wofür geeignet?',e.description],['Was bringt dir das?',e.benefit],['Gerät & Ausgangsposition',e.setup]].forEach(function(pair){var card=h('section',{class:'studio-info-card'});card.appendChild(h('h4',{text:pair[0]}));card.appendChild(h('p',{text:pair[1]}));body.appendChild(card);});var cues=h('section',{class:'studio-info-card cues'});cues.appendChild(h('h4',{text:'Cues · Darauf achten'}));var ul=h('ul');e.cues.forEach(function(c){ul.appendChild(h('li',{text:c}));});cues.appendChild(ul);body.appendChild(cues);var links=h('div',{class:'studio-info-links'});links.appendChild(h('a',{class:'studio-secondary',href:e.tutorial||'https://www.youtube.com/results?search_query='+encodeURIComponent(e.name+' Übung Anleitung'),target:'_blank',rel:'noopener noreferrer',text:e.tutorial?'Tutorial & Anleitung ↗':'Tutorials suchen ↗'}));body.appendChild(links);note('Externe Tutorials benötigen Internet. Gerätebilder zeigen den Gerätetyp.');var attr=h('p',{class:'studio-attribution',text:'Katalog: wger · '+e.authors.join(', ')+' · Bearbeitet für MinMax. '});attr.appendChild(h('a',{href:e.source,target:'_blank',rel:'noopener noreferrer',text:'Quelle'}));attr.appendChild(document.createTextNode(' · '));attr.appendChild(h('a',{href:e.licenseUrl,target:'_blank',rel:'noopener noreferrer',text:e.license}));if(e.classificationLicense){attr.appendChild(document.createTextNode(' · Geräte-/Muskelangaben: '));attr.appendChild(h('a',{href:e.classificationLicense.url,target:'_blank',rel:'noopener noreferrer',text:e.classificationLicense.name}));}body.appendChild(attr);action('Zurück',back);}
+  function duplicate(e){if(picker.external){var ex=POOL[picker.exId],day=ex&&dayById(ex.dayId);return day&&day.ex.some(function(row){return row.id!==picker.exId&&!row.empty&&((e.id&&row.catalogueId===e.id)||S.normalize(row.n)===S.normalize(e.name));});}return state.draft.days[picker.day].exercises.some(function(row,i){return i!==picker.row&&!row.empty&&((e.id&&row.catalogueId===e.id)||S.normalize(row.name)===S.normalize(e.name));});}
+  function selectExercise(e){if(duplicate(e)){toast('Diese Übung steht bereits in diesem Trainingstag.');return;}if(picker.external){applyExternal(e);return;}var day=state.draft.days[picker.day],old=day.exercises[picker.row],row=S.prescription(e,S.config(state.draft.input));if(!old.empty){row.sets=old.sets;row.rmin=old.rmin;row.rmax=old.rmax;}day.exercises[picker.row]=row;picker=null;persist();render();}
+  function manualExercise(){var p=picker;info=null;title('Eigene Übung');body.replaceChildren();footer.replaceChildren();heading('Deine eigene Übung','Name, Sätze und Wiederholungen frei festlegen.');var name='',sets=2,min=8,max=12;field('Übungsname','',function(v){name=v;});field('Sätze',sets,function(v){sets=Number(v);},{type:'number',min:'1',max:'99'});field('Wiederholungen von',min,function(v){min=Number(v);},{type:'number',min:'1',max:'99'});field('Wiederholungen bis',max,function(v){max=Number(v);},{type:'number',min:'1',max:'99'});footer.appendChild(button('Zurück',function(){picker=p;render();}));action('Übung übernehmen',function(){if(!name.trim()||[sets,min,max].some(function(v){return !Number.isInteger(v)||v<1||v>99;})){toast('Name und Zahlen zwischen 1 und 99 eingeben.');return;}picker=p;var e={id:null,name:name.trim(),muscles:[],equipment:'bodyweight',main:false};if(duplicate(e)){toast('Diese Übung steht bereits im Tag.');return;}if(p.external){applyExternal(e,{sets:sets,rmin:Math.min(min,max),rmax:Math.max(min,max)});return;}state.draft.days[p.day].exercises[p.row]={name:name.trim(),sets:sets,rmin:Math.min(min,max),rmax:Math.max(min,max),rest:90};picker=null;persist();render();});}
+  function applyExternal(e,spec){var p=picker,old=POOL[p.exId],day=old&&dayById(old.dayId);if(!old||!day){close();picker=null;return;}var chosen;
+    if(old.empty){chosen=customEx[old.id];delete chosen.empty;chosen.n=e.name;Object.assign(chosen,spec||{sets:2,rmin:8,rmax:12});chosen.p='';}
+    else{var err=swapExercise(day.id,old.id,e.name);if(err){toast(err);return;}chosen=dayById(day.id).ex.find(function(x){return S.normalize(x.n)===S.normalize(e.name);});if(spec)Object.assign(chosen,spec);customEx[chosen.id]=chosen;}
+    if(e.id)chosen.catalogueId=e.id;else delete chosen.catalogueId;savePlan();rebuildPlanRegistry();Sync.pushPlan();picker=null;close();state=previous;previous=null;rebuildAll();toast(e.name+' übernommen');
+  }
+  function openPicker(exId){if(!S)return;infoOnly=false;var ex=POOL[exId];if(!ex)return;previous=state;state=null;picker={external:true,exId:exId,query:'',muscle:ex.targetMuscle||'',equipment:'',limit:30};info=null;render();show();}
+  function commit(){var d=state.draft;if(!d||!d.name.trim()||d.days.some(function(day){return !day.name.trim();})){toast('Plan und Trainingstage brauchen einen Namen.');return;}if(d.days.some(function(day){return day.exercises.some(function(e){return !e.empty&&(!e.name.trim()||[e.sets,e.rmin,e.rmax].some(function(v){return !Number.isInteger(v)||v<1||v>99;}));});})){toast('Sätze und Wiederholungen müssen zwischen 1 und 99 liegen.');return;}
+    var planId='plan-'+Math.random().toString(36).slice(2,10);while(planById(planId))planId='plan-'+Math.random().toString(36).slice(2,10);var additions={},days=d.days.map(function(day,i){var dayId=planId+'-tag-'+(i+1),ids=[];day.exercises.forEach(function(e,j){var id=dayId+'-s'+(j+1);ids.push(id);additions[id]=e.empty?{id:id,empty:true,dayId:dayId,planId:planId,targetMuscle:e.targetMuscle||null}:{id:id,n:e.name.trim(),sets:e.sets,rmin:Math.min(e.rmin,e.rmax),rmax:e.rmax===e.rmin?null:Math.max(e.rmin,e.rmax),p:'',planTrend:null,dayId:dayId,planId:planId,catalogueId:e.catalogueId||null,bodyweight:!!(S.byId[e.catalogueId]&&S.byId[e.catalogueId].equipment==='bodyweight')};});return {id:dayId,name:day.name.trim(),base:ids};});
+    var oldPlans=userPlans,oldExercises=customEx;userPlans=userPlans.concat([{id:planId,name:d.name.trim(),days:days,builder:{input:S.config(d.input),templateId:d.templateId||null}}]);customEx=Object.assign({},customEx,additions);
+    try{savePlan();}catch(e){userPlans=oldPlans;customEx=oldExercises;try{savePlan();}catch(ignore){}toast(e.message);return;}
+    state=fresh();persist();close();rebuildPlanRegistry();switchPlan(planId);Sync.pushPlan();toast('Trainingsplan gespeichert');
+  }
+  document.getElementById('studio-back').appendChild(icon('back'));document.getElementById('studio-back').addEventListener('click',back);document.getElementById('studio-close').appendChild(icon('close'));document.getElementById('studio-close').addEventListener('click',close);dlg.addEventListener('cancel',function(){persist();});
+  return {open:open,openPicker:openPicker,openInfo:function(id){var e=S&&S.byId[id];if(!e)return;previous=state;state=null;picker=null;info=e;infoOnly=true;render();show();},render:render,commit:commit,get state(){return state;},get picker(){return picker;}};
+})();
+
+/* STUDIO UI END */
+
 var newPlanCtx = null;
 
 function openNewPlan(){
+  if(window.MinMaxStudio){ StudioUI.open(); return; }
+  openLegacyNewPlan();
+}
+
+function openLegacyNewPlan(){
   newPlanCtx = { step:"name", name:"", dayCount:4, dayNames:[], slotCount:5, error:null };
   renderNewPlan();
   var dlg = document.getElementById("newplan-dialog");
@@ -3264,7 +3409,7 @@ function renderNewPlan(){
 
     function goDays(){
       var n = parseInt(f.inp.value, 10);
-      if(!isFinite(n) || n < 1 || n > 10){ c.error = "Bitte eine Zahl zwischen 1 und 10 eingeben."; renderNewPlan(); return; }
+      if(!isFinite(n) || n < 1 || n > 5){ c.error = "Bitte eine Zahl zwischen 1 und 5 eingeben."; renderNewPlan(); return; }
       var old = c.dayNames;
       c.dayNames = [];
       for(var i=0;i<n;i++) c.dayNames.push(old[i] || "");

@@ -20,7 +20,8 @@ Die helle Oberfläche verwendet Blau-Grau, Navy und weiße Eingabefelder.
 „Dein Training“ zählt bestätigte Übungen; leere Plätze werden nicht mitgezählt.
 Eigene Farbsets bleiben lokal gespeichert und erhalten.
 
-Prüfungen: `node tools/test.cjs` und `node tools/test-sdk.cjs`.
+Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs` und
+`node tools/test-studio.cjs`.
 Für optionale Browserprüfungen und Screenshots mit isolierten Beispieldaten:
 `npm install --prefix tools --no-save --package-lock=false playwright`,
 danach `node tools/preview.cjs` (verwendet eine lokale Edge-Installation).
@@ -170,6 +171,54 @@ als JSON; der Import ergänzt bestehende Einheiten, statt sie zu überschreiben.
 
 ## Trainingsplan
 
+### MinMax Studio — Trainingsplan-Baukasten
+
+Das **+** neben den Plan-Titeln öffnet MinMax Studio. Drei Wege führen zum
+gemeinsamen Editor: **Plan empfehlen**, **Vorlage wählen** und **Selbst
+zusammenstellen**. Erst **Plan speichern** legt einen zusätzlichen Plan an.
+Bestehende Einheiten werden nicht geändert oder zusammengeführt.
+
+Das Interview fragt Ziel, Erfahrung, Trainingstage (1–5), Zeit (30–120 Minuten),
+Gerätevorliebe und bis zu drei geordnete Muskelprioritäten ab. **Ich starte
+gerade** setzt die Trainingserfahrung auf 0 Jahre. Der regelbasierte Generator
+arbeitet offline mit 35 geprüften Standardübungen. Zeit, Sätze und
+Wiederholungen sind editierbare Startvorgaben, keine individuellen
+Leistungsprognosen; es werden keine Trainingsgewichte erfunden.
+
+Die zehn Vorlagen zeigen beim Antippen eine gemeinsame blaue Karte mit
+Überschrift, Tagesangabe, Vorteilen und Einschränkungen. Danach lässt sich die
+Vorlage mit Standardübungen oder mit leeren, nach Muskeln beschrifteten Plätzen
+öffnen. Im Editor sind Namen, Übungsauswahl, Reihenfolge, Sätze und
+Wiederholungen anpassbar. Der Arbeitsentwurf liegt separat auf diesem Gerät
+unter `trainingsplan.v1.builderDraft`; auch Schließen und Escape erhalten ihn.
+**Entwurf verwerfen** braucht eine Bestätigung.
+
+Die lokal mitgelieferte Bibliothek enthält **521 Kraftübungen und Varianten**,
+mit Muskel-/Gerätefiltern und deutscher sowie englischer Suche. Info zeigt
+Beschreibung, Nutzen, Einstellung, Cues und Quellen. Tutorials öffnen externe
+Anleitungen beziehungsweise eine ausdrücklich benannte Videosuche und
+benötigen Internet. 18 kompakte 3D-Geräteillustrationen stellen Gerätetypen dar.
+Der Picker steht auch beim Füllen und Tauschen bestehender Übungen bereit.
+
+`studio-data.js` enthält einen aufbereiteten Snapshot der öffentlichen
+[wger-Schnittstelle](https://wger.readthedocs.io/en/latest/api/api.html) sowie
+Vorlagen und Generator. Jeder Eintrag enthält seine Quelle, Autorangaben und
+jeweilige Creative-Commons-Lizenz; diese stehen auch in der Übungsinfo.
+Anpassungen und neue Hinweise sind gekennzeichnet. Die wger-Software selbst
+wurde nicht übernommen. Kein Katalogabruf und keine KI-API sind beim Benutzen
+der App nötig.
+
+Für die Entwicklung: `tools/build-catalog.cjs` verarbeitet den separat
+heruntergeladenen Snapshot in `artifacts/wger-source.json` und bindet
+`tools/studio-engine.js` ein. `tools/embed-studio.cjs` übernimmt die Studio-UI
+aus `tools/studio-ui.js` in `index.html`; beide Ausgaben sind eingecheckt, die
+App selbst benötigt keinen Build. Gerätebilder liegen in `assets/studio/`.
+Browserprüfung: `node tools/preview-studio.cjs`; echte Offline-Prüfung:
+`node tools/test-offline-studio.cjs`. Beide verwenden isolierte Beispieldaten.
+
+Falls der Katalog nicht geladen werden kann, bleiben die Trainingsansicht und
+der bisherige manuelle Planassistent erreichbar.
+
 Vier Trainingstage in der Reihenfolge des Plans: **Total Body** (7 Übungen),
 **Upper Body** (7), **Lower Body** (5), **Arms & Delts** (6).
 
@@ -257,7 +306,8 @@ wird bei aktiviertem Sync unter `users/{uid}/state/plan` mitsynchronisiert.
 MinMax Workout ist ein Trainingsplan wie jeder andere — in der Kopfzeile steht
 er als einer von mehreren kleinen Plan-Buttons; ein Antippen wechselt den
 aktiven Plan, ab fünf Plänen wird die Reihe seitlich scrollbar. Das **+** am
-Ende legt einen neuen, komplett selbst zusammengestellten Plan an:
+Ende öffnet jetzt MinMax Studio (siehe oben). Der weiterhin vorhandene manuelle
+Assistent dient als Rückfall bei fehlendem Katalog:
 
 1. Name des Plans
 2. Trainingstage pro Woche
