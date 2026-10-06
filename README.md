@@ -476,8 +476,10 @@ Sicherheitsabfrage mit alter und neuer Zahl — das fängt Tippfehler wie 1125
 statt 112,5 ab, bevor sie in der Historie landen. Übungen ohne Vorgeschichte
 lösen keine Abfrage aus, weil es nichts zu vergleichen gibt.
 
-Unter *Fortschritt → Trainings-Log* stehen alle gespeicherten Einheiten,
-neueste zuerst. Eine Einheit antippen klappt sie auf:
+Unter *Fortschritt → Trainings-Log* öffnet ein Tipp auf die Überschrift alle
+gespeicherten Einheiten, neueste zuerst. Das Log startet geschlossen; erneutes
+Antippen schließt es wieder. Die Überschrift ist auch per Tastatur bedienbar.
+Eine einzelne Einheit antippen klappt ihre Einträge auf:
 
 - **Gewicht ändern** — direkt im Feld, wird beim Verlassen übernommen. Eine
   leere oder unlesbare Eingabe springt auf den alten Wert zurück.
@@ -508,6 +510,13 @@ gespeichert. „Zurücksetzen“ stellt den Standardlook wieder her; Favoriten u
 Farbverlauf bleiben erhalten.
 
 ### Verlaufskurven
+
+Die kompakte Diagrammkarte nutzt eine 180 px hohe Zeichenfläche. Die Legende
+zeigt vollständige Übungsnamen in etwa halb so hohen Chips (24 px) mit einem
+Rahmen in der jeweiligen Kurvenfarbe. Antippen blendet die Kurve aus oder ein;
+ausgeblendete Übungen erhalten einen gestrichelten, gedämpften Rahmen. Die
+Darstellung wird mit `node tools/preview.cjs` bei 360/412 px und Desktop geprüft,
+einschließlich Aufklappen des Logs, Tastaturbedienung und Gewichtskorrektur.
 
 Die Verlaufskurven nutzen eine achtstufige kategoriale Palette, die in hellem
 und dunklem Modus gegen Rot-/Grünschwäche geprüft ist (Protanopie und
