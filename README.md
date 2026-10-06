@@ -20,6 +20,18 @@ Die helle Oberfläche verwendet Blau-Grau, Navy und weiße Eingabefelder.
 „Dein Training“ zählt bestätigte Übungen; leere Plätze werden nicht mitgezählt.
 Eigene Farbsets bleiben lokal gespeichert und erhalten.
 
+Die Gestaltung „Edle Oberflächen“ ergänzt sanfte Verläufe mit 145° Richtung,
+feine helle Oberkanten und zweistufige weiche Navy-Schatten. Neutrale Karten
+verlaufen von Weiß zu `#F0F5F9`; persönliche Kartenfarben werden oben mit 8 %
+Weiß aufgehellt und enden bei der unveränderten gewählten Farbe. Eingabefelder
+und die Diagrammfläche bleiben weiß und deckend. Kopfbuttons und Navigation
+behalten ihre leichte Transparenz über Carbon. Ausgewählte, bestätigte und
+Warnzustände behalten ihre eigenen Farben und Rahmen. Farbvorschauen zeigen
+den Kartenverlauf, reine Farbproben und gespeicherte Hex-Werte bleiben exakt.
+Alle Oberflächentokens stehen gemeinsam in `index.html`; Geometrie, Daten und
+Sync werden dafür nicht geändert. Browserprüfungen und echte Screenshots mit
+Standard- und persönlichen Farben: `node tools/preview-surfaces.cjs`.
+
 Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs` und
 `node tools/test-studio.cjs`.
 Kontotrennung: `node tools/test-accounts.cjs`; Browser-/Mehrtab-Prüfung:
