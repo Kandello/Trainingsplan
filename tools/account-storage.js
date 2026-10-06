@@ -74,6 +74,6 @@ function activateAccount(id,options){
     if(!options||!options.deferStart)showStartScreen();return;
   }
   activePlanId=ui.activePlanId||MINMAX_PLAN_ID;hiddenSeries={};colorMode='looks';colorTarget='bg';
-  rebuildPlanRegistry();if(changed||!hadPlan)restoreOverview();applyTheme();renderPlanBar();buildTabs();rebuildAll();
+  rebuildPlanRegistry();if(changed||!hadPlan)restoreStartView();applyTheme();renderPlanBar();buildTabs();rebuildAll();
   if(!options||!options.deferStart)showStartScreen();
 }

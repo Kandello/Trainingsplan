@@ -757,19 +757,27 @@ main{padding-top:20px}
 .tabbar button svg{width:22px;height:22px;stroke-width:1.8}
 @media(max-width:399px){.ex-body{flex-direction:column;align-items:stretch}.seg{flex:none;width:100%}.seg button{min-height:44px;flex-direction:row;font-size:11px;gap:5px}}
 @media(min-width:720px){.app-header{padding-left:max(16px,calc((100vw - 688px)/2));padding-right:max(16px,calc((100vw - 688px)/2))}.wfield{width:150px}.seg button{font-size:12px;flex-direction:row;gap:5px}.tabbar{padding-left:max(4px,calc((100vw - 720px)/2));padding-right:max(4px,calc((100vw - 720px)/2))}}
-/* The supplied carbon photograph is tinted by CSS; training colors stay local. */
-body.is-overview{background-color:#102d48;background-image:linear-gradient(145deg,#285d929e,#081c33e8),url('assets/carbon.jpg');background-size:cover;background-position:center 40%;background-attachment:fixed}
-.is-overview .app-header{background:transparent;border-bottom-color:transparent}
-.is-overview .app-header button{backdrop-filter:blur(8px);box-shadow:0 3px 12px #06162826;border-color:#ffffff66}
-.is-overview .plan-btn,.is-overview .plan-btn-new,.is-overview .color-btn,.is-overview .sync-chip{background:#f0f5f9e8;color:#19344f}
-.is-overview .plan-btn.is-active{background:#2d69ade8;color:#fff}
-.is-overview .tabbar{left:6px;right:6px;bottom:calc(6px + env(safe-area-inset-bottom));padding:4px;border:1px solid #ffffff80;border-radius:18px;background:#f0f5f9e8;backdrop-filter:blur(8px);box-shadow:0 6px 22px #06162840}
-.is-overview .tabbar button[aria-selected="true"]{background:#d7e7f4d9}
+/* Carbon spans the overview, training and progress; personal card colors remain. */
+body.has-carbon{background-color:#102d48;background-image:linear-gradient(145deg,#285d929e,#081c33e8),url('assets/carbon.jpg');background-size:cover;background-position:center 40%;background-attachment:fixed}
+.has-carbon .app-header{background:transparent;border-bottom-color:transparent}
+.has-carbon .app-header button{backdrop-filter:blur(8px);box-shadow:0 3px 12px #06162826;border-color:#ffffff66}
+.has-carbon .plan-btn,.has-carbon .plan-btn-new,.has-carbon .color-btn,.has-carbon .sync-chip{background:#f0f5f9e8;color:#19344f}
+.has-carbon .plan-btn.is-active{background:#2d69ade8;color:#fff}
+.has-carbon .tabbar{left:6px;right:6px;bottom:calc(6px + env(safe-area-inset-bottom));padding:4px;border:1px solid #ffffff80;border-radius:18px;background:#f0f5f9e8;backdrop-filter:blur(8px);box-shadow:0 6px 22px #06162840}
+.has-carbon .tabbar button[aria-selected="true"]{background:#d7e7f4d9}
+.is-overview .tabbar{display:none}
+.is-overview main{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+.has-carbon .day-head h2{color:#f8fbff}
+.has-carbon .day-head .day-meta,.has-carbon #panel-progress>.picker>label,.has-carbon .tools-hint,.has-carbon .save-hint{color:#d9e7f4}
+.has-carbon .data-tools button{background:#f0f5f9e8;color:#172b44;border-color:#ffffff80}
 .view[data-view="overview"].is-active{animation:none}
 .overview-head{padding:18px 6px 26px;color:#fff}
 .overview-eyebrow{font-size:11px;line-height:1.6;letter-spacing:.15em;text-transform:uppercase;font-weight:750;color:#c1dcf5;overflow-wrap:anywhere}
 .overview-head h2{font-size:clamp(32px,7vw,42px);letter-spacing:-.045em;line-height:1.15;margin:10px 0;color:#fff}
 .overview-head p{font-size:14px;color:#d9e7f4;margin:0}
+.overview-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.overview-progress{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 12px;border:1px solid #ffffff66;border-radius:12px;background:#f0f5f9e8;color:#19344f;font-size:12px;font-weight:650}
+.overview-progress svg{width:18px;height:18px}
 .day-overview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:0 2px}
 .day-overview-grid:has(>.day-tile:only-child){grid-template-columns:1fr}
 .day-tile{display:flex;flex-direction:column;min-width:0;min-height:178px;text-align:left;padding:18px;border:1px solid #d6e4f1;border-radius:18px;background:var(--ex-bg);color:var(--text-1);box-shadow:0 3px 0 #9eb5cd,0 8px 22px #06162859;transition:transform .15s,box-shadow .15s}
@@ -1062,9 +1070,30 @@ function showStartScreen(){
   if(!studio.open&&!document.getElementById('sync-dialog').open)openNewPlan(true);
 }
 
-function restoreOverview(){
+var pendingTrainingScroll=null;
+function hasTrainingInput(dayId){
+  var day=dayById(dayId);return !!day&&day.ex.some(function(e){var d=drafts[e.id];return d&&!!(d.w||d.t);});
+}
+function markTraining(dayId){
+  if(!dayById(dayId))return;
+  if(!ui.activeTraining||ui.activeTraining.planId!==activePlanId||ui.activeTraining.dayId!==dayId)ui.activeTraining={planId:activePlanId,dayId:dayId,scrollY:window.scrollY||0};
+}
+function restoreStartView(){
   if(!DAYS.length)return;
+  var running=ui.activeTraining;
+  // Upgrade an older unfinished draft without rewriting the draft or its owner.
+  if(!Object.prototype.hasOwnProperty.call(ui,'activeTraining')&&hasTrainingInput(ui.lastTrainingTab)){
+    running=ui.activeTraining={planId:activePlanId,dayId:ui.lastTrainingTab,scrollY:0};ui.tab=running.dayId;
+  }
+  if(running&&running.planId===activePlanId&&dayById(running.dayId)&&ui.tab!=='overview'){ui.tab=running.dayId;pendingTrainingScroll=running.scrollY||0;return;}
   ui.tab='overview';
+}
+function rememberTrainingPosition(){
+  if(!ui.activeTraining||ui.activeTraining.planId!==activePlanId||ui.activeTraining.dayId!==ui.tab)return;
+  var meta=store.read(store.metaKey,null);
+  if(!store.available||!meta||meta.active!==store.owner)return;
+  ui.activeTraining.scrollY=window.scrollY||0;
+  try{saveUi();}catch(e){toast(e.message);}
 }
 
 function dayById(id){
@@ -1233,7 +1262,7 @@ function activateAccount(id,options){
     if(!options||!options.deferStart)showStartScreen();return;
   }
   activePlanId=ui.activePlanId||MINMAX_PLAN_ID;hiddenSeries={};colorMode='looks';colorTarget='bg';
-  rebuildPlanRegistry();if(changed||!hadPlan)restoreOverview();applyTheme();renderPlanBar();buildTabs();rebuildAll();
+  rebuildPlanRegistry();if(changed||!hadPlan)restoreStartView();applyTheme();renderPlanBar();buildTabs();rebuildAll();
   if(!options||!options.deferStart)showStartScreen();
 }
 
@@ -1289,7 +1318,7 @@ rebuildPlanRegistry();
 applyTheme();
 
 function saveSessions(){ sessions.sort(function(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }); store.write(K_SESSIONS, sessions);refreshOverview(); }
-function saveDrafts(){ store.write(K_DRAFTS, drafts); }
+function saveDrafts(){ store.write(K_DRAFTS, drafts);if(hasTrainingInput(ui.tab)){markTraining(ui.tab);saveUi();} }
 function saveUi(){ store.write(K_UI, ui); }
 function savePlan(){
   store.write(K_PLAN, planOrder);
@@ -2200,6 +2229,7 @@ function commitDay(day, date, entries, count){
 
   day.ex.forEach(function(e){ delete drafts[e.id]; });
   saveDrafts();
+  if(ui.activeTraining&&ui.activeTraining.planId===activePlanId&&ui.activeTraining.dayId===day.id){ui.activeTraining=null;saveUi();}
 
   var view = document.querySelector('.view[data-view="' + day.id + '"]');
   if(view){
@@ -3335,10 +3365,8 @@ function renderPlanBar(){
   if(activeBtn) activeBtn.scrollIntoView({ inline:"nearest", block:"nearest" });
 }
 
-/** Day-ids sind planübergreifend eindeutig (mit der Plan-id vorangestellt),
-    deshalb genügt rebuildAll()s eigener Rücksprung-auf-ersten-Tag — ein
-    ui.tab aus dem alten Plan kann nie zufällig zu einem Tag des neuen
-    passen. "Fortschritt" bleibt ausgewählt, wenn man dort schon war. */
+/** Ein ausdrücklich gewählter Plan öffnet seine Übersichtskachel.
+    Trainingsentwürfe anderer Pläne bleiben unabhängig erhalten. */
 function switchPlan(planId){
   if(!planById(planId)) return;
   activePlanId = planId;
@@ -4116,7 +4144,7 @@ const Sync = (function(){
     store.write(K_EXSPEC, exSpec);
     store.write(K_PLANS, userPlans);
     rebuildPlanRegistry();
-    if(!hadPlan)restoreOverview();
+    if(!hadPlan)restoreStartView();
     renderPlanBar();
     buildTabs();
     rebuildAll();
@@ -4475,19 +4503,59 @@ function buildTabs(){
   });
 }
 
-function showTab(id){
+function showTab(id,options){
+  options=options||{};
+  if(options.startTraining!==false&&dayById(id))markTraining(id);
+  document.body.classList.toggle('has-carbon',PLANS.length>0);
   document.body.classList.toggle('is-overview',id==='overview'&&PLANS.length>0);
   document.querySelectorAll(".view").forEach(function(v){ v.classList.toggle("is-active", v.getAttribute("data-view") === id); });
   document.querySelectorAll(".tabbar button").forEach(function(b){ b.setAttribute("aria-selected", b.id === "tab-"+id ? "true" : "false"); });
   ui.tab = id;if(DAYS.some(function(d){return d.id===id;}))ui.lastTrainingTab=id;saveUi();
+  if(options.history!==false)updateNavigation(id);
   if(id === "progress"){ renderProgress(); renderLog(); }
 }
+
+var navigationReady=false;
+function navigationState(view,child){return {minmax:{owner:store.owner,planId:activePlanId,view:view,child:!!child}};}
+function currentNavigation(state){var s=state&&state.minmax;return s&&s.owner===store.owner&&s.planId===activePlanId?s:null;}
+function initNavigation(){
+  navigationReady=true;var old=currentNavigation(window.history.state),child=PLANS.length&&ui.tab!=='overview';
+  if(child&&old&&old.child){window.history.replaceState(navigationState(ui.tab,true),'');return;}
+  window.history.replaceState(navigationState('overview',false),'');
+  if(child)window.history.pushState(navigationState(ui.tab,true),'');
+}
+function updateNavigation(id){
+  if(!navigationReady)return;
+  var old=currentNavigation(window.history.state);
+  if(!PLANS.length){window.history.replaceState(navigationState('overview',false),'');return;}
+  if(id==='overview'){
+    if(old&&old.child){window.history.back();return;}
+    window.history.replaceState(navigationState('overview',false),'');return;
+  }
+  if(old&&old.child)window.history.replaceState(navigationState(id,true),'');
+  else{window.history.replaceState(navigationState('overview',false),'');window.history.pushState(navigationState(id,true),'');}
+}
+window.addEventListener('popstate',function(event){
+  if(!PLANS.length)return;
+  var dialogs=document.querySelectorAll('dialog[open]');
+  if(dialogs.length){
+    var focused=document.activeElement&&document.activeElement.closest('dialog[open]');
+    var dialog=focused||dialogs[dialogs.length-1],cancel=new Event('cancel',{cancelable:true});
+    if(dialog.dispatchEvent(cancel)){if(typeof dialog.close==='function')dialog.close();else dialog.removeAttribute('open');}
+    window.history.pushState(navigationState(ui.tab,ui.tab!=='overview'),'');return;
+  }
+  var next=currentNavigation(event.state),view=next&&next.child&&(next.view==='progress'||dayById(next.view))?next.view:'overview';
+  showTab(view,{history:false});window.scrollTo({top:0,behavior:'auto'});
+  if(!next)window.history.replaceState(navigationState(view,false),'');
+});
+window.addEventListener('pagehide',rememberTrainingPosition);
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')rememberTrainingPosition();});
 
 /** Aktualisiert die Ansicht aus den Daten, ohne das DOM neu zu bauen —
     damit ein eintreffender Sync keine laufende Eingabe zerstört. */
 function refreshFromData(){
   if(hasBuiltInPlan()!==!!planById(MINMAX_PLAN_ID)){
-    rebuildPlanRegistry();restoreOverview();renderPlanBar();buildTabs();rebuildAll();showStartScreen();return;
+    rebuildPlanRegistry();restoreStartView();renderPlanBar();buildTabs();rebuildAll();showStartScreen();return;
   }
   DAYS.forEach(function(day){
     var view = document.querySelector('.view[data-view="' + day.id + '"]');
@@ -4516,7 +4584,10 @@ function buildOverviewView(){
   var view=h('section',{class:'view',id:'panel-overview','data-view':'overview',role:'tabpanel','aria-labelledby':'tab-overview'});
   var head=h('div',{class:'overview-head'}),plan=planById(activePlanId);
   head.appendChild(h('div',{class:'overview-eyebrow',text:plan?plan.name:'MinMax'}));
-  head.appendChild(h('h2',{text:'Dein Training'}));head.appendChild(h('p',{text:'Wähle deinen Trainingstag.'}));view.appendChild(head);
+  head.appendChild(h('h2',{text:'Dein Training'}));
+  var actions=h('div',{class:'overview-actions'},[h('p',{text:'Wähle deinen Trainingstag.'})]);
+  var progress=h('button',{class:'overview-progress',type:'button',text:'Fortschritt'}),ic=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.8','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'});
+  svg('path',{d:'M4 19h16M6 15l4-5 3 3 5-7'},ic);progress.prepend(ic);progress.addEventListener('click',function(){showTab('progress');window.scrollTo({top:0,behavior:'auto'});});actions.appendChild(progress);head.appendChild(actions);view.appendChild(head);
   view.appendChild(h('div',{class:'day-overview-grid',id:'day-overview-grid'}));return view;
 }
 
@@ -4553,7 +4624,9 @@ function rebuildAll(){
   DAYS.forEach(function(d){ updateSaveBar(d.id); });
   renderLog();
   refreshOverview();
-  showTab(ui.tab && (DAYS.some(function(d){ return d.id === ui.tab; }) || ui.tab === "progress" || (PLANS.length&&ui.tab==='overview')) ? ui.tab : PLANS.length?'overview':"progress");
+  showTab(ui.tab && (DAYS.some(function(d){ return d.id === ui.tab; }) || ui.tab === "progress" || (PLANS.length&&ui.tab==='overview')) ? ui.tab : PLANS.length?'overview':"progress",{history:false,startTraining:false});
+  if(navigationReady&&!currentNavigation(window.history.state))initNavigation();
+  if(pendingTrainingScroll!==null){var position=pendingTrainingScroll,owner=store.owner,day=ui.tab;pendingTrainingScroll=null;requestAnimationFrame(function(){if(store.owner===owner&&ui.tab===day)window.scrollTo({top:position,behavior:'auto'});});}
   renderProgress();
 }
 
@@ -4565,7 +4638,7 @@ function rebuildAll(){
 /* rebuildPlanRegistry() beim Laden von userPlans (Abschnitt 2) hat DAYS
    bereits samt applyPlan() aufgebaut — hier nur noch die Oberfläche. */
 renderPlanBar();
-restoreOverview();
+restoreStartView();
 buildTabs();
 wireSyncUi();
 wireSwapUi();
@@ -4575,6 +4648,7 @@ wireNewPlanUi();
 wireColorUi();
 renderChip();
 rebuildAll();
+initNavigation();
 showStartScreen();
 Sync.init();
 

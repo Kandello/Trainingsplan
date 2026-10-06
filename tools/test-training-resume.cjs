@@ -1,0 +1,26 @@
+const assert=require('node:assert/strict'),{run,exercise}=require('./test.cjs');
+const record={date:'2026-09-30',dayId:'total',entries:{[exercise]:{w:50,t:'hold'}}};
+(async()=>{
+ const a=await run({local:[record]});assert.equal(a.get('ui.tab'),'overview');
+ a.get('showTab("total")');assert.equal(a.get('ui.activeTraining.dayId'),'total');
+ const input=a.w.document.querySelector(`[data-ex="${exercise}"] input`);input.value='52';input.dispatchEvent(new a.w.Event('input',{bubbles:true}));
+ a.w.document.querySelector(`[data-ex="${exercise}"] .ex-check`).click();
+ const snapshot=a.snapshot();a.dom.window.close();
+ const progress=await run({storage:snapshot});progress.get('showTab("progress")');const fromProgress=progress.snapshot();progress.dom.window.close();
+ const continueDay=await run({storage:fromProgress});assert.equal(continueDay.get('ui.tab'),'total','Progress does not end an unfinished workout');continueDay.dom.window.close();
+ const b=await run({storage:snapshot});assert.equal(b.get('ui.tab'),'total');assert.equal(b.get(`drafts['${exercise}'].w`),'52');assert.equal(b.get(`confirmedEntry('${exercise}').w`),52);
+ assert.equal(b.w.document.body.classList.contains('has-carbon'),true);assert.equal(b.w.document.body.classList.contains('is-overview'),false);
+ const focused=b.w.document.querySelector(`[data-ex="${exercise}"] input`);focused.focus();b.get('activateAccount("google-user",{deferStart:true})');assert.equal(b.w.document.activeElement,focused);
+ await b.changeAuth('friend');assert.equal(b.get('PLANS.length'),0);assert.equal(b.get('ui.activeTraining'),undefined);assert.equal(b.get(`drafts['${exercise}']`),undefined);
+ await b.changeAuth('google-user');assert.equal(b.get('ui.tab'),'total');assert.equal(b.get(`drafts['${exercise}'].w`),'52');
+ b.get('saveDay(dayById("total"))');await b.settle();assert.equal(b.get('ui.activeTraining'),null);assert.equal(b.get(`drafts['${exercise}']`),undefined);
+ b.get('rebuildAll()');assert.equal(b.get('ui.activeTraining'),null,'A render after saving does not begin another workout');
+ const completed=b.snapshot();b.dom.window.close();const c=await run({storage:completed});assert.equal(c.get('ui.tab'),'overview','Completed workouts start on the overview');c.dom.window.close();
+ const upgrade=await run({local:[record],ui:{tab:'overview',lastTrainingTab:'total'},drafts:{[exercise]:{w:'51',sug:true,t:'up'}}});
+ assert.equal(upgrade.get('ui.tab'),'total','The old version saved overview as the tab; its unfinished draft still resumes');assert.equal(upgrade.get(`drafts['${exercise}'].t`),'up');upgrade.dom.window.close();
+ const idle=await run({signedOut:true,ui:{tab:'total',lastTrainingTab:'total'}});assert.equal(idle.get('ui.tab'),'overview','An old selected day without a pending draft remains a normal start');idle.dom.window.close();
+ const missing=await run({signedOut:true,ui:{tab:'gone',activeTraining:{planId:'minmax',dayId:'gone',scrollY:900}}});assert.equal(missing.get('ui.tab'),'overview');missing.dom.window.close();
+ const switched=await run({local:[record]});switched.get('showTab("total")');const key='trainingsplan.v3.accounts.minmax-workouttracker.profile.google-user',original=switched.w.localStorage.getItem(key);
+ const meta=JSON.parse(switched.w.localStorage.getItem(switched.get('store.metaKey')));meta.active='friend';switched.w.localStorage.setItem(switched.get('store.metaKey'),JSON.stringify(meta));switched.get('rememberTrainingPosition()');assert.equal(switched.w.localStorage.getItem(key),original,'A pagehide after another tab switches accounts does not write the old profile');switched.dom.window.close();
+ console.log('PASS: unfinished workout/drafts/confirmation survive reload and account round-trip; saving completes it; old drafts migrate; invalid/idle days fall back safely');
+})().catch(e=>{console.error(e);process.exitCode=1;});

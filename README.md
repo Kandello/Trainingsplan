@@ -227,18 +227,26 @@ zusammenstellen**. Erst **Plan speichern** legt einen zusätzlichen Plan an.
 Bestehende Einheiten werden nicht geändert oder zusammengeführt.
 
 Ohne eigenen Plan startet die App direkt auf der Startseite des Baukastens.
-Mit eingerichtetem Plan öffnet sich die **Übersicht** mit einer Kachel pro
-Trainingstag, ohne automatischen Sync- oder Baukasten-Dialog. Die Kacheln zeigen
+Mit eingerichtetem Plan öffnet sich die **Übersichtskachel** (Startseite) mit
+einer Kachel pro Trainingstag, ohne automatischen Sync- oder Baukasten-Dialog.
+Ein noch offener Trainingstag wird beim Neuladen stattdessen wiederhergestellt,
+einschließlich Eingaben, Bestätigungen und Scrollposition. **Einheit speichern**
+beendet diese Wiederaufnahme; der nächste Start zeigt die Übersichtskachel.
+Der Zustand bleibt im lokalen UI-Bereich des jeweiligen Kontos. Ältere offene
+Eingaben werden anhand des zuletzt genutzten Trainingstags weitergeführt.
+Die Kacheln zeigen
 den vollständigen Tagesnamen und das Datum der letzten gespeicherten Einheit;
 ohne bisherige Einheit entfällt die Datumszeile. Antippen öffnet den Tag,
-der Tab **Übersicht** führt zurück. Planwechsel und Neustarts öffnen ebenfalls
-die Übersicht. Die Carbon-Fotografie in `assets/carbon.jpg` wird ausschließlich
-dort mit CSS blau getönt und für die Offline-Nutzung zwischengespeichert;
-die Kopfzeile bleibt transparent, ihre Buttons und die abgerundete Navigation
-sind leicht durchscheinend. Die Navigation hat seitlich und unten 6 px Abstand
+der Tab **Übersicht** und der Handy-/Browser-Zurück-Button führen zurück zur
+Übersichtskachel. Die **Übersichtsleiste** (Navigation unten) ist auf der
+Startseite ausgeblendet; ein eigener Button öffnet dort **Fortschritt**.
+Die Carbon-Fotografie in `assets/carbon.jpg` wird auf Startseite, Trainingstagen
+und Fortschritt mit CSS blau getönt und offline zwischengespeichert.
+Die Kopfzeile bleibt transparent, ihre Buttons und die abgerundete
+Übersichtsleiste sind leicht durchscheinend. Die Leiste hat seitlich und unten 6 px Abstand
 (zusätzlich zum sicheren Bildschirmrand). Unveränderte Kontodaten und
 Planantworten bauen die Ansicht nicht erneut auf; die Übersicht verwendet
-keine Einblendanimation. Persönliche Farben und Trainingsansichten bleiben
+keine Einblendanimation. Persönliche Kartenfarben und Trainingsdaten bleiben
 erhalten. Bei
 einem bereits angemeldeten Konto wird ein noch ausstehender Cloud-Plan zuerst
 geladen, bevor die App einen leeren Bereich als neuen Einstieg behandelt.
@@ -257,6 +265,10 @@ Kontotrennung und Neustart; `node tools/preview-overview.cjs` prüft die
 Ansichten bei 360/412 px und Desktop mit unabhängigen Beispieldaten.
 `node tools/test-overview-start.cjs` prüft verzögerte Anmeldung, wiederholte
 Abgleich-Antworten und den Erhalt einer fokussierten Trainingseingabe.
+`node tools/test-training-resume.cjs` prüft Wiederaufnahme, Abschluss und
+Kontotrennung; `node tools/preview-navigation.cjs` prüft Browser-Zurück,
+Dialogschließen, Carbon auf allen Planseiten und Offline-Wiederaufnahme
+bei 360/412 px und Desktop.
 
 Das Interview fragt Ziel, Erfahrung, Trainingstage (1–5), Zeit (30–120 Minuten),
 Gerätevorliebe und bis zu drei geordnete Muskelprioritäten ab. **Ich starte
@@ -403,9 +415,8 @@ hinzufügen** am Ende jedes Tages lassen sich jederzeit weitere Boxen ergänzen;
 das gilt nur für selbst angelegte Pläne, MinMax' Tage stehen fest im Code.
 
 **Fortschritt** zeigt immer nur Trainingstage und Übungen des gerade aktiven
-Plans — beim Tab-Wechsel zurück auf einen Trainingstag springt die App auf
-dessen ersten Tag, „Fortschritt" selbst bleibt aber ausgewählt, falls man
-gerade dort war.
+Plans. Ein Planwechsel öffnet dessen Übersichtskachel; das Antippen eines
+Trainingstags öffnet genau diesen Tag.
 
 Übungsnamen dürfen sich zwischen Plänen wiederholen (z. B. „Kniebeugen" in
 zwei verschiedenen Plänen) — es entstehen zwei unabhängige Übungen mit

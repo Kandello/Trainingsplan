@@ -33,7 +33,7 @@ const tile=(a,id)=>a.w.document.querySelector('[data-overview-day="'+id+'"]');
   assert.equal(b.get('ui.tab'),'overview');assert.equal(b.w.document.querySelectorAll('.day-tile').length,n);assert.equal(b.w.document.querySelectorAll('.day-tile time').length,0);
   assert.equal(tile(b,'custom-0').querySelector('strong').textContent,plan.days[0].name);
   tile(b,'custom-0').click();const saved=b.snapshot();b.dom.window.close();
-  const c=await run({storage:saved,signedOut:true,includeMinMax:false});assert.equal(c.get('ui.tab'),'overview');assert.equal(c.w.document.querySelectorAll('.day-tile').length,n);c.dom.window.close();
+  const c=await run({storage:saved,signedOut:true,includeMinMax:false});assert.equal(c.get('ui.tab'),'custom-0','An opened, unfinished training survives restart');assert.equal(c.w.document.querySelectorAll('.day-tile').length,n);c.dom.window.close();
  }
  const empty=await run({signedOut:true,includeMinMax:false});assert.equal(empty.w.document.querySelectorAll('.day-tile').length,0);assert.equal(empty.w.document.getElementById('studio-dialog').open,true);empty.dom.window.close();
  console.log('PASS: day counts, complete names, latest nonempty dates, live log refresh, focus/draft preservation, account isolation, late authentication and restart overview');

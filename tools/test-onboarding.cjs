@@ -35,7 +35,7 @@ const click=(app,label)=>{const b=[...app.w.document.querySelectorAll('#studio-d
  assert.equal(returning.w.document.getElementById('sync-dialog').open,false);
  returning.get('showTab(DAYS[1].id);showTab("progress")');const progressSaved=returning.snapshot();returning.dom.window.close();
  const progressReturn=await run({storage:progressSaved,uid:'friend',includeMinMax:false});
- assert.equal(progressReturn.get('ui.tab'),'overview','Restart opens the day overview even after visiting progress');
+ assert.equal(progressReturn.get('ui.tab'),progressReturn.get('DAYS[1].id'),'An unfinished training resumes even after a visit to progress');
  assert.equal(progressReturn.w.document.getElementById('studio-dialog').open,false);assert.equal(progressReturn.w.document.getElementById('sync-dialog').open,false);progressReturn.dom.window.close();
  const upgrade=await run({local,autoClaim:false,includeMinMax:false});
  assert.equal(upgrade.get('Sync.state.status'),'assignment');assert.equal(upgrade.w.document.getElementById('sync-dialog').open,false);
