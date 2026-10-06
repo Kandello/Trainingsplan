@@ -16,7 +16,7 @@ async function run(options={}){
  if(options.remotePlan)documents.set('users/google-user/state/plan',structuredClone(options.remotePlan));
  (options.remote||[]).forEach(s=>documents.set('users/google-user/sessions/'+sessionKey(s),structuredClone(s)));
  const auth={currentUser:options.signedOut?null:{uid:options.uid||'google-user',email:'test@example.com',isAnonymous:false}};
- let authCallback, listeners=[], failWrites=!!options.failWrites,failSignOut=false,delayReads=false,delayWrites=false;
+ let authCallback, listeners=[], failWrites=!!options.failWrites,failSignOut=false,delayReads=!!options.delayReads,delayWrites=false;
  const delayedReads=[],delayedWrites=[];
  const calls={initialized:0,reads:[],writes:[],popups:0,redirects:0};
  const snap=(values,metadata={fromCache:false,hasPendingWrites:false})=>({metadata,forEach:fn=>values.forEach(v=>fn({id:v.id,data:()=>v})),data:()=>values[0]});

@@ -1033,7 +1033,13 @@ function showStartScreen(){
     if(studio.open&&StudioUI.state&&StudioUI.state.screen==='home'&&!StudioUI.state.origin)StudioUI.close();
     return;
   }
+  if(!['guest','legacy'].includes(store.owner)&&['unconfigured','loading','syncing'].includes(Sync.state.status))return;
   if(!studio.open&&!document.getElementById('sync-dialog').open)openNewPlan(true);
+}
+
+function restoreTrainingTab(){
+  if(!DAYS.length)return;
+  if(!DAYS.some(function(d){return d.id===ui.tab;}))ui.tab=DAYS.some(function(d){return d.id===ui.lastTrainingTab;})?ui.lastTrainingTab:DAYS[0].id;
 }
 
 function dayById(id){
@@ -1186,7 +1192,7 @@ function createAccountStore(){
   };
 }
 
-function activateAccount(id){
+function activateAccount(id,options){
   if(store.owner!==id)document.querySelectorAll('dialog[open]:not(#sync-dialog)').forEach(function(d){if(typeof d.close==='function')d.close();else d.removeAttribute('open');});
   store.activate(id);
   document.getElementById('main').hidden=false;document.getElementById('plan-bar').hidden=false;
@@ -1196,8 +1202,8 @@ function activateAccount(id){
   colorLibrary.favorites=colorLibrary.favorites||[];colorLibrary.recent=colorLibrary.recent||[];
   if(!store.read(K_RECOVERY,null))store.write(K_RECOVERY,{sessions:sessions,drafts:drafts,plan:{order:planOrder,exercises:customEx,spec:exSpec,plans:userPlans},savedAt:new Date().toISOString()});
   activePlanId=ui.activePlanId||MINMAX_PLAN_ID;hiddenSeries={};colorMode='looks';colorTarget='bg';
-  rebuildPlanRegistry();applyTheme();renderPlanBar();buildTabs();rebuildAll();
-  showStartScreen();
+  rebuildPlanRegistry();restoreTrainingTab();applyTheme();renderPlanBar();buildTabs();rebuildAll();
+  if(!options||!options.deferStart)showStartScreen();
 }
 
 /* ACCOUNT STORAGE END */
@@ -3897,7 +3903,7 @@ const Sync = (function(){
   function stop(){++generation;lastSnapshot=null;if(unsub){unsub();unsub=null;}if(unsubPlan){unsubPlan();unsubPlan=null;}}
   function finishAccount(c){
     if(!c || !authenticated(c.uid) || c.uid!==uid || c.epoch!==generation)return;
-    try{activateAccount(c.uid);outbox=store.read(K_OUTBOX,{});set('syncing',{serverCount:null,checkedAt:null});reconcile(c.epoch).catch(function(e){if(current(c))failure(e);});}
+    try{activateAccount(c.uid,{deferStart:true});outbox=store.read(K_OUTBOX,{});set('syncing',{serverCount:null,checkedAt:null});reconcile(c.epoch).then(function(){if(current(c))showStartScreen();}).catch(function(e){if(current(c))failure(e);});}
     catch(e){blockAccount(e);}
   }
 
@@ -4056,6 +4062,7 @@ const Sync = (function(){
       zurück. */
   function applyRemotePlan(v){
     if(!v) return;
+    var hadPlan=PLANS.length>0;
     if(v.exercises && typeof v.exercises === "object") customEx = v.exercises;
     if(v.order && typeof v.order === "object") planOrder = v.order;
     if(v.spec && typeof v.spec === "object") exSpec = v.spec;
@@ -4069,6 +4076,7 @@ const Sync = (function(){
     store.write(K_EXSPEC, exSpec);
     store.write(K_PLANS, userPlans);
     rebuildPlanRegistry();
+    if(!hadPlan)restoreTrainingTab();
     renderPlanBar();
     buildTabs();
     rebuildAll();
@@ -4428,7 +4436,7 @@ function buildTabs(){
 function showTab(id){
   document.querySelectorAll(".view").forEach(function(v){ v.classList.toggle("is-active", v.getAttribute("data-view") === id); });
   document.querySelectorAll(".tabbar button").forEach(function(b){ b.setAttribute("aria-selected", b.id === "tab-"+id ? "true" : "false"); });
-  ui.tab = id; saveUi();
+  ui.tab = id;if(DAYS.some(function(d){return d.id===id;}))ui.lastTrainingTab=id;saveUi();
   if(id === "progress"){ renderProgress(); renderLog(); }
 }
 
@@ -4436,7 +4444,7 @@ function showTab(id){
     damit ein eintreffender Sync keine laufende Eingabe zerstört. */
 function refreshFromData(){
   if(hasBuiltInPlan()!==!!planById(MINMAX_PLAN_ID)){
-    rebuildPlanRegistry();renderPlanBar();buildTabs();rebuildAll();showStartScreen();return;
+    rebuildPlanRegistry();restoreTrainingTab();renderPlanBar();buildTabs();rebuildAll();showStartScreen();return;
   }
   DAYS.forEach(function(day){
     var view = document.querySelector('.view[data-view="' + day.id + '"]');
@@ -4485,6 +4493,7 @@ function rebuildAll(){
 /* rebuildPlanRegistry() beim Laden von userPlans (Abschnitt 2) hat DAYS
    bereits samt applyPlan() aufgebaut — hier nur noch die Oberfläche. */
 renderPlanBar();
+restoreTrainingTab();
 buildTabs();
 wireSyncUi();
 wireSwapUi();

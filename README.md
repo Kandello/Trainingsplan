@@ -227,6 +227,10 @@ zusammenstellen**. Erst **Plan speichern** legt einen zusätzlichen Plan an.
 Bestehende Einheiten werden nicht geändert oder zusammengeführt.
 
 Ohne eigenen Plan startet die App direkt auf der Startseite des Baukastens.
+Mit eingerichtetem Plan öffnet sich direkt der zuletzt genutzte Trainingstag
+(sonst der erste Tag), ohne automatischen Sync- oder Baukasten-Dialog. Bei
+einem bereits angemeldeten Konto wird ein noch ausstehender Cloud-Plan zuerst
+geladen, bevor die App einen leeren Bereich als neuen Einstieg behandelt.
 Ein vorhandener Entwurf kann dort fortgesetzt werden. Der ursprüngliche
 MinMax-Plan bleibt für bestehende Nutzer erhalten und wird neuen Nutzern nicht
 automatisch angelegt. **Romans MinMax-Plan** ist eine elfte, ausdrücklich
