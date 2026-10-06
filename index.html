@@ -644,11 +644,8 @@ tbody td.na{color:var(--muted)}
 .tools-hint{margin-top:7px;font-size:11.5px;color:var(--muted);text-align:center}
 
 /* ---------- Tab bar ---------- */
-/* Flex statt eines fest auf 5 Spalten kodierten Grids: MinMax hat immer
-   4 Tage + Fortschritt = 5 Tabs, aber ein selbst angelegter Plan kann bis zu
-   zehn Trainingstage haben (+ Fortschritt) — ein festes 5-Spalten-Grid würde
-   ab dem sechsten Tab zweizeilig umbrechen. flex:1 1 0 verteilt die Breite
-   gleichmässig auf jede tatsächliche Tab-Zahl, genau wie bei 5 Tabs zuvor. */
+/* Die Tab-Anzahl ist dynamisch. Zusätzliche Tabs werden horizontal gescrollt,
+   ohne Aktionsflächen oder Texte zu verkleinern. */
 .tabbar{
   position:fixed;left:0;right:0;bottom:0;z-index:30;
   display:flex;
@@ -760,6 +757,30 @@ main{padding-top:20px}
 .tabbar button svg{width:22px;height:22px;stroke-width:1.8}
 @media(max-width:399px){.ex-body{flex-direction:column;align-items:stretch}.seg{flex:none;width:100%}.seg button{min-height:44px;flex-direction:row;font-size:11px;gap:5px}}
 @media(min-width:720px){.app-header{padding-left:max(16px,calc((100vw - 688px)/2));padding-right:max(16px,calc((100vw - 688px)/2))}.wfield{width:150px}.seg button{font-size:12px;flex-direction:row;gap:5px}.tabbar{padding-left:max(4px,calc((100vw - 720px)/2));padding-right:max(4px,calc((100vw - 720px)/2))}}
+/* The supplied carbon photograph is tinted by CSS; training colors stay local. */
+body.is-overview{background-color:#102d48;background-image:linear-gradient(145deg,#285d929e,#081c33e8),url('assets/carbon.jpg');background-size:cover;background-position:center 40%;background-attachment:fixed}
+.is-overview .app-header{background:#142d46;border-bottom-color:#426180}
+.is-overview .plan-btn{background:#edf4fa;color:#19344f}
+.is-overview .plan-btn.is-active{background:#2d69ad;color:#fff}
+.overview-head{padding:18px 6px 26px;color:#fff}
+.overview-eyebrow{font-size:11px;line-height:1.6;letter-spacing:.15em;text-transform:uppercase;font-weight:750;color:#c1dcf5;overflow-wrap:anywhere}
+.overview-head h2{font-size:clamp(32px,7vw,42px);letter-spacing:-.045em;line-height:1.15;margin:10px 0;color:#fff}
+.overview-head p{font-size:14px;color:#d9e7f4;margin:0}
+.day-overview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:0 2px}
+.day-overview-grid:has(>.day-tile:only-child){grid-template-columns:1fr}
+.day-tile{display:flex;flex-direction:column;min-width:0;min-height:178px;text-align:left;padding:18px;border:1px solid #d6e4f1;border-radius:18px;background:var(--ex-bg);color:var(--text-1);box-shadow:0 3px 0 #9eb5cd,0 8px 22px #06162859;transition:transform .15s,box-shadow .15s}
+.day-tile:hover{transform:translateY(-2px);box-shadow:0 4px 0 #9eb5cd,0 12px 25px #06162866}
+.day-tile:active{transform:translateY(1px);box-shadow:0 1px 0 #9eb5cd,0 4px 12px #06162859}
+.day-tile:focus-visible{outline:3px solid #91c7ff;outline-offset:5px}
+.day-tile-top{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--hold)}
+.day-tile-number{display:inline-grid;place-items:center;width:32px;height:32px;border:1px solid #c5d9ee;border-radius:10px;background:#e3eef9;font-size:12px;font-weight:750;color:#2d69ad}
+.day-tile-arrow{width:21px;height:21px;stroke-width:1.8}
+.day-tile-name{display:block;font-size:21px;font-weight:750;line-height:1.2;letter-spacing:-.025em;overflow-wrap:anywhere;margin-top:24px}
+.day-tile-last{display:block;margin-top:10px;font-size:12px;line-height:1.5;color:var(--text-2)}
+.tabbar{overflow-x:auto}.tabbar button{flex:1 0 auto;min-width:48px;padding-inline:8px}
+@media(max-width:380px){.day-overview-grid{gap:12px}.day-tile{padding:15px;min-height:170px}.day-tile-name{font-size:20px}.day-tile-last{font-size:11px}}
+@media(min-width:720px){.overview-head{padding-top:32px;padding-bottom:30px}.day-tile{padding:24px;min-height:190px}.day-tile-name{font-size:25px}}
+@media(prefers-reduced-motion:reduce){.day-tile{transition:none}}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */
@@ -1037,9 +1058,9 @@ function showStartScreen(){
   if(!studio.open&&!document.getElementById('sync-dialog').open)openNewPlan(true);
 }
 
-function restoreTrainingTab(){
+function restoreOverview(){
   if(!DAYS.length)return;
-  if(!DAYS.some(function(d){return d.id===ui.tab;}))ui.tab=DAYS.some(function(d){return d.id===ui.lastTrainingTab;})?ui.lastTrainingTab:DAYS[0].id;
+  ui.tab='overview';
 }
 
 function dayById(id){
@@ -1193,6 +1214,7 @@ function createAccountStore(){
 }
 
 function activateAccount(id,options){
+  var changed=store.owner!==id,hadPlan=PLANS.length>0;
   if(store.owner!==id)document.querySelectorAll('dialog[open]:not(#sync-dialog)').forEach(function(d){if(typeof d.close==='function')d.close();else d.removeAttribute('open');});
   store.activate(id);
   document.getElementById('main').hidden=false;document.getElementById('plan-bar').hidden=false;
@@ -1202,7 +1224,7 @@ function activateAccount(id,options){
   colorLibrary.favorites=colorLibrary.favorites||[];colorLibrary.recent=colorLibrary.recent||[];
   if(!store.read(K_RECOVERY,null))store.write(K_RECOVERY,{sessions:sessions,drafts:drafts,plan:{order:planOrder,exercises:customEx,spec:exSpec,plans:userPlans},savedAt:new Date().toISOString()});
   activePlanId=ui.activePlanId||MINMAX_PLAN_ID;hiddenSeries={};colorMode='looks';colorTarget='bg';
-  rebuildPlanRegistry();restoreTrainingTab();applyTheme();renderPlanBar();buildTabs();rebuildAll();
+  rebuildPlanRegistry();if(changed||!hadPlan)restoreOverview();applyTheme();renderPlanBar();buildTabs();rebuildAll();
   if(!options||!options.deferStart)showStartScreen();
 }
 
@@ -1257,7 +1279,7 @@ activePlanId = (typeof ui.activePlanId === "string" && ui.activePlanId) ? ui.act
 rebuildPlanRegistry();
 applyTheme();
 
-function saveSessions(){ sessions.sort(function(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }); store.write(K_SESSIONS, sessions); }
+function saveSessions(){ sessions.sort(function(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }); store.write(K_SESSIONS, sessions);refreshOverview(); }
 function saveDrafts(){ store.write(K_DRAFTS, drafts); }
 function saveUi(){ store.write(K_UI, ui); }
 function savePlan(){
@@ -1358,7 +1380,7 @@ function buildTrendHint(exId){
 function lastWeight(exId){ var h = historyOf(exId); return h.length ? h[h.length-1].w : null; }
 function lastSessionOf(dayId){
   var found = null;
-  for(var i=0;i<sessions.length;i++) if(sessions[i].dayId === dayId) found = sessions[i];
+  for(var i=0;i<sessions.length;i++)if(sessions[i].dayId===dayId&&sessions[i].entries&&Object.keys(sessions[i].entries).length&&(!found||sessions[i].date>found.date))found=sessions[i];
   return found;
 }
 
@@ -3304,6 +3326,7 @@ function switchPlan(planId){
   if(!planById(planId)) return;
   activePlanId = planId;
   ui.activePlanId = planId;
+  ui.tab='overview';
   DAYS = daysForActivePlan();
   applyPlan();
   hiddenSeries = {};
@@ -3401,11 +3424,10 @@ var StudioUI=(function(){
   }
   function openPicker(exId){if(!S)return;infoOnly=false;var ex=POOL[exId];if(!ex)return;previous=state;state=null;picker={external:true,exId:exId,query:'',muscle:ex.targetMuscle||'',equipment:'',limit:30};info=null;render();show();}
   function commit(){var d=state.draft;if(!d||!d.name.trim()||d.days.some(function(day){return !day.name.trim();})){toast('Plan und Trainingstage brauchen einen Namen.');return;}if(d.days.some(function(day){return day.exercises.some(function(e){return !e.empty&&(!e.name.trim()||[e.sets,e.rmin,e.rmax].some(function(v){return !Number.isInteger(v)||v<1||v>99;}));});})){toast('Sätze und Wiederholungen müssen zwischen 1 und 99 liegen.');return;}
-    var firstPlan=PLANS.length===0;
     var planId='plan-'+Math.random().toString(36).slice(2,10);while(planById(planId))planId='plan-'+Math.random().toString(36).slice(2,10);var additions={},days=d.days.map(function(day,i){var dayId=planId+'-tag-'+(i+1),ids=[];day.exercises.forEach(function(e,j){var id=dayId+'-s'+(j+1);ids.push(id);additions[id]=e.empty?{id:id,empty:true,dayId:dayId,planId:planId,targetMuscle:e.targetMuscle||null}:{id:id,n:e.name.trim(),sets:e.sets,rmin:Math.min(e.rmin,e.rmax),rmax:e.rmax===e.rmin?null:Math.max(e.rmin,e.rmax),p:'',planTrend:null,dayId:dayId,planId:planId,catalogueId:e.catalogueId||null,bodyweight:!!e.bodyweight||!!(S.byId[e.catalogueId]&&S.byId[e.catalogueId].equipment==='bodyweight')};});return {id:dayId,name:day.name.trim(),base:ids};});
     var oldPlans=userPlans,oldExercises=customEx;userPlans=userPlans.concat([{id:planId,name:d.name.trim(),days:days,builder:{input:S.config(d.input),templateId:d.templateId||null}}]);customEx=Object.assign({},customEx,additions);
     try{savePlan();}catch(e){userPlans=oldPlans;customEx=oldExercises;try{savePlan();}catch(ignore){}toast(e.message);return;}
-    state=fresh();persist();close();rebuildPlanRegistry();if(firstPlan)ui.tab=days[0].id;switchPlan(planId);Sync.pushPlan();toast('Trainingsplan gespeichert');
+    state=fresh();persist();close();rebuildPlanRegistry();switchPlan(planId);Sync.pushPlan();toast('Trainingsplan gespeichert');
   }
   document.getElementById('studio-back').appendChild(icon('back'));document.getElementById('studio-back').addEventListener('click',back);document.getElementById('studio-close').appendChild(icon('close'));document.getElementById('studio-close').addEventListener('click',close);dlg.addEventListener('cancel',function(){persist();});
   return {open:open,close:close,openPicker:openPicker,openInfo:function(id){var e=S&&S.byId[id];if(!e)return;previous=state;state=null;picker=null;info=e;infoOnly=true;render();show();},render:render,commit:commit,get state(){return state;},get picker(){return picker;}};
@@ -3586,6 +3608,7 @@ function commitNewPlan(c){
 
   activePlanId = planId;
   ui.activePlanId = planId;
+  ui.tab='overview';
   rebuildPlanRegistry();
   ui.metric = "day:" + DAYS[0].id;
   saveUi();
@@ -4076,7 +4099,7 @@ const Sync = (function(){
     store.write(K_EXSPEC, exSpec);
     store.write(K_PLANS, userPlans);
     rebuildPlanRegistry();
-    if(!hadPlan)restoreTrainingTab();
+    if(!hadPlan)restoreOverview();
     renderPlanBar();
     buildTabs();
     rebuildAll();
@@ -4404,6 +4427,7 @@ function wireSyncUi(){
    12. Navigation & Bootstrap
    ============================================================ */
 const TAB_ICONS = {
+  overview:["M4 4h6v6H4Z","M14 4h6v6h-6Z","M4 14h6v6H4Z","M14 14h6v6h-6Z"],
   total:   ["M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"],
   upper:   ["M8 4 3 7l2 5 3-1v10h8V11l3 1 2-5-5-3","M8 4a4 4 0 0 0 8 0"],
   lower:   ["M7 3h10l2 18h-5l-2-10-2 10H5L7 3Z","M7 7h10"],
@@ -4417,6 +4441,7 @@ function buildTabs(){
   var bar = document.querySelector(".tabbar");
   while(bar.firstChild) bar.removeChild(bar.firstChild);
   var items = DAYS.map(function(d){ return { id:d.id, label:d.short }; });
+  if(PLANS.length)items.unshift({id:'overview',label:'Übersicht'});
   items.push({ id:"progress", label:"Fortschritt" });
 
   items.forEach(function(it){
@@ -4434,6 +4459,7 @@ function buildTabs(){
 }
 
 function showTab(id){
+  document.body.classList.toggle('is-overview',id==='overview'&&PLANS.length>0);
   document.querySelectorAll(".view").forEach(function(v){ v.classList.toggle("is-active", v.getAttribute("data-view") === id); });
   document.querySelectorAll(".tabbar button").forEach(function(b){ b.setAttribute("aria-selected", b.id === "tab-"+id ? "true" : "false"); });
   ui.tab = id;if(DAYS.some(function(d){return d.id===id;}))ui.lastTrainingTab=id;saveUi();
@@ -4444,7 +4470,7 @@ function showTab(id){
     damit ein eintreffender Sync keine laufende Eingabe zerstört. */
 function refreshFromData(){
   if(hasBuiltInPlan()!==!!planById(MINMAX_PLAN_ID)){
-    rebuildPlanRegistry();restoreTrainingTab();renderPlanBar();buildTabs();rebuildAll();showStartScreen();return;
+    rebuildPlanRegistry();restoreOverview();renderPlanBar();buildTabs();rebuildAll();showStartScreen();return;
   }
   DAYS.forEach(function(day){
     var view = document.querySelector('.view[data-view="' + day.id + '"]');
@@ -4466,12 +4492,37 @@ function refreshFromData(){
     });
     updateSaveBar(day.id);
   });
-  renderProgress();
+  refreshOverview();renderProgress();
+}
+
+function buildOverviewView(){
+  var view=h('section',{class:'view',id:'panel-overview','data-view':'overview',role:'tabpanel','aria-labelledby':'tab-overview'});
+  var head=h('div',{class:'overview-head'}),plan=planById(activePlanId);
+  head.appendChild(h('div',{class:'overview-eyebrow',text:plan?plan.name:'MinMax'}));
+  head.appendChild(h('h2',{text:'Dein Training'}));head.appendChild(h('p',{text:'Wähle deinen Trainingstag.'}));view.appendChild(head);
+  view.appendChild(h('div',{class:'day-overview-grid',id:'day-overview-grid'}));return view;
+}
+
+function refreshOverview(){
+  var grid=document.getElementById('day-overview-grid');if(!grid)return;
+  var focus=document.activeElement&&document.activeElement.getAttribute('data-overview-day');
+  grid.replaceChildren();
+  DAYS.forEach(function(day,i){
+    var last=lastSessionOf(day.id),date=last?DF_LONG.format(isoToDate(last.date)):null;
+    var tile=h('button',{type:'button',class:'day-tile','data-overview-day':day.id,'aria-label':day.name+(date?', zuletzt am '+date:'')});
+    var top=h('span',{class:'day-tile-top','aria-hidden':'true'});top.appendChild(h('span',{class:'day-tile-number',text:String(i+1).padStart(2,'0')}));
+    var arrow=svg('svg',{class:'day-tile-arrow',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-linecap':'round','stroke-linejoin':'round'});svg('path',{d:'M5 12h14m-6-6 6 6-6 6'},arrow);top.appendChild(arrow);tile.appendChild(top);
+    tile.appendChild(h('strong',{class:'day-tile-name',text:day.name}));
+    if(date){var line=h('span',{class:'day-tile-last'});line.appendChild(document.createTextNode('Zuletzt '));line.appendChild(h('time',{datetime:last.date,text:date}));tile.appendChild(line);}
+    tile.addEventListener('click',function(){showTab(day.id);window.scrollTo({top:0,behavior:'auto'});});grid.appendChild(tile);
+  });
+  if(focus)Array.from(grid.children).some(function(tile){if(tile.getAttribute('data-overview-day')===focus){tile.focus({preventScroll:true});return true;}return false;});
 }
 
 function rebuildAll(){
   var main = document.getElementById("main");
   while(main.firstChild) main.removeChild(main.firstChild);
+  if(PLANS.length)main.appendChild(buildOverviewView());
   if(!PLANS.length){
     var welcome=h('section',{class:'card'});welcome.appendChild(h('h2',{text:'Dein erster Trainingsplan'}));
     welcome.appendChild(h('p',{class:'dlg-lead',text:'Lass dir einen Plan empfehlen, passe eine Vorlage an oder stelle ihn selbst zusammen.'}));
@@ -4481,7 +4532,8 @@ function rebuildAll(){
   main.appendChild(buildProgressView());
   DAYS.forEach(function(d){ updateSaveBar(d.id); });
   renderLog();
-  showTab(ui.tab && (DAYS.some(function(d){ return d.id === ui.tab; }) || ui.tab === "progress") ? ui.tab : DAYS.length?DAYS[0].id:"progress");
+  refreshOverview();
+  showTab(ui.tab && (DAYS.some(function(d){ return d.id === ui.tab; }) || ui.tab === "progress" || (PLANS.length&&ui.tab==='overview')) ? ui.tab : PLANS.length?'overview':"progress");
   renderProgress();
 }
 
@@ -4493,7 +4545,7 @@ function rebuildAll(){
 /* rebuildPlanRegistry() beim Laden von userPlans (Abschnitt 2) hat DAYS
    bereits samt applyPlan() aufgebaut — hier nur noch die Oberfläche. */
 renderPlanBar();
-restoreTrainingTab();
+restoreOverview();
 buildTabs();
 wireSyncUi();
 wireSwapUi();

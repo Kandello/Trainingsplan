@@ -227,8 +227,14 @@ zusammenstellen**. Erst **Plan speichern** legt einen zusätzlichen Plan an.
 Bestehende Einheiten werden nicht geändert oder zusammengeführt.
 
 Ohne eigenen Plan startet die App direkt auf der Startseite des Baukastens.
-Mit eingerichtetem Plan öffnet sich direkt der zuletzt genutzte Trainingstag
-(sonst der erste Tag), ohne automatischen Sync- oder Baukasten-Dialog. Bei
+Mit eingerichtetem Plan öffnet sich die **Übersicht** mit einer Kachel pro
+Trainingstag, ohne automatischen Sync- oder Baukasten-Dialog. Die Kacheln zeigen
+den vollständigen Tagesnamen und das Datum der letzten gespeicherten Einheit;
+ohne bisherige Einheit entfällt die Datumszeile. Antippen öffnet den Tag,
+der Tab **Übersicht** führt zurück. Planwechsel und Neustarts öffnen ebenfalls
+die Übersicht. Die Carbon-Fotografie in `assets/carbon.jpg` wird ausschließlich
+dort mit CSS blau getönt und für die Offline-Nutzung zwischengespeichert;
+persönliche Farben und Trainingsansichten bleiben erhalten. Bei
 einem bereits angemeldeten Konto wird ein noch ausstehender Cloud-Plan zuerst
 geladen, bevor die App einen leeren Bereich als neuen Einstieg behandelt.
 Ein vorhandener Entwurf kann dort fortgesetzt werden. Der ursprüngliche
@@ -241,6 +247,9 @@ keine persönlichen Gewichte, Empfehlungen oder Trainingshistorie. Erst
 `node tools/embed-roman-plan.cjs` übernimmt die öffentliche Basisstruktur ohne
 Gewichte in die Engine; danach `node tools/build-catalog.cjs` ausführen.
 `node tools/test-onboarding.cjs` prüft Einstieg, Altbestand und Vorlage.
+`node tools/test-overview.cjs` prüft Tagesanzahl, Datumsaktualisierung,
+Kontotrennung und Neustart; `node tools/preview-overview.cjs` prüft die
+Ansichten bei 360/412 px und Desktop mit unabhängigen Beispieldaten.
 
 Das Interview fragt Ziel, Erfahrung, Trainingstage (1–5), Zeit (30–120 Minuten),
 Gerätevorliebe und bis zu drei geordnete Muskelprioritäten ab. **Ich starte

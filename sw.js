@@ -1,8 +1,9 @@
-const CACHE = "trainingsplan-v19";
+const CACHE = "trainingsplan-v20";
 const ASSETS = [
   "./", "./index.html", "./firebase-config.js?v=08e680b643dd", "./vendor/firebase.js?v=b82c7e203593",
   "./manifest.webmanifest", "./icon.svg", "./icon-maskable.svg",
   "./studio-data.js",
+  "./assets/carbon.jpg",
   "./assets/studio/abs.webp",
   "./assets/studio/band.webp",
   "./assets/studio/barbell.webp",

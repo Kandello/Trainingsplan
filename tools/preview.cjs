@@ -13,7 +13,7 @@ const server=http.createServer((req,res)=>{
  const target=path.resolve(root,'.'+name);
  if(!target.startsWith(root+path.sep) || name==='/sw.js'){res.writeHead(404);res.end();return;}
  if(!fs.existsSync(target)){res.writeHead(404);res.end();return;}
- res.setHeader('Content-Type',name.endsWith('.js')?'text/javascript':name.endsWith('.svg')?'image/svg+xml':'application/json');res.end(fs.readFileSync(target));
+ res.setHeader('Content-Type',name.endsWith('.js')?'text/javascript':name.endsWith('.svg')?'image/svg+xml':name.endsWith('.jpg')?'image/jpeg':'application/json');res.end(fs.readFileSync(target));
 });
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -24,7 +24,7 @@ const server=http.createServer((req,res)=>{
    const context=await browser.newContext({viewport:{width,height:width===1280?1000:1100},deviceScaleFactor:2,serviceWorkers:'block'});
    await context.addInitScript(data=>{localStorage.setItem('trainingsplan.v1.sessions',JSON.stringify(data.sessions));localStorage.setItem('trainingsplan.v1.drafts',JSON.stringify(data.drafts));},fixture);
    const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#summary-title-total').waitFor();
+   await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('[data-overview-day="total"]').click();await page.locator('#summary-title-total').waitFor();
    assert.equal(await page.locator('#summary-title-total').textContent(),'2 von 7 bestätigt');
    const metrics=await page.evaluate(()=>{
     const title=document.querySelector('.plan-btn.is-active'),bar=document.querySelector('.plan-bar'),sync=document.querySelector('.sync-chip');

@@ -59,6 +59,7 @@ function createAccountStore(){
 }
 
 function activateAccount(id,options){
+  var changed=store.owner!==id,hadPlan=PLANS.length>0;
   if(store.owner!==id)document.querySelectorAll('dialog[open]:not(#sync-dialog)').forEach(function(d){if(typeof d.close==='function')d.close();else d.removeAttribute('open');});
   store.activate(id);
   document.getElementById('main').hidden=false;document.getElementById('plan-bar').hidden=false;
@@ -68,6 +69,6 @@ function activateAccount(id,options){
   colorLibrary.favorites=colorLibrary.favorites||[];colorLibrary.recent=colorLibrary.recent||[];
   if(!store.read(K_RECOVERY,null))store.write(K_RECOVERY,{sessions:sessions,drafts:drafts,plan:{order:planOrder,exercises:customEx,spec:exSpec,plans:userPlans},savedAt:new Date().toISOString()});
   activePlanId=ui.activePlanId||MINMAX_PLAN_ID;hiddenSeries={};colorMode='looks';colorTarget='bg';
-  rebuildPlanRegistry();restoreTrainingTab();applyTheme();renderPlanBar();buildTabs();rebuildAll();
+  rebuildPlanRegistry();if(changed||!hadPlan)restoreOverview();applyTheme();renderPlanBar();buildTabs();rebuildAll();
   if(!options||!options.deferStart)showStartScreen();
 }
