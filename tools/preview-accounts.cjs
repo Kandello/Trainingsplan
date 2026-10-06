@@ -1,0 +1,31 @@
+const fs=require('fs'),path=require('path'),http=require('http'),assert=require('node:assert/strict'),{chromium}=require('playwright');
+const root=path.resolve(__dirname,'..');
+function fixtureFirebase(){
+ const getUser=()=>{const id=localStorage.getItem('test.user');return id?{uid:id,email:id+'@example.test',isAnonymous:false}:null;};
+ const auth={currentUser:getUser()},listeners=[];let callback;
+ const data=()=>JSON.parse(localStorage.getItem('test.cloud')||'{}');
+ const snap=path=>{const d=data();return {metadata:{fromCache:false,hasPendingWrites:false},data:()=>d[path],forEach:fn=>Object.keys(d).filter(k=>k.startsWith(path+'/')).forEach(k=>fn({data:()=>d[k]}))};};
+ const emit=()=>listeners.forEach(l=>l.fn(snap(l.path)));
+ const change=id=>{localStorage.setItem('test.user',id||'');auth.currentUser=getUser();callback(auth.currentUser);};
+ addEventListener('storage',e=>{if(e.key==='test.user'){auth.currentUser=getUser();callback(auth.currentUser);}});
+ return {change,getApps:()=>[],initializeApp:options=>({options}),initializeFirestore:()=>({}),persistentLocalCache:()=>({}),persistentMultipleTabManager:()=>({}),getAuth:()=>auth,getRedirectResult:async()=>null,onAuthStateChanged:(a,fn)=>{callback=fn;fn(auth.currentUser);},collection:(db,...p)=>p.join('/'),doc:(db,...p)=>p.join('/'),serverTimestamp:()=>123,getDocsFromServer:async p=>snap(p),getDocFromServer:async p=>snap(p),setDoc:async(p,v,opts)=>{const d=data();d[p]=opts?.merge?{...d[p],...v,entries:{...d[p]?.entries,...v.entries}}:v;localStorage.setItem('test.cloud',JSON.stringify(d));emit();},onSnapshot:(p,opts,fn)=>{const l={path:p,fn};listeners.push(l);queueMicrotask(()=>fn(snap(p)));return ()=>{const i=listeners.indexOf(l);if(i>=0)listeners.splice(i,1);};},GoogleAuthProvider:class{},signInWithPopup:async()=>change('a'),signOut:async()=>change(null)};
+}
+let html=fs.readFileSync(path.join(root,'index.html'),'utf8').replace('(function(){','window.MockFirebase=('+fixtureFirebase.toString()+')();\n(function(){').replace('await import(SDK_URL)','await Promise.resolve(window.MockFirebase)').replace(/\}\)\(\);\s*<\/script>/,'window.__test=e=>eval(e);})();\n</script>');
+const server=http.createServer((req,res)=>{const n=new URL(req.url,'http://localhost').pathname,f=path.resolve(root,'.'+n);if(n==='/'||n==='/index.html'){res.setHeader('Content-Type','text/html');res.end(html);return;}if(!f.startsWith(root+path.sep)||!fs.existsSync(f)){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',n.endsWith('.js')?'text/javascript':n.endsWith('.webp')?'image/webp':'image/svg+xml');res.end(fs.readFileSync(f));});
+(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const b=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});try{
+ for(const width of [360,412,1280]){
+  const c=await b.newContext({viewport:{width,height:915},deviceScaleFactor:2,serviceWorkers:width===412?'allow':'block'}),p=await c.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
+  await p.addInitScript(()=>{if(!localStorage.getItem('test.initialized')){localStorage.setItem('test.initialized','1');localStorage.setItem('test.user','a');localStorage.setItem('trainingsplan.v1.sessions',JSON.stringify([{date:'2026-10-03',dayId:'arms',entries:{'ad-db-curl':{w:20,t:'up'}}}]));}});
+  const url='http://127.0.0.1:'+server.address().port;
+  await p.goto(url);await p.waitForFunction(()=>window.__test('Sync.state.status')==='assignment');await p.screenshot({path:path.join(root,'artifacts','accounts-assignment-'+width+'.png')});
+  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+  assert.equal(await p.locator('#sync-dialog button').evaluateAll(es=>es.some(e=>{const r=e.getBoundingClientRect();return r.width&&r.height&&(r.width<44||r.height<44);})),false);
+  await p.getByRole('button',{name:'Vorhandene Daten diesem Konto zuordnen',exact:true}).click();await p.waitForFunction(()=>window.__test('Sync.state.status')==='ready');assert.equal(await p.evaluate(()=>window.__test('sessions.length')),1);
+  await p.locator('#sync-chip').click();await p.getByRole('button',{name:'Abmelden',exact:true}).click();await p.waitForFunction(()=>window.__test('store.owner')==='guest');assert.equal(await p.evaluate(()=>window.__test('sessions.length')),0);
+  await p.evaluate(()=>window.MockFirebase.change('b'));await p.waitForFunction(()=>window.__test('Sync.state.status')==='ready');assert.equal(await p.evaluate(()=>window.__test('sessions.length')),0);
+  await p.evaluate(()=>window.MockFirebase.change('a'));await p.waitForFunction(()=>window.__test('Sync.state.status')==='ready');assert.equal(await p.evaluate(()=>window.__test('sessions[0].date')),'2026-10-03');
+  if(width===412){const second=await c.newPage();await second.goto(url);await second.waitForFunction(()=>window.__test('Sync.state.status')==='ready');await p.evaluate(()=>window.MockFirebase.change('b'));await p.waitForFunction(()=>window.__test('store.owner')==='b');await second.waitForFunction(()=>window.__test('store.owner')==='b');assert.equal(await second.evaluate(()=>window.__test('sessions.length')),0);await p.evaluate(()=>window.MockFirebase.change('a'));await second.waitForFunction(()=>window.__test('store.owner')==='a');assert.equal(await second.evaluate(()=>window.__test('sessions.length')),1);await second.close();}
+  if(width===412){await p.waitForFunction(()=>navigator.serviceWorker.controller);await c.setOffline(true);await p.reload();await p.waitForFunction(()=>window.__test('store.owner')==='a');assert.equal(await p.evaluate(()=>window.__test('sessions.length')),1);assert.equal(await p.evaluate(()=>window.__test('store.read(K_RECOVERY,null).sessions.length')),1);await c.setOffline(false);}
+  assert.deepEqual(errors,[]);console.log('PASS: account migration/login/logout '+width+'px; no overlaps, 44px actions'+(width===412?'; real shared-storage tabs and offline profile reload':''));await c.close();
+ }
+}finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

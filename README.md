@@ -22,6 +22,10 @@ Eigene Farbsets bleiben lokal gespeichert und erhalten.
 
 Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs` und
 `node tools/test-studio.cjs`.
+Kontotrennung: `node tools/test-accounts.cjs`; Browser-/Mehrtab-Prüfung:
+`node tools/preview-accounts.cjs`. Der echte lokale Regeltest läuft mit
+`node tools/run-account-rules.cjs` (Firebase CLI und Java 21; ausschließlich
+Demo-Projekt `demo-minmax-accounts`, Auth/Firestore auf localhost).
 Für optionale Browserprüfungen und Screenshots mit isolierten Beispieldaten:
 `npm install --prefix tools --no-save --package-lock=false playwright`,
 danach `node tools/preview.cjs` (verwendet eine lokale Edge-Installation).
@@ -165,6 +169,32 @@ Firestore-Cache und gehen automatisch raus, sobald wieder Verbindung besteht.
 
 Laufende, noch nicht gespeicherte Eingaben bleiben bewusst lokal — sonst würde
 ein halb ausgefüllter Trainingstag vom anderen Gerät überschrieben.
+
+### Eigene Bereiche pro Google-Konto
+
+Dieselbe App kann von mehreren Personen mit jeweils eigenem Google-Konto
+genutzt werden. Trainings, Pläne, Empfehlungen, laufende Eingaben,
+Baukasten-Entwürfe, Farben und Wiederherstellungskopien bleiben auch lokal
+getrennt. Nach dem Abmelden öffnet sich der Gastbereich; beim Wiederanmelden
+erscheint ausschließlich der Bestand dieses Kontos. Gastdaten werden nur über
+**Gastdaten ausdrücklich übernehmen** und eine Bestätigung zugeordnet.
+
+Beim ersten Update werden die bisherigen, noch unzugeordneten lokalen Daten
+vollständig separat gesichert. Nach der Google-Anmeldung bestätigt man einmal
+**Vorhandene Daten diesem Konto zuordnen** oder wählt **Ohne Übernahme starten**.
+Ohne Zuordnung erfolgt kein Upload dieses Altbestands; die Sicherung bleibt
+erhalten. Die ursprünglichen Speicherschlüssel werden nicht überschrieben.
+
+Kontobereiche liegen als vollständig geprüfte lokale Momentaufnahmen unter
+`trainingsplan.v3.accounts.minmax-workouttracker.profile.<Nutzer-ID>`; Gast und
+unzugeordneter Altbestand haben eigene Bereiche. Ausstehende Änderungen sind
+an ihren Eigentümer gebunden; verspätete Sync-Antworten anderer Konten werden
+ignoriert. Ein Kontowechsel aktualisiert auch weitere geöffnete App-Tabs.
+JSON-Export und Import gelten ausschließlich für den aktiven Bereich.
+
+Die Speicherlogik wird aus `tools/account-storage.js` mit
+`node tools/embed-accounts.cjs` in die App eingebettet. Die App selbst benötigt
+weiterhin keinen Build-Schritt und kein neues Firebase-Projekt.
 
 Zusätzlich sichert *Daten exportieren* im Fortschritt-Tab den gesamten Verlauf
 als JSON; der Import ergänzt bestehende Einheiten, statt sie zu überschreiben.

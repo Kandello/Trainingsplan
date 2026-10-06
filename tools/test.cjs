@@ -15,8 +15,9 @@ async function run(options={}){
  const documents=new Map();
  if(options.remotePlan)documents.set('users/google-user/state/plan',structuredClone(options.remotePlan));
  (options.remote||[]).forEach(s=>documents.set('users/google-user/sessions/'+sessionKey(s),structuredClone(s)));
- const auth={currentUser:options.signedOut?null:{uid:'google-user',email:'test@example.com',isAnonymous:false}};
- let authCallback, listeners=[], failWrites=!!options.failWrites;
+ const auth={currentUser:options.signedOut?null:{uid:options.uid||'google-user',email:'test@example.com',isAnonymous:false}};
+ let authCallback, listeners=[], failWrites=!!options.failWrites,failSignOut=false,delayReads=false,delayWrites=false;
+ const delayedReads=[],delayedWrites=[];
  const calls={initialized:0,reads:[],writes:[],popups:0,redirects:0};
  const snap=(values,metadata={fromCache:false,hasPendingWrites:false})=>({metadata,forEach:fn=>values.forEach(v=>fn({id:v.id,data:()=>v})),data:()=>values[0]});
  const values=path=>[...documents].filter(([k])=>k.startsWith(path+'/')).map(([,v])=>v);
@@ -27,10 +28,12 @@ async function run(options={}){
   initializeFirestore:()=>({}),persistentLocalCache:()=>({}),persistentMultipleTabManager:()=>({}),
   getAuth:()=>auth,getRedirectResult:async()=>null,onAuthStateChanged:(a,fn)=>{authCallback=fn;fn(auth.currentUser);},
   collection:(db,...p)=>p.join('/'),doc:(db,...p)=>p.join('/'),serverTimestamp:()=>123,deleteField:()=>({delete:true}),
-  getDocsFromServer:async path=>{calls.reads.push(path);assert.match(path,/^users\/google-user\//);return snap(values(path));},
+  getDocsFromServer:async path=>{calls.reads.push(path);assert.equal(path.split('/')[1],auth.currentUser.uid);const result=snap(values(path));if(delayReads)await new Promise(r=>delayedReads.push(r));return result;},
   getDocFromServer:async path=>{calls.reads.push(path);return snap(documents.has(path)?[documents.get(path)]:[]);},
   setDoc:async(path,v,opts)=>{
     if(failWrites) throw {code:'permission-denied'};
+    assert.equal(path.split('/')[1],auth.currentUser.uid);
+    if(delayWrites)await new Promise(r=>delayedWrites.push(r));
     calls.writes.push(path);
     const prev=documents.get(path);
     documents.set(path,opts?.merge&&prev?{...prev,...v,entries:{...prev.entries,...v.entries}}:structuredClone(v));
@@ -43,10 +46,11 @@ async function run(options={}){
   GoogleAuthProvider:class{},
   signInWithPopup:async()=>{calls.popups++;if(options.popupError)throw {code:options.popupError};auth.currentUser={uid:'google-user',email:'test@example.com',isAnonymous:false};authCallback(auth.currentUser);},
   signInWithRedirect:async()=>{calls.redirects++;},
-  signOut:async()=>{auth.currentUser=null;authCallback(null);}
+  signOut:async()=>{if(failSignOut)throw {code:'auth/network-request-failed'};auth.currentUser=null;authCallback(null);}
  };
  w.MockFirebase=F;
  w.eval(fs.readFileSync('studio-data.js','utf8'));
+ if(options.storage)Object.entries(options.storage).forEach(([k,v])=>w.localStorage.setItem(k,v));
  if(options.local)w.localStorage.setItem('trainingsplan.v1.sessions',JSON.stringify(options.local));
  if(options.outbox)w.localStorage.setItem('trainingsplan.v2.outbox',JSON.stringify(options.outbox));
  if(options.config)w.localStorage.setItem('trainingsplan.v1.firebaseConfig',JSON.stringify(options.config));
@@ -56,13 +60,19 @@ async function run(options={}){
  if(options.drafts)w.localStorage.setItem('trainingsplan.v1.drafts',JSON.stringify(options.drafts));
  if(options.exercises)w.localStorage.setItem('trainingsplan.v1.customExercises',JSON.stringify(options.exercises));
  if(options.ui)w.localStorage.setItem('trainingsplan.v1.ui',JSON.stringify(options.ui));
+ if(options.signedOut && !options.legacy){
+   const prefix='trainingsplan.v3.accounts.minmax-workouttracker.',values={};
+   Object.keys(w.localStorage).filter(k=>/^trainingsplan\.v[12]\./.test(k)&&!k.endsWith('firebaseConfig')).forEach(k=>values[k]=JSON.parse(w.localStorage.getItem(k)));
+   if(!options.storage){w.localStorage.setItem(prefix+'meta',JSON.stringify({version:1,active:'guest',legacyPending:false,declined:{}}));w.localStorage.setItem(prefix+'profile.guest',JSON.stringify({values}));}
+ }
  w.eval(fs.readFileSync('firebase-config.js','utf8'));
  w.eval(script.replace('await import(SDK_URL)','await Promise.resolve(window.MockFirebase)').replace(/\}\)\(\);\s*$/, 'window.testEval = expression => eval(expression);\n})();'));
  const settle=async()=>{for(let i=0;i<10;i++)await new Promise(resolve=>setTimeout(resolve,0));};
  await settle();
- return {w,dom,calls,get:expr=>w.testEval(expr),documents,settle,setFailure:v=>{failWrites=v;},emitCache:()=>listeners.filter(l=>l.path.endsWith('/sessions')).forEach(l=>l.fn(snap([],{fromCache:true,hasPendingWrites:false})))};
+ if(options.autoClaim!==false&&w.testEval('Sync.state.status')==='assignment'){w.testEval('Sync.assignLegacy(true)');await settle();}
+ return {w,dom,calls,get:expr=>w.testEval(expr),documents,settle,changeAuth:async id=>{auth.currentUser=id?{uid:id,email:id+'@example.com',isAnonymous:false}:null;authCallback(auth.currentUser);await settle();},snapshot:()=>Object.fromEntries(Object.keys(w.localStorage).map(k=>[k,w.localStorage.getItem(k)])),setFailure:v=>{failWrites=v;},setSignOutFailure:v=>{failSignOut=v;},setDelayReads:v=>{delayReads=v;},releaseReads:()=>delayedReads.splice(0).forEach(r=>r()),setDelayWrites:v=>{delayWrites=v;},releaseWrites:()=>delayedWrites.splice(0).forEach(r=>r()),listeners:()=>listeners.slice(),snap,emitCache:()=>listeners.filter(l=>l.path.endsWith('/sessions')).forEach(l=>l.fn(snap([],{fromCache:true,hasPendingWrites:false})))};
 }
-(async()=>{
+if(require.main===module)(async()=>{
  const a=await run({local,remote});
  assert.equal(a.get('Sync.state.status'),'ready');
  assert.equal(a.get('Sync.state.project'),'minmax-workouttracker');
@@ -71,13 +81,13 @@ async function run(options={}){
  assert.equal(a.get('sessions.length'),1);assert.equal(a.get('PLANS.length'),1);
  assert.deepEqual(Array.from(a.get('DAYS.map(d=>d.id)')),['total','upper','lower','arms']);
  assert.equal(a.w.document.querySelector(`[data-trend-ex="${exercise}"]`).textContent,'▲');
- const recovery=JSON.parse(a.w.localStorage.getItem('trainingsplan.v2.recovery'));
+ const recovery=a.get('store.read(K_RECOVERY,null)');
  assert.equal(recovery.sessions[0].entries[exercise].w,20);
  a.emitCache();assert.equal(a.get('sessions.length'),1);assert.equal(a.get('Sync.state.status'),'pending');
  a.get('Sync.retry()');await a.settle();assert.equal(a.get('Sync.state.status'),'ready');
  a.setFailure(true);
  a.get(`sessions[0].entries['${exercise}']={w:27,t:'hold'};saveSessions();Sync.push(sessions[0])`);await a.settle();
- assert.equal(a.get('Sync.state.status'),'error');assert.ok(Object.keys(JSON.parse(a.w.localStorage.getItem('trainingsplan.v2.outbox'))).length);
+ assert.equal(a.get('Sync.state.status'),'error');assert.ok(Object.keys(a.get('store.read("trainingsplan.v2.outbox",{})')).length);
  a.setFailure(false);a.get('Sync.retry()');await a.settle();
  assert.equal(a.get('Sync.state.status'),'ready');assert.equal(a.get(`sessions[0].entries['${exercise}'].w`),27);
  assert.equal(a.w.document.querySelector(`[data-trend-ex="${exercise}"]`).textContent,'●');
@@ -116,7 +126,7 @@ async function run(options={}){
  const doc=colors.w.document;
  const click=id=>{assert.ok(doc.getElementById(id),id);doc.getElementById(id).click();};
  const input=(id,value)=>{const el=doc.getElementById(id);el.value=value;el.dispatchEvent(new colors.w.Event('input',{bubbles:true}));};
- const selectedTheme=()=>JSON.parse(colors.w.localStorage.getItem('trainingsplan.v1.theme'));
+ const selectedTheme=()=>JSON.parse(JSON.stringify(colors.get('store.read(K_THEME,{})')));
  click('color-btn');assert.ok(doc.getElementById('color-dialog').hasAttribute('open'));
  assert.equal(doc.querySelectorAll('input[type="color"]').length,0);
  click('color-set-1');assert.deepEqual(selectedTheme(),{bg:'#e7eee5',box:'#f5f8f2'});
@@ -151,7 +161,7 @@ async function run(options={}){
  const recent=colors.get('colorLibrary.recent[1]');click('color-recent-1');
  assert.equal(selectedTheme().box,recent);assert.equal(colors.get('colorLibrary.recent[0]'),recent);
  for(let i=0;i<15;i++){input('color-hex','#f0'+(240+i).toString(16)+'fa');click('color-apply');}
- const storedColors=JSON.parse(colors.w.localStorage.getItem('trainingsplan.v1.colors'));
+ const storedColors=JSON.parse(JSON.stringify(colors.get('store.read(K_COLORS,{})')));
  assert.equal(storedColors.recent.length,12);assert.equal(new Set(storedColors.recent).size,12);
  click('color-reset');assert.equal(doc.documentElement.style.getPropertyValue('--plane'),'');
  assert.equal(doc.documentElement.style.getPropertyValue('--ex-bg'),'');
@@ -198,3 +208,4 @@ async function run(options={}){
  console.log('PASS: color sets, favorites/reload, exact hex, HSL controls, invalid values, explicit lightening, recent colors, reset and local isolation');
  console.log('PASS: MinMax plan/configuration, project isolation, cloud/local merge, backup, trend icons, cache protection, failed writes/retry, deletions, custom plans and Google login');
 })().catch(e=>{console.error(e);process.exitCode=1;});
+module.exports={run,local,remote,exercise,secondExercise};
