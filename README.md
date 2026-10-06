@@ -234,7 +234,12 @@ ohne bisherige Einheit entfällt die Datumszeile. Antippen öffnet den Tag,
 der Tab **Übersicht** führt zurück. Planwechsel und Neustarts öffnen ebenfalls
 die Übersicht. Die Carbon-Fotografie in `assets/carbon.jpg` wird ausschließlich
 dort mit CSS blau getönt und für die Offline-Nutzung zwischengespeichert;
-persönliche Farben und Trainingsansichten bleiben erhalten. Bei
+die Kopfzeile bleibt transparent, ihre Buttons und die abgerundete Navigation
+sind leicht durchscheinend. Die Navigation hat seitlich und unten 6 px Abstand
+(zusätzlich zum sicheren Bildschirmrand). Unveränderte Kontodaten und
+Planantworten bauen die Ansicht nicht erneut auf; die Übersicht verwendet
+keine Einblendanimation. Persönliche Farben und Trainingsansichten bleiben
+erhalten. Bei
 einem bereits angemeldeten Konto wird ein noch ausstehender Cloud-Plan zuerst
 geladen, bevor die App einen leeren Bereich als neuen Einstieg behandelt.
 Ein vorhandener Entwurf kann dort fortgesetzt werden. Der ursprüngliche
@@ -250,6 +255,8 @@ Gewichte in die Engine; danach `node tools/build-catalog.cjs` ausführen.
 `node tools/test-overview.cjs` prüft Tagesanzahl, Datumsaktualisierung,
 Kontotrennung und Neustart; `node tools/preview-overview.cjs` prüft die
 Ansichten bei 360/412 px und Desktop mit unabhängigen Beispieldaten.
+`node tools/test-overview-start.cjs` prüft verzögerte Anmeldung, wiederholte
+Abgleich-Antworten und den Erhalt einer fokussierten Trainingseingabe.
 
 Das Interview fragt Ziel, Erfahrung, Trainingstage (1–5), Zeit (30–120 Minuten),
 Gerätevorliebe und bis zu drei geordnete Muskelprioritäten ab. **Ich starte

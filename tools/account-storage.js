@@ -60,6 +60,8 @@ function createAccountStore(){
 
 function activateAccount(id,options){
   var changed=store.owner!==id,hadPlan=PLANS.length>0;
+  function viewData(){return dataFingerprint([sessions,drafts,ui,planOrder,customEx,exSpec,userPlans,theme,colorLibrary]);}
+  var previous=changed?null:viewData();
   if(store.owner!==id)document.querySelectorAll('dialog[open]:not(#sync-dialog)').forEach(function(d){if(typeof d.close==='function')d.close();else d.removeAttribute('open');});
   store.activate(id);
   document.getElementById('main').hidden=false;document.getElementById('plan-bar').hidden=false;
@@ -68,6 +70,9 @@ function activateAccount(id,options){
   theme=store.read(K_THEME,{});colorLibrary=store.read(K_COLORS,{favorites:[],recent:[]});
   colorLibrary.favorites=colorLibrary.favorites||[];colorLibrary.recent=colorLibrary.recent||[];
   if(!store.read(K_RECOVERY,null))store.write(K_RECOVERY,{sessions:sessions,drafts:drafts,plan:{order:planOrder,exercises:customEx,spec:exSpec,plans:userPlans},savedAt:new Date().toISOString()});
+  if(!changed&&previous===viewData()){
+    if(!options||!options.deferStart)showStartScreen();return;
+  }
   activePlanId=ui.activePlanId||MINMAX_PLAN_ID;hiddenSeries={};colorMode='looks';colorTarget='bg';
   rebuildPlanRegistry();if(changed||!hadPlan)restoreOverview();applyTheme();renderPlanBar();buildTabs();rebuildAll();
   if(!options||!options.deferStart)showStartScreen();

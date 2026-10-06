@@ -759,9 +759,13 @@ main{padding-top:20px}
 @media(min-width:720px){.app-header{padding-left:max(16px,calc((100vw - 688px)/2));padding-right:max(16px,calc((100vw - 688px)/2))}.wfield{width:150px}.seg button{font-size:12px;flex-direction:row;gap:5px}.tabbar{padding-left:max(4px,calc((100vw - 720px)/2));padding-right:max(4px,calc((100vw - 720px)/2))}}
 /* The supplied carbon photograph is tinted by CSS; training colors stay local. */
 body.is-overview{background-color:#102d48;background-image:linear-gradient(145deg,#285d929e,#081c33e8),url('assets/carbon.jpg');background-size:cover;background-position:center 40%;background-attachment:fixed}
-.is-overview .app-header{background:#142d46;border-bottom-color:#426180}
-.is-overview .plan-btn{background:#edf4fa;color:#19344f}
-.is-overview .plan-btn.is-active{background:#2d69ad;color:#fff}
+.is-overview .app-header{background:transparent;border-bottom-color:transparent}
+.is-overview .app-header button{backdrop-filter:blur(8px);box-shadow:0 3px 12px #06162826;border-color:#ffffff66}
+.is-overview .plan-btn,.is-overview .plan-btn-new,.is-overview .color-btn,.is-overview .sync-chip{background:#f0f5f9e8;color:#19344f}
+.is-overview .plan-btn.is-active{background:#2d69ade8;color:#fff}
+.is-overview .tabbar{left:6px;right:6px;bottom:calc(6px + env(safe-area-inset-bottom));padding:4px;border:1px solid #ffffff80;border-radius:18px;background:#f0f5f9e8;backdrop-filter:blur(8px);box-shadow:0 6px 22px #06162840}
+.is-overview .tabbar button[aria-selected="true"]{background:#d7e7f4d9}
+.view[data-view="overview"].is-active{animation:none}
 .overview-head{padding:18px 6px 26px;color:#fff}
 .overview-eyebrow{font-size:11px;line-height:1.6;letter-spacing:.15em;text-transform:uppercase;font-weight:750;color:#c1dcf5;overflow-wrap:anywhere}
 .overview-head h2{font-size:clamp(32px,7vw,42px);letter-spacing:-.045em;line-height:1.15;margin:10px 0;color:#fff}
@@ -1215,6 +1219,8 @@ function createAccountStore(){
 
 function activateAccount(id,options){
   var changed=store.owner!==id,hadPlan=PLANS.length>0;
+  function viewData(){return dataFingerprint([sessions,drafts,ui,planOrder,customEx,exSpec,userPlans,theme,colorLibrary]);}
+  var previous=changed?null:viewData();
   if(store.owner!==id)document.querySelectorAll('dialog[open]:not(#sync-dialog)').forEach(function(d){if(typeof d.close==='function')d.close();else d.removeAttribute('open');});
   store.activate(id);
   document.getElementById('main').hidden=false;document.getElementById('plan-bar').hidden=false;
@@ -1223,6 +1229,9 @@ function activateAccount(id,options){
   theme=store.read(K_THEME,{});colorLibrary=store.read(K_COLORS,{favorites:[],recent:[]});
   colorLibrary.favorites=colorLibrary.favorites||[];colorLibrary.recent=colorLibrary.recent||[];
   if(!store.read(K_RECOVERY,null))store.write(K_RECOVERY,{sessions:sessions,drafts:drafts,plan:{order:planOrder,exercises:customEx,spec:exSpec,plans:userPlans},savedAt:new Date().toISOString()});
+  if(!changed&&previous===viewData()){
+    if(!options||!options.deferStart)showStartScreen();return;
+  }
   activePlanId=ui.activePlanId||MINMAX_PLAN_ID;hiddenSeries={};colorMode='looks';colorTarget='bg';
   rebuildPlanRegistry();if(changed||!hadPlan)restoreOverview();applyTheme();renderPlanBar();buildTabs();rebuildAll();
   if(!options||!options.deferStart)showStartScreen();
@@ -1312,6 +1321,14 @@ function applyTheme(){
   var root = document.documentElement.style;
   if(theme.bg)  root.setProperty("--plane", theme.bg);  else root.removeProperty("--plane");
   if(theme.box) root.setProperty("--ex-bg", theme.box); else root.removeProperty("--ex-bg");
+}
+
+/** Ignore object-key order when comparing data received from Firestore. */
+function dataFingerprint(value){
+  return JSON.stringify(value,function(key,v){
+    if(!v||typeof v!=='object'||Array.isArray(v))return v;
+    var sorted=Object.create(null);Object.keys(v).sort().forEach(function(k){sorted[k]=v[k];});return sorted;
+  });
 }
 
 /* ============================================================
@@ -4085,15 +4102,15 @@ const Sync = (function(){
       zurück. */
   function applyRemotePlan(v){
     if(!v) return;
+    var next={
+      exercises:v.exercises&&typeof v.exercises==='object'?v.exercises:customEx,
+      order:v.order&&typeof v.order==='object'?v.order:planOrder,
+      spec:v.spec&&typeof v.spec==='object'?v.spec:exSpec,
+      plans:Array.isArray(v.plans)?v.plans.filter(function(p){return p&&typeof p.id==='string'&&typeof p.name==='string'&&Array.isArray(p.days);}):userPlans
+    };
+    if(dataFingerprint(next)===dataFingerprint({exercises:customEx,order:planOrder,spec:exSpec,plans:userPlans}))return;
     var hadPlan=PLANS.length>0;
-    if(v.exercises && typeof v.exercises === "object") customEx = v.exercises;
-    if(v.order && typeof v.order === "object") planOrder = v.order;
-    if(v.spec && typeof v.spec === "object") exSpec = v.spec;
-    if(Array.isArray(v.plans)){
-      userPlans = v.plans.filter(function(p){
-        return p && typeof p.id === "string" && typeof p.name === "string" && Array.isArray(p.days);
-      });
-    }
+    customEx=next.exercises;planOrder=next.order;exSpec=next.spec;userPlans=next.plans;
     store.write(K_PLAN, planOrder);
     store.write(K_CUSTOMEX, customEx);
     store.write(K_EXSPEC, exSpec);
@@ -4505,6 +4522,9 @@ function buildOverviewView(){
 
 function refreshOverview(){
   var grid=document.getElementById('day-overview-grid');if(!grid)return;
+  var fingerprint=JSON.stringify(DAYS.map(function(day){var last=lastSessionOf(day.id);return [day.id,day.name,last?last.date:null];}));
+  if(grid.dataset.overviewFingerprint===fingerprint)return;
+  grid.dataset.overviewFingerprint=fingerprint;
   var focus=document.activeElement&&document.activeElement.getAttribute('data-overview-day');
   grid.replaceChildren();
   DAYS.forEach(function(day,i){
