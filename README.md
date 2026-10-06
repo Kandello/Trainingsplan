@@ -197,6 +197,8 @@ Ohne Zuordnung erfolgt kein Upload dieses Altbestands; die Sicherung bleibt
 erhalten. Die ursprünglichen Speicherschlüssel werden nicht überschrieben.
 
 Neue Installationen ohne Altbestand zeigen diese Zuordnungsabfrage nicht.
+Der Sync-Dialog öffnet sich grundsätzlich erst durch Antippen von **Sync**;
+ein gesicherter Altbestand wartet bis zur ausdrücklich gewählten Zuordnung.
 Die angezeigte Kontoadresse kommt ausschließlich aus der aktuellen
 Google-Anmeldung; es wird kein festes Konto vorgegeben. Dies prüft
 `node tools/test-new-users.cjs`, einschließlich Kontowechsel und Abmeldung.
@@ -224,6 +226,18 @@ gemeinsamen Editor: **Plan empfehlen**, **Vorlage wählen** und **Selbst
 zusammenstellen**. Erst **Plan speichern** legt einen zusätzlichen Plan an.
 Bestehende Einheiten werden nicht geändert oder zusammengeführt.
 
+Ohne eigenen Plan startet die App direkt auf der Startseite des Baukastens.
+Ein vorhandener Entwurf kann dort fortgesetzt werden. Der ursprüngliche
+MinMax-Plan bleibt für bestehende Nutzer erhalten und wird neuen Nutzern nicht
+automatisch angelegt. **Romans MinMax-Plan** ist eine elfte, ausdrücklich
+auswählbare Vorlage mit Total Body, Upper Body, Lower Body und Arms & Delts:
+7/7/5/6 Übungen, originale Sätze und Wiederholungen, eigene neue Übungs-IDs,
+keine persönlichen Gewichte, Empfehlungen oder Trainingshistorie. Erst
+**Plan speichern** legt den gewählten Plan an.
+`node tools/embed-roman-plan.cjs` übernimmt die öffentliche Basisstruktur ohne
+Gewichte in die Engine; danach `node tools/build-catalog.cjs` ausführen.
+`node tools/test-onboarding.cjs` prüft Einstieg, Altbestand und Vorlage.
+
 Das Interview fragt Ziel, Erfahrung, Trainingstage (1–5), Zeit (30–120 Minuten),
 Gerätevorliebe und bis zu drei geordnete Muskelprioritäten ab. **Ich starte
 gerade** setzt die Trainingserfahrung auf 0 Jahre. Der regelbasierte Generator
@@ -231,7 +245,7 @@ arbeitet offline mit 35 geprüften Standardübungen. Zeit, Sätze und
 Wiederholungen sind editierbare Startvorgaben, keine individuellen
 Leistungsprognosen; es werden keine Trainingsgewichte erfunden.
 
-Die zehn Vorlagen zeigen beim Antippen eine gemeinsame blaue Karte mit
+Die elf Vorlagen zeigen beim Antippen eine gemeinsame blaue Karte mit
 Überschrift, Tagesangabe, Vorteilen und Einschränkungen. Danach lässt sich die
 Vorlage mit Standardübungen oder mit leeren, nach Muskeln beschrifteten Plätzen
 öffnen. Im Editor sind Namen, Übungsauswahl, Reihenfolge, Sätze und

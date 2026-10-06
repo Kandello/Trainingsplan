@@ -60,6 +60,9 @@ async function run(options={}){
  if(options.drafts)w.localStorage.setItem('trainingsplan.v1.drafts',JSON.stringify(options.drafts));
  if(options.exercises)w.localStorage.setItem('trainingsplan.v1.customExercises',JSON.stringify(options.exercises));
  if(options.ui)w.localStorage.setItem('trainingsplan.v1.ui',JSON.stringify(options.ui));
+ // Existing training/color fixtures use the original plan. New-install tests
+ // explicitly opt out to exercise the builder-only start without this flag.
+ if(options.includeMinMax!==false){const ui=JSON.parse(w.localStorage.getItem('trainingsplan.v1.ui')||'{}');ui.minMaxPlanEnabled=true;w.localStorage.setItem('trainingsplan.v1.ui',JSON.stringify(ui));}
  if(options.signedOut && !options.legacy){
    const prefix='trainingsplan.v3.accounts.minmax-workouttracker.',values={};
    Object.keys(w.localStorage).filter(k=>/^trainingsplan\.v[12]\./.test(k)&&!k.endsWith('firebaseConfig')).forEach(k=>values[k]=JSON.parse(w.localStorage.getItem(k)));

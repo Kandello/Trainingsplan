@@ -2,7 +2,7 @@ const fs=require('fs'),assert=require('node:assert/strict'),{JSDOM}=require('jsd
 const S=require('../studio-data.js');
 assert.ok(S.catalogue.length>=500);assert.equal(new Set(S.catalogue.map(e=>e.id)).size,S.catalogue.length);
 assert.equal(new Set(S.catalogue.map(e=>S.normalize(e.name))).size,S.catalogue.length);
-assert.equal(S.templates.length,10);
+assert.equal(S.templates.length,11);
 assert.ok(S.search('bench press','chest').length);assert.ok(S.search('brustpresse','chest','machine').length);
 assert.ok(S.search('','','').every(e=>e.authors.length&&e.licenseUrl&&e.setup&&e.cues.length));
 for(const days of [1,2,3,4,5])for(const goal of ['muscle','strength','max'])for(const level of ['beginner','intermediate','expert'])for(const years of [0,.5,3])for(const minutes of [30,120])for(const preference of ['machine','mixed','free']){
@@ -13,7 +13,7 @@ for(const days of [1,2,3,4,5])for(const goal of ['muscle','strength','max'])for(
 }
 S.templates.forEach(t=>{const input={days:t.days[0]},filled=S.create(t.id,input,false),empty=S.create(t.id,input,true);assert.equal(filled.days.length,t.days[0]);assert.ok(empty.days.every(d=>d.exercises.every(e=>e.empty&&e.targetMuscle)));});
 assert.equal(S.config({days:99,minutes:1,priorities:['chest','chest','wrong','back','quads','abs']}).priorities.length,3);
-console.log('PASS: 521-entry catalogue, aliases, licenses, ten templates and 810 deterministic generator profiles');
+console.log('PASS: 521-entry catalogue, aliases, licenses, eleven templates and 810 deterministic generator profiles');
 
 const raw=fs.readFileSync('index.html','utf8'),script=raw.match(/<script>\s*([\s\S]*?)<\/script>/)[1];
 const key='trainingsplan.v1.builderDraft';
@@ -21,8 +21,8 @@ function app(saved){const dom=new JSDOM(raw,{url:'https://kandello.github.io/Tra
 (async()=>{
 const sessions=JSON.stringify([{date:'2026-10-03',dayId:'arms',entries:{'ad-oh-triceps':{w:30,t:'hold'}}}]);
 const a=app({'trainingsplan.v1.sessions':sessions});a.get('openNewPlan()');assert.ok(a.w.document.getElementById('studio-dialog').open);
-a.click('Vorlage wählenZehn Strukturen mit verständlichen Vor- und Nachteilen.');
-let toggles=a.w.document.querySelectorAll('.studio-template-toggle');assert.equal(toggles.length,10);assert.equal(a.w.document.querySelector('#studio-footer .studio-primary').disabled,true);toggles[0].click();assert.equal(a.w.document.querySelectorAll('.studio-template.is-open').length,1);assert.equal(a.w.document.querySelector('.studio-template.is-open').querySelector('.studio-template-toggle strong').textContent,'Ganzkörper');assert.equal(a.w.document.querySelector('.studio-template-toggle').getAttribute('aria-expanded'),'true');a.w.document.querySelectorAll('.studio-template-toggle')[1].click();assert.equal(a.w.document.querySelectorAll('.studio-template.is-open').length,1);a.w.document.querySelectorAll('.studio-template-toggle')[1].click();assert.equal(a.w.document.querySelectorAll('.studio-template.is-open').length,0);
+a.click('Vorlage wählenBewährte Strukturen mit verständlichen Vor- und Nachteilen.');
+let toggles=a.w.document.querySelectorAll('.studio-template-toggle');assert.equal(toggles.length,11);assert.equal(a.w.document.querySelector('#studio-footer .studio-primary').disabled,true);toggles[0].click();assert.equal(a.w.document.querySelectorAll('.studio-template.is-open').length,1);assert.equal(a.w.document.querySelector('.studio-template.is-open').querySelector('.studio-template-toggle strong').textContent,'Ganzkörper');assert.equal(a.w.document.querySelector('.studio-template-toggle').getAttribute('aria-expanded'),'true');a.w.document.querySelectorAll('.studio-template-toggle')[1].click();assert.equal(a.w.document.querySelectorAll('.studio-template.is-open').length,1);a.w.document.querySelectorAll('.studio-template-toggle')[1].click();assert.equal(a.w.document.querySelectorAll('.studio-template.is-open').length,0);
 a.w.document.querySelectorAll('.studio-template-toggle')[0].click();a.click('Vorlage bearbeiten');a.click('Selbst füllenMuskelhinweise geben jedem leeren Platz eine Richtung.');assert.equal(a.get('userPlans.length'),0);assert.ok(a.get('StudioUI.state.draft.days[0].exercises[0].empty'));
 a.click('Übung wählen');const plus=[...a.w.document.querySelectorAll('.studio-result-actions button')].find(b=>b.getAttribute('aria-label')==='Brustpresse auswählen');assert.ok(plus);plus.click();assert.equal(a.get('StudioUI.state.draft.days[0].exercises[0].catalogueId'),'wger-129');
 const saved=a.snapshot();a.dom.window.close();const b=app(saved);b.get('openNewPlan()');assert.equal(b.get('StudioUI.state.screen'),'editor');assert.equal(b.get('StudioUI.state.draft.days[0].exercises[0].catalogueId'),'wger-129');assert.equal(b.get('userPlans.length'),0);b.click('Plan speichern');assert.equal(b.get('userPlans.length'),1);assert.equal(b.w.localStorage.getItem('trainingsplan.v1.sessions'),sessions);assert.equal(b.get('activePlanId'),b.get('userPlans[0].id'));assert.equal(b.get('userPlans[0].builder.templateId'),'full');const cid=b.get('userPlans[0].days[0].base[0]');assert.equal(b.get('customEx['+JSON.stringify(cid)+'].catalogueId'),'wger-129');

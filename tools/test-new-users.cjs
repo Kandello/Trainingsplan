@@ -5,7 +5,7 @@ const body=app=>app.w.document.getElementById('sync-dlg-body').textContent;
 
 (async()=>{
  // No pre-created profile: exercise the actual first-install initialization.
- const fresh=await run({signedOut:true,legacy:true,missingConfig:true,autoClaim:false});
+ const fresh=await run({signedOut:true,legacy:true,missingConfig:true,autoClaim:false,includeMinMax:false});
  assert.equal(fresh.get('store.hasLegacy()'),false);
  fresh.get('renderDialog()');
  assert.match(body(fresh),/Mit Google anmelden/);
@@ -35,6 +35,7 @@ const body=app=>app.w.document.getElementById('sync-dlg-body').textContent;
  assert.equal(upgrade.get('Sync.state.status'),'assignment');
  upgrade.get('renderDialog()');assert.match(lead(upgrade),/test@example\.com/);
  await upgrade.changeAuth('new-user');
+ upgrade.get('renderDialog()');
  assert.equal(upgrade.get('Sync.state.status'),'assignment');
  assert.match(lead(upgrade),/new-user@example\.com/);
  assert.doesNotMatch(lead(upgrade)+body(upgrade),/test@example\.com/);

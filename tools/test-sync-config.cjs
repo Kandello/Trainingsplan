@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),{run,local,exercise}=require('./test.cjs');
 (async()=>{
- const fresh=await run({signedOut:true,missingConfig:true});
+ const fresh=await run({signedOut:true,missingConfig:true,includeMinMax:false});
  assert.equal(fresh.calls.initialized,1);assert.equal(fresh.get('Sync.state.status'),'signed-out');assert.equal(fresh.get('Sync.configured()'),true);
  fresh.get('renderDialog()');assert.match(fresh.w.document.getElementById('sync-dlg-body').textContent,/Mit Google anmelden/);assert.doesNotMatch(fresh.w.document.getElementById('sync-dlg-body').textContent,/Firestore-Datenbank anlegen|apiKey|Konfiguration speichern/);fresh.dom.window.close();
  const upgrade=await run({local,missingConfig:true,autoClaim:false});assert.equal(upgrade.get('Sync.state.status'),'assignment');assert.equal(upgrade.calls.writes.length,0);assert.equal(upgrade.calls.reads.length,0);
