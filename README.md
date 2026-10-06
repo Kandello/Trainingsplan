@@ -196,6 +196,11 @@ vollständig separat gesichert. Nach der Google-Anmeldung bestätigt man einmal
 Ohne Zuordnung erfolgt kein Upload dieses Altbestands; die Sicherung bleibt
 erhalten. Die ursprünglichen Speicherschlüssel werden nicht überschrieben.
 
+Neue Installationen ohne Altbestand zeigen diese Zuordnungsabfrage nicht.
+Die angezeigte Kontoadresse kommt ausschließlich aus der aktuellen
+Google-Anmeldung; es wird kein festes Konto vorgegeben. Dies prüft
+`node tools/test-new-users.cjs`, einschließlich Kontowechsel und Abmeldung.
+
 Kontobereiche liegen als vollständig geprüfte lokale Momentaufnahmen unter
 `trainingsplan.v3.accounts.minmax-workouttracker.profile.<Nutzer-ID>`; Gast und
 unzugeordneter Altbestand haben eigene Bereiche. Ausstehende Änderungen sind
