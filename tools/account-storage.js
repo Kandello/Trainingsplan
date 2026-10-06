@@ -59,7 +59,7 @@ function createAccountStore(){
 }
 
 function activateAccount(id){
-  document.querySelectorAll('dialog[open]').forEach(function(d){if(typeof d.close==='function')d.close();else d.removeAttribute('open');});
+  if(store.owner!==id)document.querySelectorAll('dialog[open]:not(#sync-dialog)').forEach(function(d){if(typeof d.close==='function')d.close();else d.removeAttribute('open');});
   store.activate(id);
   document.getElementById('main').hidden=false;document.getElementById('plan-bar').hidden=false;
   sessions=store.read(K_SESSIONS,[]);drafts=store.read(K_DRAFTS,{});ui=store.read(K_UI,{});
