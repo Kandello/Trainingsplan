@@ -65,7 +65,7 @@ async function run(options={}){
    Object.keys(w.localStorage).filter(k=>/^trainingsplan\.v[12]\./.test(k)&&!k.endsWith('firebaseConfig')).forEach(k=>values[k]=JSON.parse(w.localStorage.getItem(k)));
    if(!options.storage){w.localStorage.setItem(prefix+'meta',JSON.stringify({version:1,active:'guest',legacyPending:false,declined:{}}));w.localStorage.setItem(prefix+'profile.guest',JSON.stringify({values}));}
  }
- w.eval(fs.readFileSync('firebase-config.js','utf8'));
+ if(!options.missingConfig)w.eval(fs.readFileSync('firebase-config.js','utf8'));
  w.eval(script.replace('await import(SDK_URL)','await Promise.resolve(window.MockFirebase)').replace(/\}\)\(\);\s*$/, 'window.testEval = expression => eval(expression);\n})();'));
  const settle=async()=>{for(let i=0;i<10;i++)await new Promise(resolve=>setTimeout(resolve,0));};
  await settle();

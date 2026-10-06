@@ -15,9 +15,11 @@ const server=http.createServer((req,res)=>{const n=new URL(req.url,'http://local
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const b=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});try{
  for(const width of [360,412,1280]){
   const c=await b.newContext({viewport:{width,height:915},deviceScaleFactor:2,serviceWorkers:width===412?'allow':'block'}),p=await c.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
+  if(width===360)await p.route('**/firebase-config.js*',route=>route.abort());
+  if(width===412)await p.route('**/firebase-config.js*',route=>route.fulfill({contentType:'text/javascript',body:'window.FIREBASE_CONFIG=null;'}));
   await p.addInitScript(()=>{if(!localStorage.getItem('test.initialized')){localStorage.setItem('test.initialized','1');localStorage.setItem('test.user','a');localStorage.setItem('trainingsplan.v1.sessions',JSON.stringify([{date:'2026-10-03',dayId:'arms',entries:{'ad-db-curl':{w:20,t:'up'}}}]));}});
   const url='http://127.0.0.1:'+server.address().port;
-  await p.goto(url);await p.waitForFunction(()=>window.__test('Sync.state.status')==='assignment');await p.screenshot({path:path.join(root,'artifacts','accounts-assignment-'+width+'.png')});
+  await p.goto(url);await p.waitForFunction(()=>window.__test('Sync.state.status')==='assignment');assert.equal(await p.evaluate(()=>window.__test('Sync.configured()')),true);await p.screenshot({path:path.join(root,'artifacts','accounts-assignment-'+width+'.png')});
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
   assert.equal(await p.locator('#sync-dialog button').evaluateAll(es=>es.some(e=>{const r=e.getBoundingClientRect();return r.width&&r.height&&(r.width<44||r.height<44);})),false);
   await p.getByRole('button',{name:'Vorhandene Daten diesem Konto zuordnen',exact:true}).click();await p.waitForFunction(()=>window.__test('Sync.state.status')==='ready');assert.equal(await p.evaluate(()=>window.__test('sessions.length')),1);

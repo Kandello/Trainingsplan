@@ -882,7 +882,7 @@ main{padding-top:20px}
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="firebase-config.js"></script>
+<script src="firebase-config.js?v=08e680b643dd" defer></script>
 <script src="studio-data.js"></script>
 <script>
 (function(){
@@ -3760,6 +3760,16 @@ function wireColorUi(){
    nutzbar; Schreibvorgänge laufen nach, sobald wieder Netz da
    ist. Ohne Konfiguration bleibt die App rein lokal.
    ============================================================ */
+/* FIREBASE DEFAULT CONFIG START */
+const DEFAULT_FIREBASE_CONFIG = Object.freeze({
+  "apiKey": "AIzaSyBJiHRnz7ummzSOCA8zb3D1EE_47eT8gOk",
+  "authDomain": "minmax-workouttracker.firebaseapp.com",
+  "projectId": "minmax-workouttracker",
+  "storageBucket": "minmax-workouttracker.firebasestorage.app",
+  "messagingSenderId": "833112401239",
+  "appId": "1:833112401239:web:21d4d4593a339d2bf7ca12"
+});
+/* FIREBASE DEFAULT CONFIG END */
 const K_FBCFG = "trainingsplan.v1.firebaseConfig";
 // Content version must also be present in sw.js; old offline SDKs lack sync exports.
 const SDK_URL = "./vendor/firebase.js?v=b82c7e203593";
@@ -3867,7 +3877,7 @@ const Sync = (function(){
     if(local && local.apiKey && local.projectId) return local;
     var g = window.FIREBASE_CONFIG;
     if(g && g.apiKey && g.projectId) return g;
-    return null;
+    return DEFAULT_FIREBASE_CONFIG;
   }
 
   function set(status, extra){

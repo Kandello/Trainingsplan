@@ -6,6 +6,12 @@ const fs=require('fs'),crypto=require('crypto'),assert=require('node:assert/stri
  const url=html.match(/const SDK_URL = "([^"]+)"/)[1];
  assert.equal(url,'./vendor/firebase.js?v='+version);
  assert.ok(sw.includes('"'+url+'"'),'Offline installation must cache the exact module URL');
+ const publicSource=fs.readFileSync('firebase-config.js','utf8'),configVersion=crypto.createHash('sha256').update(publicSource).digest('hex').slice(0,12);
+ assert.ok(html.includes('src="firebase-config.js?v='+configVersion+'" defer'));
+ assert.ok(sw.includes('"./firebase-config.js?v='+configVersion+'"'));
+ const context={window:{}};vm.runInNewContext(publicSource,context);
+ const embedded=JSON.parse(html.match(/const DEFAULT_FIREBASE_CONFIG = Object.freeze\(([\s\S]*?)\);/)[1]);
+ assert.deepEqual(embedded,JSON.parse(JSON.stringify(context.window.FIREBASE_CONFIG)));
  const sdk=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
  for(const name of ['getDocsFromServer','getDocFromServer','initializeFirestore','getAuth','onSnapshot','signInWithPopup']){
    assert.equal(typeof sdk[name],'function','Actual SDK must export '+name);

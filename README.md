@@ -47,9 +47,20 @@ GitHub Pages ist das gegeben.
 
 ## Geräte-Sync einrichten
 
-Ohne Einrichtung läuft die App rein lokal. Für den Abgleich zwischen
-Android-Handy und PC-Firefox das bestehende Firebase-Projekt `minmax-workouttracker` verwenden.
-Dieselbe Anleitung steht auch in der App hinter dem Sync-Button oben rechts.
+MinMax enthält die öffentliche Konfiguration des bestehenden Projekts bereits.
+Für die normale Nutzung genügt **Mit Google anmelden**; ein neues Firebase-Projekt
+oder das manuelle Einfügen einer Konfiguration ist nicht nötig. Ohne Anmeldung
+bleibt die App im lokalen Gastbereich.
+
+Die Konfiguration liegt zusätzlich direkt in `index.html`, damit ein fehlender
+oder alter Cache-Eintrag von `firebase-config.js` den Sync nicht abschaltet.
+Die zusätzliche Datei wird mit Inhaltsversion geladen und offline gespeichert.
+Nach Änderungen daran aktualisiert `node tools/embed-firebase-config.cjs` die
+eingebettete Kopie und die passende Offline-URL. Regressionstest:
+`node tools/test-sync-config.cjs`.
+
+Die folgende technische Anleitung ist für die Projektverwaltung gedacht;
+für bestehende Nutzer ist diese Einrichtung bereits erledigt.
 
 Die Beschriftungen der Firebase-Konsole ändern sich gelegentlich; deshalb steht
 jeweils dabei, wo der Punkt sitzt.
