@@ -1033,7 +1033,7 @@ function showStartScreen(){
     if(studio.open&&StudioUI.state&&StudioUI.state.screen==='home'&&!StudioUI.state.origin)StudioUI.close();
     return;
   }
-  if(!document.getElementById('sync-dialog').open)openNewPlan(true);
+  if(!studio.open&&!document.getElementById('sync-dialog').open)openNewPlan(true);
 }
 
 function dayById(id){

@@ -11,6 +11,7 @@ const click=(app,label)=>{const b=[...app.w.document.querySelectorAll('#studio-d
  assert.equal(fresh.get('StudioUI.state.screen'),'home');assert.equal(fresh.get('Sync.state.status'),'ready');
  assert.equal(fresh.w.document.getElementById('sync-dialog').open,false);
  click(fresh,'Vorlage wählen');assert.equal(fresh.w.document.querySelectorAll('.studio-template-toggle').length,11);
+ fresh.get('activateAccount("friend")');assert.equal(fresh.get('StudioUI.state.screen'),'templates','Late auth restoration must not reset an open builder');
  assert.equal(fresh.get('userPlans.length'),0);
  const roman=[...fresh.w.document.querySelectorAll('.studio-template-toggle')].find(e=>e.textContent.includes('Romans MinMax-Plan'));roman.click();
  assert.equal(fresh.get('userPlans.length'),0);click(fresh,'Vorlage bearbeiten');click(fresh,'Mit Standardübungen');
