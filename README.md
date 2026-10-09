@@ -193,6 +193,59 @@ Firestore-Cache und gehen automatisch raus, sobald wieder Verbindung besteht.
 Laufende, noch nicht gespeicherte Eingaben bleiben bewusst lokal — sonst würde
 ein halb ausgefüllter Trainingstag vom anderen Gerät überschrieben.
 
+### Eigene Vorlagen als einfache Textdateien
+
+Unter **+ → Vorlage wählen** stehen Standardvorlagen und **Eigene Vorlagen**.
+**Textvorlage importieren** öffnet eine UTF-8-Datei zuerst als bearbeitbaren
+Entwurf. Erst **Als eigene Vorlage speichern** legt die Vorlage in deiner
+Bibliothek ab; **Plan speichern** erstellt stattdessen einen zusätzlichen
+Trainingsplan mit neuen Übungs-IDs und leerer Historie. Der aktive Plan lässt
+sich über **+ → Aktuellen Plan als Vorlage öffnen** übernehmen: berücksichtigt
+werden aktuelle Übungstausche, Reihenfolge, leere Plätze, Sätze und Wiederholungen.
+
+Im Editor und bei geöffneten eigenen Vorlagen lädt **Vorlage als Text
+exportieren** eine `.txt`-Datei herunter. Sie enthält keine Trainingshistorie,
+protokollierten Gewichte, Empfehlungen, Kontodaten oder Interviewangaben.
+Gleichnamige Vorlagen werden nur nach Rückfrage ersetzt; das Löschen einer
+Vorlage verändert keine daraus erstellten Pläne oder Trainings.
+
+```text
+MinMax-Vorlage: 1
+Plan: Mein Plan
+
+[Oberkörper]
+Brustpresse | 3 | 8-12
+Rudern | 3 | 10
+Klimmzüge | 2 | 6-8 | Körpergewicht
+Platz: Brust
+
+[Beine]
+Beinpresse | 3 | 10-15
+```
+
+Die drei Spalten bedeuten **Übung | Sätze | Wiederholungen**. Feste Zahlen und
+Bereiche mit Bindestrich oder Gedankenstrich sind erlaubt; Zahlen müssen
+zwischen 1 und 99 liegen. Die optionale vierte Spalte **Körpergewicht** erhält
+den entsprechenden Übungstyp. **Platz: Beliebig** oder ein deutscher Muskelname
+legt einen leeren Platz an. Zeilen mit **#** sind Kommentare. Ein **|** im
+Übungsnamen wird als `\|`, ein Backslash als `\\` geschrieben. Namen, die
+mit **#** oder **Übung:** beginnen, erhalten beim Export ein zusätzliches
+**Übung:** vor der Zeile. UTF-8-BOM und Windows-Zeilenumbrüche werden akzeptiert.
+Fehler nennen die betroffene Zeile und verändern den vorhandenen Entwurf nicht.
+Grenzen: 128 KB je Datei, 1–14 Tage, höchstens 50 Übungsplätze je Tag und
+50 aktive eigene Vorlagen. Eine gleichnamige Übung steht je Tag nur einmal.
+
+Beispieldatei: [minmax-vorlage-beispiel.txt](assets/minmax-vorlage-beispiel.txt).
+Vorlagen sind auch offline verfügbar und liegen lokal kontogebunden unter
+`trainingsplan.v1.templates`. Bei angemeldeten Nutzern ergänzt das optionale
+Feld `templates` den vorhandenen Abgleich unter `users/{uid}/state/plan`.
+Exportierte Datensicherungen enthalten die eigene Bibliothek; ältere Sicherungen
+ohne dieses Feld bleiben importierbar und entfernen vorhandene Vorlagen nicht.
+Löschmarkierungen verhindern, dass entfernte Vorlagen bei einem Abgleich zurückkehren.
+Die Formatlogik steht in `tools/template-format.js` und wird mit dem Studio
+in `index.html` eingebettet. Prüfungen: `node tools/test-templates.cjs` und
+`node tools/preview-templates.cjs`.
+
 ### Eigene Bereiche pro Google-Konto
 
 Dieselbe App kann von mehreren Personen mit jeweils eigenem Google-Konto

@@ -45,6 +45,8 @@ const server=http.createServer((req,res)=>{
   await p.locator('[data-overview-day="total"]').click();const input=p.locator('[data-ex="tb-lying-leg-curl"] input');await input.fill('52');await input.focus();
   await p.evaluate(()=>window.MockFirebase.repeatAuth());await p.waitForFunction(()=>window.__test('Sync.state.status')==='ready'&&window.MockFirebase.events>=8);
   assert.equal(await input.inputValue(),'52');assert.equal(await input.evaluate(e=>document.activeElement===e),true);assert.equal(await p.evaluate(()=>window.__mounts),1,'A repeated auth event preserves in-progress input and its DOM');
+  await p.evaluate(()=>window.MockFirebase.emitPlan({order:{},exercises:{},spec:{},plans:[],templates:[{id:'tpl-focus',name:'Testvorlage',days:[{name:'Tag',exercises:[]}]}]}));
+  assert.equal(await p.evaluate(()=>window.__test('userTemplates[0].name')),'Testvorlage');assert.equal(await input.inputValue(),'52');assert.equal(await input.evaluate(e=>document.activeElement===e),true);assert.equal(await p.evaluate(()=>window.__mounts),1,'Template-only sync must not rebuild the ongoing workout');
   await p.evaluate(()=>window.MockFirebase.emitPlan({order:{},exercises:{},spec:{'tb-lying-leg-curl':{sets:3}},plans:[],updatedAt:99}));
   assert.equal(await p.evaluate(()=>window.__test("exSpec['tb-lying-leg-curl'].sets")),3);assert.equal(await p.evaluate(()=>window.__mounts),2,'A real remote plan change is still applied');
   await p.evaluate(()=>window.MockFirebase.emitPlan({updatedAt:100,plans:[],spec:{'tb-lying-leg-curl':{sets:3}},exercises:{},order:{}}));assert.equal(await p.evaluate(()=>window.__mounts),2,'Property order and timestamps alone do not restart the view');

@@ -1,13 +1,13 @@
 /* Local profiles are atomic snapshots. Legacy keys stay untouched for recovery. */
 function createAccountStore(){
   var prefix='trainingsplan.v3.accounts.minmax-workouttracker.', metaKey=prefix+'meta';
-  var keys=['plan','customExercises','exerciseSpec','sessions','drafts','ui','plans','theme','colors','builderDraft'].map(function(k){return 'trainingsplan.v1.'+k;}).concat(['trainingsplan.v2.recovery','trainingsplan.v2.outbox']);
+  var keys=['plan','customExercises','exerciseSpec','sessions','drafts','ui','plans','theme','colors','builderDraft','templates'].map(function(k){return 'trainingsplan.v1.'+k;}).concat(['trainingsplan.v2.recovery','trainingsplan.v2.outbox']);
   var ok=true, owner='guest', profile={values:{}}, meta=null, error=null;
   function clone(v){return JSON.parse(JSON.stringify(v));}
   function readRaw(k,fallback){var raw=localStorage.getItem(k);return raw ? JSON.parse(raw) : fallback;}
   function profileKey(id){return prefix+'profile.'+encodeURIComponent(id);}
   function writeRaw(k,v){var raw=JSON.stringify(v);localStorage.setItem(k,raw);if(localStorage.getItem(k)!==raw)throw new Error('Browser-Speicher konnte nicht geprüft werden.');}
-  function meaningful(v){var builder=v['trainingsplan.v1.builderDraft'];return ['plan','customExercises','exerciseSpec','sessions','drafts','plans','theme','colors'].some(function(k){var x=v['trainingsplan.v1.'+k];return x&&Object.keys(x).length>0;})||!!(builder&&(builder.draft||builder.origin||builder.screen!=='home'))||Object.keys(v['trainingsplan.v2.outbox']||{}).length>0;}
+  function meaningful(v){var builder=v['trainingsplan.v1.builderDraft'];return ['plan','customExercises','exerciseSpec','sessions','drafts','plans','theme','colors','templates'].some(function(k){var x=v['trainingsplan.v1.'+k];return x&&Object.keys(x).length>0;})||!!(builder&&(builder.draft||builder.origin||builder.screen!=='home'))||Object.keys(v['trainingsplan.v2.outbox']||{}).length>0;}
   var legacy={};
   try{
     keys.forEach(function(k){var x=readRaw(k,null);if(x!==null)legacy[k]=x;});
@@ -46,7 +46,7 @@ function createAccountStore(){
         if(k==='trainingsplan.v1.sessions'){
           var map=new Map((v[k]||[]).map(function(s){return [s.dayId+'_'+s.date,s];}));
           (target[k]||[]).forEach(function(s){var old=map.get(s.dayId+'_'+s.date);map.set(s.dayId+'_'+s.date,Object.assign({},s,{entries:Object.assign({},old&&old.entries,s.entries)}));});v[k]=Array.from(map.values());
-        }else if(k==='trainingsplan.v1.plans'){var all=(target[k]||[]).slice();(v[k]||[]).forEach(function(p){if(!all.some(function(t){return t.id===p.id;}))all.push(p);});v[k]=all;}
+        }else if(['trainingsplan.v1.plans','trainingsplan.v1.templates'].includes(k)){var all=(target[k]||[]).slice();(v[k]||[]).forEach(function(p){if(!all.some(function(t){return t.id===p.id;}))all.push(p);});v[k]=all;}
         else if(['trainingsplan.v1.plan','trainingsplan.v1.customExercises','trainingsplan.v1.exerciseSpec','trainingsplan.v1.drafts'].includes(k))v[k]=Object.assign({},v[k],target[k]);
         else v[k]=target[k];
       });
@@ -60,16 +60,16 @@ function createAccountStore(){
 
 function activateAccount(id,options){
   var changed=store.owner!==id,hadPlan=PLANS.length>0;
-  function viewData(){return dataFingerprint([sessions,drafts,ui,planOrder,customEx,exSpec,userPlans,theme,colorLibrary]);}
+  function viewData(){return dataFingerprint([sessions,drafts,ui,planOrder,customEx,exSpec,userPlans,userTemplates,theme,colorLibrary]);}
   var previous=changed?null:viewData();
   if(store.owner!==id)document.querySelectorAll('dialog[open]:not(#sync-dialog)').forEach(function(d){if(typeof d.close==='function')d.close();else d.removeAttribute('open');});
   store.activate(id);
   document.getElementById('main').hidden=false;document.getElementById('plan-bar').hidden=false;
   sessions=store.read(K_SESSIONS,[]);drafts=store.read(K_DRAFTS,{});ui=store.read(K_UI,{});
-  planOrder=store.read(K_PLAN,{});customEx=store.read(K_CUSTOMEX,{});exSpec=store.read(K_EXSPEC,{});userPlans=store.read(K_PLANS,[]);
+  planOrder=store.read(K_PLAN,{});customEx=store.read(K_CUSTOMEX,{});exSpec=store.read(K_EXSPEC,{});userPlans=store.read(K_PLANS,[]);userTemplates=TemplateText.library(store.read(K_TEMPLATES,[]));
   theme=store.read(K_THEME,{});colorLibrary=store.read(K_COLORS,{favorites:[],recent:[]});
   colorLibrary.favorites=colorLibrary.favorites||[];colorLibrary.recent=colorLibrary.recent||[];
-  if(!store.read(K_RECOVERY,null))store.write(K_RECOVERY,{sessions:sessions,drafts:drafts,plan:{order:planOrder,exercises:customEx,spec:exSpec,plans:userPlans},savedAt:new Date().toISOString()});
+  if(!store.read(K_RECOVERY,null))store.write(K_RECOVERY,{sessions:sessions,drafts:drafts,plan:{order:planOrder,exercises:customEx,spec:exSpec,plans:userPlans,templates:userTemplates},savedAt:new Date().toISOString()});
   if(!changed&&previous===viewData()){
     if(!options||!options.deferStart)showStartScreen();return;
   }

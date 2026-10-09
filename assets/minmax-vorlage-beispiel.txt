@@ -1,0 +1,16 @@
+MinMax-Vorlage: 1
+Plan: Mein Upper-Lower-Plan
+
+# Übung | Sätze | Wiederholungen
+# Namen und Zahlen kannst du direkt bearbeiten.
+
+[Oberkörper]
+Brustpresse | 3 | 8-12
+Rudern | 3 | 8-12
+Klimmzüge | 2 | 6-8 | Körpergewicht
+Platz: Schultern
+
+[Unterkörper]
+Beinpresse | 3 | 10-15
+Beinbeuger | 2 | 10-15
+Wadenheben | 2 | 12
