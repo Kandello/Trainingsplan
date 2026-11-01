@@ -11,6 +11,7 @@ const tile=(a,id)=>a.w.document.querySelector('[data-overview-day="'+id+'"]');
  assert.equal(a.w.document.getElementById('sync-dialog').open,false);assert.equal(a.w.document.getElementById('studio-dialog').open,false);
  assert.equal(a.w.document.querySelectorAll('.day-tile').length,4);
  assert.equal(tile(a,'total').querySelector('time').textContent,'30.09.2026');assert.equal(tile(a,'arms').querySelector('time').textContent,'03.10.2026');
+ assert.equal(tile(a,'total').querySelector('.day-tile-running')?.textContent,'im Gange');assert.equal(tile(a,'arms').querySelector('.day-tile-running'),null);
  assert.equal(tile(a,'upper').querySelector('time'),null);assert.equal(tile(a,'lower').querySelector('time'),null);
  const before=JSON.stringify(a.get('sessions'));
  tile(a,'total').click();assert.equal(a.get('ui.tab'),'total');assert.equal(a.w.document.body.classList.contains('is-overview'),false);

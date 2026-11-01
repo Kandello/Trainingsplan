@@ -420,11 +420,11 @@ body.is-reordering{-webkit-user-select:none;user-select:none}
   font-variant-numeric:tabular-nums;
 }
 .wfield input:focus{outline:none}
-.wfield input::placeholder{color:var(--muted);font-weight:500}
-.wfield .unit{flex:0 0 auto;font-size:13px;font-weight:600;color:var(--muted)}
+.wfield input::placeholder{color:#c2cdd8;font-weight:400}
+.wfield .unit{flex:0 0 auto;font-size:13px;font-weight:600;color:#c2cdd8}
 /* Bodyweight-Übungen: "+" vor der Zahl macht sofort klar, dass es sich um
    Zusatzgewicht zum Körpergewicht handelt, nicht ums Gesamtgewicht. */
-.wfield .wfield-prefix{flex:0 0 auto;font-size:16px;font-weight:600;color:var(--muted)}
+.wfield .wfield-prefix{flex:0 0 auto;font-size:16px;font-weight:600;color:#c2cdd8}
 
 /* Blau = Vorschlag aus „Letzte Gewichte übernehmen", noch nicht bestätigt.
    Grün = Übung als absolviert bestätigt. */
@@ -688,7 +688,9 @@ tbody td.na{color:var(--muted)}
   .ex-line{gap:14px}
   .wfield{width:150px}
 }
-.last-trend{display:inline-block;margin-left:.5em;font-size:16px;vertical-align:middle}
+.last-trend{display:inline-block;margin-right:.42em;font-size:14px;line-height:1;vertical-align:middle;transform:translateY(-1px)}
+.last-trend.hold{transform:translateY(-3.5px)}
+.last-trend:empty{display:none}
 .last-trend.hold{color:var(--hold)}.last-trend.up{color:var(--good)}.last-trend.down{color:var(--critical)}
 
 /* Refined light theme: opaque controls, consistent hierarchy and touch targets. */
@@ -795,6 +797,10 @@ body.has-carbon{background-color:#102d48;background-image:linear-gradient(145deg
 .day-tile-arrow{width:21px;height:21px;stroke-width:1.8}
 .day-tile-name{display:block;font-size:21px;font-weight:750;line-height:1.2;letter-spacing:-.025em;overflow-wrap:anywhere;margin-top:24px}
 .day-tile-last{display:block;margin-top:10px;font-size:12px;line-height:1.5;color:var(--text-2)}
+.day-tile.is-running .day-tile-name{margin-top:16px}
+.day-tile.is-running .day-tile-last{margin-top:6px}
+.day-tile-running{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;margin-top:auto;padding:5px 11px;border-radius:999px;background:var(--hold);color:#fff;font-size:11px;font-weight:700;line-height:1.2;box-shadow:0 2px 6px #2d69ad33}
+.day-tile-running::before{content:"";width:6px;height:6px;border-radius:50%;background:#7ee2a8;flex-shrink:0}
 .tabbar{overflow-x:auto}.tabbar button{flex:1 0 auto;min-width:48px;padding-inline:8px}
 @media(max-width:380px){.day-overview-grid{gap:12px}.day-tile{padding:15px;min-height:170px}.day-tile-name{font-size:20px}.day-tile-last{font-size:11px}}
 @media(min-width:720px){.overview-head{padding-top:32px;padding-bottom:30px}.day-tile{padding:24px;min-height:190px}.day-tile-name{font-size:25px}}
@@ -1734,7 +1740,7 @@ function buildExercise(ex, idx){
   }
   card.appendChild(h("div", { class:"ex-head" }, [
     idxWrap,
-    h("h3", { class:"ex-name" }, [document.createTextNode(ex.n), buildTrendHint(ex.id)]),
+    h("h3", { class:"ex-name" }, [buildTrendHint(ex.id), document.createTextNode(ex.n)]),
     exerciseInfo, swapBtn
   ]));
 
@@ -2131,6 +2137,7 @@ function updateSaveBar(dayId){
     var hasAny = day.ex.some(function(e){ return lastWeight(e.id) != null; });
     pre.disabled = !hasAny;
   }
+  syncOverviewRunning();
 }
 
 function updateTrainingSummary(day,confirmed){
@@ -4755,20 +4762,37 @@ function buildOverviewView(){
   view.appendChild(h('div',{class:'day-overview-grid',id:'day-overview-grid'}));return view;
 }
 
+function overviewFingerprint(){
+  return JSON.stringify(DAYS.map(function(day){var last=lastSessionOf(day.id);return [day.id,day.name,last?last.date:null,hasTrainingInput(day.id)];}));
+}
+function syncOverviewRunning(){
+  var grid=document.getElementById('day-overview-grid');if(!grid||!grid.children.length)return;
+  DAYS.forEach(function(day){
+    var tile=grid.querySelector('[data-overview-day="'+CSS.escape(day.id)+'"]');if(!tile)return;
+    var running=hasTrainingInput(day.id),last=lastSessionOf(day.id),date=last?DF_LONG.format(isoToDate(last.date)):null;
+    tile.classList.toggle('is-running',running);
+    tile.setAttribute('aria-label',day.name+(running?', im Gange':'')+(date?', zuletzt am '+date:''));
+    var badge=tile.querySelector('.day-tile-running');
+    if(running&&!badge)tile.appendChild(h('span',{class:'day-tile-running',text:'im Gange'}));
+    else if(!running&&badge)badge.remove();
+  });
+  grid.dataset.overviewFingerprint=overviewFingerprint();
+}
 function refreshOverview(){
   var grid=document.getElementById('day-overview-grid');if(!grid)return;
-  var fingerprint=JSON.stringify(DAYS.map(function(day){var last=lastSessionOf(day.id);return [day.id,day.name,last?last.date:null];}));
+  var fingerprint=overviewFingerprint();
   if(grid.dataset.overviewFingerprint===fingerprint)return;
   grid.dataset.overviewFingerprint=fingerprint;
   var focus=document.activeElement&&document.activeElement.getAttribute('data-overview-day');
   grid.replaceChildren();
   DAYS.forEach(function(day,i){
-    var last=lastSessionOf(day.id),date=last?DF_LONG.format(isoToDate(last.date)):null;
-    var tile=h('button',{type:'button',class:'day-tile','data-overview-day':day.id,'aria-label':day.name+(date?', zuletzt am '+date:'')});
+    var last=lastSessionOf(day.id),date=last?DF_LONG.format(isoToDate(last.date)):null,running=hasTrainingInput(day.id);
+    var tile=h('button',{type:'button',class:'day-tile'+(running?' is-running':''),'data-overview-day':day.id,'aria-label':day.name+(running?', im Gange':'')+(date?', zuletzt am '+date:'')});
     var top=h('span',{class:'day-tile-top','aria-hidden':'true'});top.appendChild(h('span',{class:'day-tile-number',text:String(i+1).padStart(2,'0')}));
     var arrow=svg('svg',{class:'day-tile-arrow',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-linecap':'round','stroke-linejoin':'round'});svg('path',{d:'M5 12h14m-6-6 6 6-6 6'},arrow);top.appendChild(arrow);tile.appendChild(top);
     tile.appendChild(h('strong',{class:'day-tile-name',text:day.name}));
     if(date){var line=h('span',{class:'day-tile-last'});line.appendChild(document.createTextNode('Zuletzt '));line.appendChild(h('time',{datetime:last.date,text:date}));tile.appendChild(line);}
+    if(running)tile.appendChild(h('span',{class:'day-tile-running',text:'im Gange'}));
     tile.addEventListener('click',function(){showTab(day.id);window.scrollTo({top:0,behavior:'auto'});});grid.appendChild(tile);
   });
   if(focus)Array.from(grid.children).some(function(tile){if(tile.getAttribute('data-overview-day')===focus){tile.focus({preventScroll:true});return true;}return false;});
