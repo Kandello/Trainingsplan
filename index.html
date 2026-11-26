@@ -970,6 +970,12 @@ dialog.sheet[open]{animation:sheet-in .26s cubic-bezier(.2,.8,.2,1)}
 .train-cal .cal-head strong{font-size:28px;line-height:1;font-weight:800}
 .cal-body{flex:0 0 auto}
 .cal-wds,.cal-grid{grid-template-columns:repeat(7,24px)}
+
+/* Wochenende leicht abgesetzt */
+.cal-wd.is-weekend{color:var(--hold)}
+.cal-day.is-weekend{background:#2d69ad12}
+.cal-day.is-weekend.is-future{background:#2d69ad0c}
+.cal-day.is-weekend.is-today{background:#2d69ad1f}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */
@@ -5496,11 +5502,11 @@ function renderTrainingCalendar(){
   var iso=function(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
   var count=0,grid=h('div',{class:'cal-grid',role:'img'});
   var wd=h('div',{class:'cal-wds','aria-hidden':'true'});
-  ['M','D','M','D','F','S','S'].forEach(function(l){wd.appendChild(h('span',{class:'cal-wd',text:l}));});
+  ['M','D','M','D','F','S','S'].forEach(function(l,j){wd.appendChild(h('span',{class:'cal-wd'+(j>4?' is-weekend':''),text:l}));});
   for(var i=0;i<42;i++){
     var d=new Date(start);d.setDate(start.getDate()+i);var k=iso(d),names=trained[k];
     if(names)count++;
-    var cell=h('span',{class:'cal-day'+(names?' is-trained':'')+(k===iso(today)?' is-today':'')+(d>today?' is-future':'')});
+    var cell=h('span',{class:'cal-day'+(names?' is-trained':'')+(k===iso(today)?' is-today':'')+(d>today?' is-future':'')+(i%7>4?' is-weekend':'')});
     if(names)cell.appendChild(h('i'));
     cell.title=DF_LONG.format(d)+(names?': '+names.join(', '):'');
     grid.appendChild(cell);
