@@ -32,15 +32,64 @@ Alle Oberflächentokens stehen gemeinsam in `index.html`; Geometrie, Daten und
 Sync werden dafür nicht geändert. Browserprüfungen und echte Screenshots mit
 Standard- und persönlichen Farben: `node tools/preview-surfaces.cjs`.
 
-Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs` und
-`node tools/test-studio.cjs`.
+Ein im Hintergrund eingefrorenes App-Fenster lädt beim Zurückkehren
+(Sichtbarkeit, Fokus, `pageshow`, `storage`) den gespeicherten Stand neu,
+ohne dabei selbst zu schreiben. Entwürfe aus einem veralteten Fenster werden
+nicht zurückgeschrieben; gespeicherte Einheiten tauchen so nicht erneut als
+„im Gange“ auf. Ist für eine noch blaue (unbestätigte) Übung eine Tendenz
+gewählt, fragt „Einheit speichern“ nach, statt sie zu verwerfen.
+
+Trainingsansicht: Unter dem Übungsnamen stehen Sätze × Wiederholungen (ein
+Knopf für beides) und der Vorschlag fürs heutige Training (letztes Gewicht ±
+letzte Steigerung, je nach Tendenz; sonst 2,5 kg). Eine Übung ist eingeloggt,
+sobald Gewicht und Tendenz gesetzt sind (Körpergewicht: Tendenz genügt); der
+grüne Haken zeigt das nur an. Eingeloggte Karten klappen auf eine Zeile zusammen.
+Im Training gibt es weder Kopf- noch Tableiste; die Speicherleiste steht am Ende
+der Liste (Übersicht, rotes ✕ mit 5 s „Rückgängig“, Speichern). Unvollständige
+Übungen fragt „Einheit speichern“ nach (fehlende Tendenz = „Halten“);
+unberührte übernommene Vorschläge werden nicht gespeichert.
+
+Pausentimer: Das Uhrsymbol im Kartenkopf startet die Pause mit der je Übung
+gespeicherten Dauer (mit dem Konto synchronisiert); gedrückt halten öffnet die
+Einstellung (1:00 / 1:30 / 2:00 / 3:00, ±15 s). Eine schmale Linie mit
+dezentem Blauverlauf wächst von oben Mitte im Uhrzeigersinn um den Bildschirm;
+ist sie geschlossen, folgen ein leiser Ton und 1 s Vibration. Das Uhrsymbol
+zeigt die Restzeit, Antippen bricht ab. Die Pause läuft über Endzeitpunkt und
+übersteht Sperren und Neuladen. Während eines Trainings bleibt der Bildschirm an.
+
+Übersicht: Oben rechts sitzt nur noch ein Menü-Knopf (Punkt = Sync-Status) mit
+Trainingsplänen, Farben, Konto & Sync sowie Datenexport/-import; auch der
+Planname über „Dein Training“ öffnet es. Die Tageskacheln zeigen das letzte
+Training relativ („Gestern“, „Vor 4 Tagen“) mit Datum. Darunter zeigt eine
+feines Kalendergitter (6 Wochen, Mo–So) trainierte Tage als kleine Punkte. Im
+Fortschritt lässt sich der Zeitraum (3 M, 6 M, 1 J, Alle) wählen; bei einer
+Einzelübung stehen Bestwert und Veränderung im Zeitraum unter dem Titel, der
+Bestwert ist im Diagramm markiert.
+
+Bewegung: Seitenwechsel laufen mit View Transitions (die Tageskachel wächst
+zur Tagesansicht), Dialoge kommen als Bottom-Sheets von unten und schliessen
+per Ziehen am Griff. Eingeloggte Übungen, Fortschrittssegmente und Hinweise
+federn kurz ein; Einloggen und Speichern geben eine kurze Vibration. Mit
+„Bewegung reduzieren“ im System entfallen alle Animationen.
+
+Neue Version: Die App prüft beim Zurückkehren und stündlich auf ein Update.
+Übernimmt ein neuer Service Worker, erscheint „Neue Version · Neu laden“ und
+bleibt stehen, bis es gewählt wird. Eingaben und laufende Pausen überstehen
+das Neuladen.
+
+Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs`, `node tools/test-motion.cjs`, `node tools/test-overview-menu.cjs`,
+`node tools/test-training-view.cjs`, `node tools/test-rest-timer.cjs`,
+`node tools/test-studio.cjs` und `node tools/test-stale-instance.cjs`.
 Kontotrennung: `node tools/test-accounts.cjs`; Browser-/Mehrtab-Prüfung:
 `node tools/preview-accounts.cjs`. Der echte lokale Regeltest läuft mit
 `node tools/run-account-rules.cjs` (Firebase CLI und Java 21; ausschließlich
 Demo-Projekt `demo-minmax-accounts`, Auth/Firestore auf localhost).
 Für optionale Browserprüfungen und Screenshots mit isolierten Beispieldaten:
 `npm install --prefix tools --no-save --package-lock=false playwright`,
-danach `node tools/preview.cjs` (verwendet eine lokale Edge-Installation).
+danach `node tools/preview.cjs` (verwendet eine lokale Edge-Installation;
+ein anderer Chromium-Browser lässt sich mit der Umgebungsvariable
+`MINMAX_BROWSER=<Pfad zur Programmdatei>` wählen). Die Browserskripte laufen mit
+reduzierter Bewegung, damit Seitenwechsel ohne Übergang sofort prüfbar sind.
 Screenshots werden im nicht veröffentlichten Ordner `artifacts/` abgelegt.
 
 ## Nutzung

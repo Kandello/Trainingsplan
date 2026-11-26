@@ -185,16 +185,16 @@ if(require.main===module)(async()=>{
  const first=overview.w.document.querySelector(`[data-ex="${exercise}"]`);
  first.querySelector('input').value='50';first.querySelector('input').dispatchEvent(new overview.w.Event('input'));
  assert.equal(summary(),'0 von 7 bestätigt','Typed values are not confirmed');
- first.querySelector('.ex-check').click();assert.equal(summary(),'1 von 7 bestätigt');
+ first.querySelector('.seg button[data-t="up"]').click();assert.equal(summary(),'1 von 7 bestätigt');
  const second=overview.w.document.querySelector(`[data-ex="${secondExercise}"]`);
  second.querySelector('input').value='12,5';second.querySelector('input').dispatchEvent(new overview.w.Event('input'));
- overview.w.document.getElementById('confirmall-total').click();assert.equal(summary(),'2 von 7 bestätigt');
+ second.querySelector('.seg button[data-t="hold"]').click();assert.equal(summary(),'2 von 7 bestätigt');
  overview.w.document.getElementById('save-total').click();assert.equal(summary(),'0 von 7 bestätigt');
  assert.equal(Object.keys(overview.get('sessions[0].entries')).length,2);overview.dom.window.close();
  const exercises={},base=[];
  for(let i=0;i<15;i++){const id='large-'+i;base.push(id);exercises[id]=i<13?{id,n:'Test '+i,dayId:'large-day',planId:'large',sets:2,rmin:6,rmax:8,p:''}:{id,empty:true,dayId:'large-day',planId:'large'};}
  const largePlan={id:'large',name:'Large',days:[{id:'large-day',name:'Test',base}]};
- const large=await run({signedOut:true,plans:[largePlan],exercises,ui:{activePlanId:'large'},drafts:{'large-0':{w:'20'}}});
+ const large=await run({signedOut:true,plans:[largePlan],exercises,ui:{activePlanId:'large'},drafts:{'large-0':{w:'20',t:'hold'}}});
  const largeProgress=large.w.document.getElementById('summary-progress-large-day');
  assert.equal(large.w.document.getElementById('summary-title-large-day').textContent,'1 von 13 bestätigt');
  assert.equal(largeProgress.classList.contains('is-continuous'),true);assert.equal(largeProgress.children.length,1);

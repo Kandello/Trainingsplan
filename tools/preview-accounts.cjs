@@ -1,4 +1,5 @@
 const fs=require('fs'),path=require('path'),http=require('http'),assert=require('node:assert/strict'),{chromium}=require('playwright');
+const openMenu=async p=>{if(!await p.locator('#menu-dialog').evaluate(d=>d.open))await p.locator('#menu-btn').click();await p.locator('#menu-dialog').waitFor({state:'visible'});await p.waitForTimeout(350);};
 const root=path.resolve(__dirname,'..');
 function fixtureFirebase(){
  const getUser=()=>{const id=localStorage.getItem('test.user');return id?{uid:id,email:id+'@example.test',isAnonymous:false}:null;};
@@ -12,18 +13,18 @@ function fixtureFirebase(){
 }
 let html=fs.readFileSync(path.join(root,'index.html'),'utf8').replace('(function(){','window.MockFirebase=('+fixtureFirebase.toString()+')();\n(function(){').replace('await import(SDK_URL)','await Promise.resolve(window.MockFirebase)').replace(/\}\)\(\);\s*<\/script>/,'window.__test=e=>eval(e);})();\n</script>');
 const server=http.createServer((req,res)=>{const n=new URL(req.url,'http://localhost').pathname,f=path.resolve(root,'.'+n);if(n==='/'||n==='/index.html'){res.setHeader('Content-Type','text/html');res.end(html);return;}if(!f.startsWith(root+path.sep)||!fs.existsSync(f)){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',n.endsWith('.js')?'text/javascript':n.endsWith('.webp')?'image/webp':'image/svg+xml');res.end(fs.readFileSync(f));});
-(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const b=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});try{
+(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const b=await chromium.launch({executablePath:process.env.MINMAX_BROWSER||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});try{
  for(const width of [360,412,1280]){
   const c=await b.newContext({viewport:{width,height:915},deviceScaleFactor:2,serviceWorkers:width===412?'allow':'block'}),p=await c.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
   if(width===360)await p.route('**/firebase-config.js*',route=>route.abort());
   if(width===412)await p.route('**/firebase-config.js*',route=>route.fulfill({contentType:'text/javascript',body:'window.FIREBASE_CONFIG=null;'}));
   await p.addInitScript(()=>{if(!localStorage.getItem('test.initialized')){localStorage.setItem('test.initialized','1');localStorage.setItem('test.user','a');localStorage.setItem('trainingsplan.v1.sessions',JSON.stringify([{date:'2026-10-03',dayId:'arms',entries:{'ad-db-curl':{w:20,t:'up'}}}]));}});
   const url='http://127.0.0.1:'+server.address().port;
-  await p.goto(url);await p.waitForFunction(()=>window.__test('Sync.state.status')==='assignment');assert.equal(await p.evaluate(()=>window.__test('Sync.configured()')),true);assert.equal(await p.locator('#sync-dialog').evaluate(d=>d.open),false);await p.locator('#studio-close').click();await p.locator('#sync-chip').click();await p.screenshot({path:path.join(root,'artifacts','accounts-assignment-'+width+'.png')});
+  await p.goto(url);await p.waitForFunction(()=>window.__test('Sync.state.status')==='assignment');assert.equal(await p.evaluate(()=>window.__test('Sync.configured()')),true);assert.equal(await p.locator('#sync-dialog').evaluate(d=>d.open),false);await p.locator('#studio-close').click();await openMenu(p);await p.locator('#sync-chip').click();await p.screenshot({path:path.join(root,'artifacts','accounts-assignment-'+width+'.png')});
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
   assert.equal(await p.locator('#sync-dialog button').evaluateAll(es=>es.some(e=>{const r=e.getBoundingClientRect();return r.width&&r.height&&(r.width<44||r.height<44);})),false);
   await p.getByRole('button',{name:'Vorhandene Daten diesem Konto zuordnen',exact:true}).click();await p.waitForFunction(()=>window.__test('Sync.state.status')==='ready');assert.equal(await p.evaluate(()=>window.__test('sessions.length')),1);
-  if(!await p.locator('#sync-dialog').evaluate(d=>d.open))await p.locator('#sync-chip').click();await p.getByRole('button',{name:'Abmelden',exact:true}).click();await p.waitForFunction(()=>window.__test('store.owner')==='guest');assert.equal(await p.evaluate(()=>window.__test('sessions.length')),0);await p.locator('#sync-close').click();
+  if(!await p.locator('#sync-dialog').evaluate(d=>d.open)){await openMenu(p);await p.locator('#sync-chip').click();}await p.getByRole('button',{name:'Abmelden',exact:true}).click();await p.waitForFunction(()=>window.__test('store.owner')==='guest');assert.equal(await p.evaluate(()=>window.__test('sessions.length')),0);await p.locator('#sync-close').click();
   await p.evaluate(()=>window.MockFirebase.change('b'));await p.waitForFunction(()=>window.__test('Sync.state.status')==='ready');assert.equal(await p.evaluate(()=>window.__test('sessions.length')),0);
   await p.evaluate(()=>window.MockFirebase.change('a'));await p.waitForFunction(()=>window.__test('Sync.state.status')==='ready');assert.equal(await p.evaluate(()=>window.__test('sessions[0].date')),'2026-10-03');
   await p.locator('.overview-progress').click();await p.reload();await p.waitForFunction(()=>window.__test('Sync.state.status')==='ready');assert.equal(await p.locator('#studio-dialog').evaluate(d=>d.open),false);assert.equal(await p.locator('#sync-dialog').evaluate(d=>d.open),false);assert.equal(await p.locator('.view.is-active').getAttribute('data-view'),'overview');

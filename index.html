@@ -805,6 +805,226 @@ body.has-carbon{background-color:#102d48;background-image:linear-gradient(145deg
 @media(max-width:380px){.day-overview-grid{gap:12px}.day-tile{padding:15px;min-height:170px}.day-tile-name{font-size:20px}.day-tile-last{font-size:11px}}
 @media(min-width:720px){.overview-head{padding-top:32px;padding-bottom:30px}.day-tile{padding:24px;min-height:190px}.day-tile-name{font-size:25px}}
 @media(prefers-reduced-motion:reduce){.day-tile{transition:none}}
+
+/* ---------- Phase 1: Vorschlag, zugeklappte Karten, feste Speicherleiste ---------- */
+.suggest,.ex-sum{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:0 10px;border-radius:999px;border:1px solid var(--border);background:var(--surface-1);font-size:13px;font-weight:700;color:var(--text-1);font-variant-numeric:tabular-nums;white-space:nowrap;transition:transform .15s,background .15s}
+.suggest[hidden],.ex-sum[hidden]{display:none}
+.suggest:active,.ex-sum:active{transform:scale(.96)}
+.suggest .last-trend{margin:0;font-size:11px;transform:none}
+.suggest .last-trend:empty{display:none}
+.suggest.up{border-color:color-mix(in srgb,var(--good) 45%,transparent);background:color-mix(in srgb,var(--good) 8%,var(--surface-1))}
+.suggest.down{border-color:color-mix(in srgb,var(--critical) 45%,transparent);background:color-mix(in srgb,var(--critical) 7%,var(--surface-1))}
+.suggest.hold{border-color:color-mix(in srgb,var(--hold) 40%,transparent);background:color-mix(in srgb,var(--hold) 7%,var(--surface-1))}
+.ex-sum{color:var(--good-text);border-color:color-mix(in srgb,var(--good) 50%,transparent);background:color-mix(in srgb,var(--good) 10%,var(--surface-1))}
+.ex-sum.up{color:var(--good-text)}
+.ex.is-done .suggest{display:none}
+.ex-more{display:grid;grid-template-rows:1fr;transition:grid-template-rows .28s cubic-bezier(.2,.8,.2,1),opacity .2s}
+.ex-more-in{min-height:0;overflow:hidden}
+.ex.is-collapsed .ex-more{grid-template-rows:0fr;opacity:0}
+.ex.is-collapsed{padding-top:9px;padding-bottom:9px;cursor:pointer}
+.ex.is-done{border-color:color-mix(in srgb,var(--good) 35%,var(--border))}
+.ex.is-done .idx-dot{background:var(--good);color:#fff}
+@media (prefers-reduced-motion:reduce){.ex-more{transition:none}}
+
+.save-bar{position:sticky;bottom:calc(env(safe-area-inset-bottom) + 78px);z-index:15;margin-top:18px;padding:6px;border:1px solid #ffffff80;border-radius:20px;background:#f0f5f9e8;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 22px #06162840}
+.save-row{align-items:stretch}
+.btn-discard{flex:0 0 52px;min-height:52px;border-radius:14px;display:grid;place-items:center;background:var(--critical);color:#fff;transition:transform .12s,background .15s}
+.btn-discard svg{width:20px;height:20px}
+.btn-discard:active{transform:scale(.95)}
+.btn-discard:disabled{background:#d8c5c8;color:#fff;cursor:default;transform:none}
+.btn-confirm-all{flex-basis:20%}
+.hist.is-empty{display:none}
+body:not(.is-overview) .toast{bottom:calc(env(safe-area-inset-bottom) + 150px)}
+.toast.has-action{pointer-events:auto;display:flex;align-items:center;gap:14px;padding-right:8px}
+.toast-action{min-height:36px;padding:0 12px;border-radius:999px;background:#ffffff1f;color:#cfe3ff;font-weight:700}
+
+/* ---------- Training: eine Leiste, keine Kopfleiste, kompakte Tendenz ---------- */
+.is-training .app-header,.is-training .tabbar{display:none}
+.is-training main{padding-top:calc(env(safe-area-inset-top) + 18px);padding-bottom:calc(env(safe-area-inset-bottom) + 10px)}
+.is-training .save-bar{bottom:calc(env(safe-area-inset-bottom) + 8px)}
+body.is-training .toast{bottom:calc(env(safe-area-inset-bottom) + 84px)}
+.btn-home{flex:0 0 48px;min-height:52px;border-radius:14px;display:grid;place-items:center;background:var(--surface-1);color:var(--text-1);border:1px solid var(--border);transition:transform .12s}
+.btn-home svg{width:21px;height:21px}
+.btn-home:active{transform:scale(.95)}
+.btn-discard{flex-basis:48px}
+.ex-body{flex-direction:row;flex-wrap:nowrap;align-items:center;gap:8px}
+.ex-line{flex:0 1 auto;min-width:0}
+.seg{flex:0 0 auto;width:auto;margin-left:auto}
+.seg button{flex:0 0 auto;width:44px;min-height:48px;padding:0;flex-direction:row}
+.seg button .gly{font-size:15px}
+@media(max-width:399px){.ex-body{flex-direction:row;align-items:center}.seg{flex:0 0 auto;width:auto}.seg button{width:44px;min-height:48px}.wfield{width:100px}}
+
+/* ---------- Leiste am Ende, grüne Anzeige, kombinierter Spec-Knopf ---------- */
+.save-bar,.is-training .save-bar{position:static}
+body.is-training .toast{bottom:calc(env(safe-area-inset-bottom) + 24px)}
+span.ex-check{display:grid;place-items:center;flex:0 0 auto;background:var(--good);color:#fff;border:1px solid var(--good);cursor:default}
+span.ex-check[hidden]{display:none}
+.ex-head .spec-chip{flex:0 0 auto;min-height:32px;padding:0 9px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ex.is-done .ex-head .spec-chip{display:none}
+#spec-fields{flex-wrap:wrap}
+
+.ex-tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0 10px 32px}
+.ex-tags .spec-chip{flex:0 0 auto;min-height:32px;padding:0 10px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ex-name{overflow-wrap:break-word}
+.ex-meta{margin-top:0}
+
+/* ---------- Pausentimer ---------- */
+.rest-btn{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;min-width:44px;height:44px;margin:-8px 0;padding:0 8px;border-radius:12px;color:var(--muted);font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;justify-content:center;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+.rest-btn svg{width:19px;height:19px;flex:0 0 auto}
+.rest-btn .rest-txt:empty{display:none}
+.rest-btn:active{transform:scale(.95)}
+.rest-btn.is-running{color:#fff;background:var(--hold);box-shadow:0 2px 8px #2d69ad40}
+.ex.is-collapsed .rest-btn:not(.is-running){display:none}
+dialog.sheet{width:100%;max-width:520px;margin:auto auto 0;border:0;border-radius:22px 22px 0 0;padding:0;padding-bottom:env(safe-area-inset-bottom)}
+dialog.sheet::backdrop{background:rgba(6,22,40,.45)}
+dialog.sheet .dlg-inner{padding:18px 16px 16px}
+@keyframes sheet-in{from{transform:translateY(100%)}to{transform:none}}
+#rest-dialog{background:var(--surface-1);color:var(--text-1)}
+.rest-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.rest-preset{min-height:56px;border-radius:14px;border:1px solid var(--border);background:var(--ex-bg);font-size:17px;font-weight:750;font-variant-numeric:tabular-nums}
+.rest-preset.is-current{border-color:var(--hold);box-shadow:0 0 0 1px var(--hold)}
+.rest-preset:active,.rest-step:active{transform:scale(.96)}
+.rest-adjust{display:flex;align-items:center;justify-content:center;gap:14px;margin:16px 0 14px}
+.rest-step{min-width:64px;min-height:48px;border-radius:12px;border:1px solid var(--border);background:var(--ex-bg);font-weight:700}
+#rest-value{min-width:72px;text-align:center;font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.rest-start{width:100%}
+.rest-edge{position:fixed;inset:0;width:100vw;height:100vh;z-index:60;pointer-events:none;opacity:0;transition:opacity .25s}
+.rest-edge.is-on{opacity:1}
+.rest-edge-line{fill:none;stroke-width:3.5;stroke-linecap:round;stroke-dasharray:1000;stroke-dashoffset:1000;filter:drop-shadow(0 0 4px rgba(127,176,227,.55))}
+.rest-edge.is-done{opacity:0;transition:opacity .8s .15s}
+@keyframes rest-draw{from{stroke-dashoffset:1000}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.rest-edge-line{filter:none}}
+
+/* Pausentimer als kleine, dezente quadratische Kachel */
+.rest-btn{flex-direction:column;justify-content:center;gap:1px;width:46px;min-width:46px;height:46px;margin:-6px 0;padding:0;border:1px solid var(--border);border-radius:11px;background:var(--surface-1);color:var(--text-2);font-size:10.5px;line-height:1;box-shadow:0 1px 3px #172b440a}
+.rest-btn svg{width:17px;height:17px}
+.rest-btn.is-running{color:var(--hold);background:color-mix(in srgb,var(--hold) 9%,var(--surface-1));border-color:color-mix(in srgb,var(--hold) 45%,transparent);box-shadow:none}
+
+/* ---------- Phase 3: Menü, Kacheln, Kalender, Zeitraum ---------- */
+.app-header{position:relative;justify-content:flex-end;padding-bottom:0}
+.menu-btn{position:relative;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--surface-1);color:var(--text-1);border:1px solid var(--border)}
+.has-carbon .menu-btn{background:#f0f5f9e8;color:#19344f;border-color:#ffffff66;backdrop-filter:blur(8px)}
+.menu-btn svg{width:21px;height:21px}
+.menu-btn .sync-dot{position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:var(--muted);box-shadow:0 0 0 2px #f0f5f9}
+.menu-btn .sync-dot.ok{background:var(--good)}.menu-btn .sync-dot.pending{background:var(--warning)}.menu-btn .sync-dot.err{background:var(--critical)}
+#menu-dialog{background:var(--surface-1);color:var(--text-1)}
+#menu-dialog h2{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+#menu-dialog .plan-bar{display:flex;flex-direction:column;align-items:stretch;gap:6px;overflow:visible}
+#menu-dialog .plan-btn{width:100%;min-height:48px;justify-content:flex-start;text-align:left;padding:0 14px;border-radius:12px;background:var(--ex-bg);color:var(--text-1);border:1px solid var(--border);font-size:15px;font-weight:650}
+#menu-dialog .plan-btn.is-active{background:var(--hold);color:#fff;border-color:var(--hold)}
+#menu-dialog .plan-btn-new{width:100%;height:auto;min-height:48px;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:12px;border:1px dashed var(--ring);background:transparent;color:var(--hold);font-size:15px;font-weight:650}
+.menu-list{display:flex;flex-direction:column;gap:6px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.menu-row,#menu-dialog .color-btn,#menu-dialog .sync-chip{width:100%;height:auto;min-height:48px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--ex-bg);color:var(--text-1);font-size:15px;font-weight:600;text-align:left;box-shadow:none}
+.menu-row svg{width:20px;height:20px;flex:0 0 auto;color:var(--text-2)}
+#menu-dialog .sync-chip .sync-dot{width:10px;height:10px;margin:0 5px}
+.overview-eyebrow{background:none;border:0;padding:0;text-align:left;cursor:pointer;text-decoration:underline;text-decoration-color:#c1dcf566;text-underline-offset:4px}
+.overview-eyebrow::after{content:" ▾";text-decoration:none}
+.day-tile-last{display:flex;flex-direction:column;gap:1px}
+.day-tile-rel{font-weight:700;color:var(--text-1)}
+.day-tile-last time{font-size:11.5px;opacity:.75}
+.train-cal{margin:18px 2px 0;padding:14px 14px 12px;border:1px solid #ffffff59;border-radius:16px;background:#f0f5f9e0;backdrop-filter:blur(8px);color:var(--text-1)}
+.cal-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-size:12px;color:var(--text-2)}
+.cal-head strong{font-size:13px;color:var(--text-1)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:7px 6px;justify-items:center}
+.cal-wd{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+.cal-day{width:14px;height:14px;border-radius:50%;background:#cfdae5}
+.cal-day.is-trained{background:var(--hold)}
+.cal-day.is-today{box-shadow:0 0 0 2px #f0f5f9,0 0 0 3.5px var(--text-1)}
+.cal-day.is-future{background:transparent;border:1px dashed #b8c6d4}
+.range-chips{display:flex;gap:6px;margin:-2px 0 12px}
+.range-chip{flex:1;min-height:40px;border-radius:12px;border:1px solid var(--border);background:var(--surface-1);font-size:13px;font-weight:650;color:var(--text-2)}
+.range-chip[aria-checked="true"]{background:var(--text-1);color:#fff;border-color:var(--text-1)}
+
+#menu-dialog .sync-chip{max-width:none}
+.day-tile,.day-tile:is(*){min-height:132px}
+@media(max-width:380px){.day-tile{min-height:124px}}
+.overview-head{padding-top:4px}
+
+/* Menü als 2er-Kacheln, kompakte Tageskacheln */
+.menu-grid,#menu-dialog .plan-bar.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-direction:unset}
+#menu-dialog .menu-list{margin-top:10px;padding-top:10px}
+#menu-dialog .plan-btn,#menu-dialog .plan-btn-new{min-height:52px;font-size:14px}
+.menu-row,#menu-dialog .color-btn,#menu-dialog .sync-chip{min-height:52px;font-size:14px;gap:10px;padding:0 12px}
+#data-dialog{background:var(--surface-1);color:var(--text-1)}
+.day-tile,.day-tile:is(*){position:relative;min-height:0;padding:14px 14px 13px}
+.day-tile-arrow{position:absolute;top:13px;right:12px;width:18px;height:18px;color:var(--hold);stroke-width:2}
+.day-tile-name,.day-tile-name:is(*){margin-top:0;padding-right:22px;font-size:18px}
+.day-tile-last{margin-top:6px}
+@media(max-width:380px){.day-tile{min-height:0;padding:12px}.day-tile-name{font-size:17px}}
+
+/* Kalender: feines Gitter, kleine Punkte */
+.train-cal{padding:12px 12px 12px}
+.cal-head{margin-bottom:6px}
+.cal-wds{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
+.cal-wds .cal-wd{text-align:center}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;justify-items:stretch;border-top:1px solid #172b441c;border-left:1px solid #172b441c}
+.cal-day,.cal-day.is-trained,.cal-day.is-future{width:auto;height:22px;border-radius:0;background:transparent;border:0;border-right:1px solid #172b441c;border-bottom:1px solid #172b441c;display:grid;place-items:center;box-shadow:none}
+.cal-day i{width:5px;height:5px;border-radius:50%;background:var(--hold)}
+.cal-day.is-today{background:#2d69ad14;box-shadow:inset 0 0 0 1px #2d69ad66}
+.cal-day.is-future{background:#172b4406}
+
+/* Kalender: halb so breite Spalten, Zahl links daneben */
+.train-cal{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.train-cal .cal-head{flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;margin:0}
+.train-cal .cal-head strong{font-size:28px;line-height:1;font-weight:800}
+.cal-body{flex:0 0 auto}
+.cal-wds,.cal-grid{grid-template-columns:repeat(7,24px)}
+
+/* Wochenende leicht abgesetzt */
+.cal-wd.is-weekend{color:var(--hold)}
+
+/* ---------- Phase 4: Bewegung ---------- */
+:root{--spring:cubic-bezier(.2,.8,.2,1)}
+@supports (transition-timing-function:linear(0,1)){:root{--spring:linear(0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 18.9%, 0.721 25.3%, 0.849 31.5%, 0.937 38.1%, 0.968 41.8%, 0.991 45.7%, 1.006 50.1%, 1.015 55%, 1.017 63.9%, 1.001)}}
+/* Seitenwechsel */
+html[data-vt] .view.is-active{animation:none}
+.view.is-active:not([data-view="progress"]) .day-head h2{view-transition-name:day-title}
+::view-transition-old(root){animation:vt-out .16s ease-in both}
+::view-transition-new(root){animation:vt-in .34s var(--spring) both}
+html[data-vt="out"]::view-transition-new(root){animation-name:vt-in-down}
+::view-transition-group(day-title){animation-duration:.4s;animation-timing-function:var(--spring)}
+::view-transition-old(day-title),::view-transition-new(day-title){height:100%;object-fit:none;object-position:left center}
+@keyframes vt-out{to{opacity:0}}
+@keyframes vt-in{from{opacity:0;transform:translateY(14px)}}
+@keyframes vt-in-down{from{opacity:0;transform:translateY(-10px)}}
+/* Bottom-Sheets: Ein- und Ausfahren, Griff, Ziehen */
+dialog.sheet,dialog.sheet#confirm-dialog,dialog.sheet#spec-dialog{width:100%;max-width:520px;margin:auto auto 0;border:0;border-radius:22px 22px 0 0;padding:0 0 env(safe-area-inset-bottom);background-color:var(--surface-1);box-shadow:0 -10px 40px #06162833}
+dialog.sheet{transform:translateY(105%);transition:transform .32s var(--spring),overlay .32s allow-discrete,display .32s allow-discrete}
+dialog.sheet[open]{transform:none}
+@starting-style{dialog.sheet[open]{transform:translateY(105%)}}
+dialog.sheet::backdrop{background:rgba(6,22,40,0);transition:background .25s,overlay .32s allow-discrete,display .32s allow-discrete}
+dialog.sheet[open]::backdrop{background:rgba(6,22,40,.45)}
+@starting-style{dialog.sheet[open]::backdrop{background:rgba(6,22,40,0)}}
+dialog.sheet.is-dragging{transition:none}
+.sheet-grip{width:40px;height:5px;margin:8px auto 0;border-radius:99px;background:#172b4426}
+dialog.sheet .dlg-inner{padding-top:12px}
+/* Mikro-Rückmeldungen */
+.seg button,.suggest,.ex-sum,.rest-btn,.btn-primary,.btn-discard,.btn-home,.day-tile,.menu-row,.plan-btn,.range-chip{transition:transform .28s var(--spring),background .15s,color .15s,border-color .15s,box-shadow .15s}
+.seg button:active{transform:scale(.9)}
+.day-tile:active{transform:scale(.97)}
+.menu-row:active,.plan-btn:active,.range-chip:active{transform:scale(.97)}
+.summary-segment{transition:background .25s}
+.summary-segment.is-new{animation:seg-fill .5s var(--spring)}
+@keyframes seg-fill{from{transform:scaleX(.3);opacity:.4}}
+.toast{transform:translate(-50%,18px);transition:opacity .2s,transform .38s var(--spring)}
+.toast.on{transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){
+  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
+  dialog.sheet,dialog.sheet::backdrop{transition:none}
+  .summary-segment.is-new{animation:none}
+  .toast{transition:opacity .2s}
+}
+
+/* Chips: 44 px Tippfläche, sichtbar als 32-px-Pille (Fläche per ::before) */
+.ex-tags{margin:0 0 4px 32px}
+.ex-tags .spec-chip,.suggest,.ex-sum{position:relative;z-index:0;min-height:44px;background:none;border:0;box-shadow:none;--chip-bg:var(--surface-1);--chip-bd:var(--border)}
+.ex-tags .spec-chip::before,.suggest::before,.ex-sum::before{content:"";position:absolute;inset:6px 0;z-index:-1;border-radius:999px;background:var(--chip-bg);border:1px solid var(--chip-bd)}
+.ex-tags .spec-chip{--chip-bg:var(--sunken);--chip-bd:transparent}
+.suggest.up{--chip-bg:color-mix(in srgb,var(--good) 8%,var(--surface-1));--chip-bd:color-mix(in srgb,var(--good) 45%,transparent);background:none;border:0}
+.suggest.down{--chip-bg:color-mix(in srgb,var(--critical) 7%,var(--surface-1));--chip-bd:color-mix(in srgb,var(--critical) 45%,transparent);background:none;border:0}
+.suggest.hold{--chip-bg:color-mix(in srgb,var(--hold) 7%,var(--surface-1));--chip-bd:color-mix(in srgb,var(--hold) 40%,transparent);background:none;border:0}
+.ex-sum,.ex-sum.up{--chip-bg:color-mix(in srgb,var(--good) 10%,var(--surface-1));--chip-bd:color-mix(in srgb,var(--good) 50%,transparent);background:none;border:0}
+.ex-head .ex-sum{margin:-6px 0}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */
@@ -912,21 +1132,54 @@ dialog#spec-dialog{border-color:var(--satin-frame);color:var(--text-1)}
 <body>
 
 <header class="app-header">
-  <nav class="plan-bar" id="plan-bar" aria-label="Trainingsplan wählen"></nav>
-  <button class="color-btn" id="color-btn" type="button" aria-haspopup="dialog" aria-label="Eigene Farben">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.4-3.4l-.3-.3a1.4 1.4 0 0 1 1-2.3H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="6.5" r=".8"/><circle cx="15" cy="7" r=".8"/></svg>
-  </button>
-  <button class="sync-chip" id="sync-chip" type="button" aria-haspopup="dialog">
-    <span class="sync-dot" id="sync-dot"></span>
-    <span id="sync-label">Sync</span>
+  <button class="menu-btn" id="menu-btn" type="button" aria-haspopup="dialog" aria-label="Menü: Pläne, Farben, Sync und Daten">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    <span class="sync-dot" id="menu-dot" aria-hidden="true"></span>
   </button>
 </header>
+
+<dialog id="menu-dialog" class="sheet" aria-labelledby="menu-dlg-title">
+  <div class="dlg-inner">
+    <h2 id="menu-dlg-title" class="vh">Menü</h2>
+    <nav class="plan-bar menu-grid" id="plan-bar" aria-label="Trainingsplan wählen"></nav>
+    <div class="menu-grid menu-list">
+      <button class="color-btn menu-row" id="color-btn" type="button" aria-haspopup="dialog" aria-label="Eigene Farben">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.4-3.4l-.3-.3a1.4 1.4 0 0 1 1-2.3H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="6.5" r=".8"/><circle cx="15" cy="7" r=".8"/></svg>
+        <span>Farben</span>
+      </button>
+      <button class="sync-chip menu-row" id="sync-chip" type="button" aria-haspopup="dialog">
+        <span class="sync-dot" id="sync-dot"></span>
+        <span id="sync-label">Sync</span>
+      </button>
+      <button class="menu-row" id="menu-data" type="button" aria-haspopup="dialog" aria-label="Daten importieren oder exportieren">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l3 3v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V3Z"/><path d="M8 3v5h7V3M8 21v-6h8v6"/></svg>
+        <span>Import/Export</span>
+      </button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="data-dialog" class="sheet" aria-labelledby="data-dlg-title">
+  <div class="dlg-inner">
+    <h2 id="data-dlg-title" class="vh">Daten</h2>
+    <div class="menu-grid">
+      <button class="menu-row" id="menu-export" type="button" aria-label="Daten exportieren">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m-4-4 4 4 4-4M5 20h14"/></svg>
+        <span>Export</span>
+      </button>
+      <button class="menu-row" id="menu-import" type="button" aria-label="Daten importieren">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m-4 4 4-4 4 4M5 20h14"/></svg>
+        <span>Import</span>
+      </button>
+    </div>
+  </div>
+</dialog>
 
 <main id="main"></main>
 
 <nav class="tabbar" role="tablist" aria-label="Trainingstage"></nav>
 
-<dialog id="confirm-dialog" aria-labelledby="confirm-dlg-title">
+<dialog id="confirm-dialog" class="sheet" aria-labelledby="confirm-dlg-title">
   <div class="dlg-inner">
     <h2 id="confirm-dlg-title"></h2>
     <p class="dlg-lead" id="confirm-dlg-lead"></p>
@@ -938,13 +1191,27 @@ dialog#spec-dialog{border-color:var(--satin-frame);color:var(--text-1)}
   </div>
 </dialog>
 
-<dialog id="spec-dialog" class="dlg-compact" aria-labelledby="spec-dlg-title">
+<dialog id="spec-dialog" class="dlg-compact sheet" aria-labelledby="spec-dlg-title">
   <form method="dialog" class="dlg-inner" id="spec-form">
     <h2 id="spec-dlg-title"></h2>
     <p class="dlg-lead" id="spec-dlg-lead"></p>
     <div class="spec-fields" id="spec-fields"></div>
     <p class="dlg-note" id="spec-hint"></p>
   </form>
+</dialog>
+
+<dialog id="rest-dialog" class="sheet" aria-labelledby="rest-dlg-title">
+  <div class="dlg-inner">
+    <h2 id="rest-dlg-title">Pause</h2>
+    <p class="dlg-lead" id="rest-dlg-lead"></p>
+    <div class="rest-presets" id="rest-presets"></div>
+    <div class="rest-adjust">
+      <button type="button" class="rest-step" id="rest-minus" aria-label="15 Sekunden weniger">−15</button>
+      <output id="rest-value" aria-live="polite">1:30</output>
+      <button type="button" class="rest-step" id="rest-plus" aria-label="15 Sekunden mehr">+15</button>
+    </div>
+    <button type="button" class="btn-primary rest-start" id="rest-start">Start</button>
+  </div>
 </dialog>
 
 <dialog id="swap-dialog" aria-labelledby="swap-dlg-title">
@@ -1185,6 +1452,7 @@ function restoreStartView(){
   ui.tab='overview';
 }
 function rememberTrainingPosition(){
+  if(store.isStale())return;
   if(!ui.activeTraining||ui.activeTraining.planId!==activePlanId||ui.activeTraining.dayId!==ui.tab)return;
   var meta=store.read(store.metaKey,null);
   if(!store.available||!meta||meta.active!==store.owner)return;
@@ -1205,6 +1473,7 @@ function applyPlan(){
     if(o.sets != null) e.sets = o.sets;
     if(o.rmin != null) e.rmin = o.rmin;
     e.rmax = o.rmax != null ? o.rmax : null;
+    if(o.rest != null) e.rest = o.rest;
   });
   DAY_OF_EX = {};
   Object.keys(POOL).forEach(function(id){
@@ -1263,6 +1532,9 @@ function replacedExercises(){
     .sort(function(a,b){ return a.n.localeCompare(b.n, "de"); });
 }
 
+/** Bestätigte Übungen, die gerade bewusst aufgeklappt sind (nur Ansicht). */
+var openCards = {};
+
 const TRENDS = [
   { t:"down", label:"Senken",   gly:"▼" },
   { t:"hold", label:"Halten",   gly:"●" },
@@ -1287,7 +1559,7 @@ const K_THEME    = "trainingsplan.v1.theme";
 function createAccountStore(){
   var prefix='trainingsplan.v3.accounts.minmax-workouttracker.', metaKey=prefix+'meta';
   var keys=['plan','customExercises','exerciseSpec','sessions','drafts','ui','plans','theme','colors','builderDraft','templates'].map(function(k){return 'trainingsplan.v1.'+k;}).concat(['trainingsplan.v2.recovery','trainingsplan.v2.outbox']);
-  var ok=true, owner='guest', profile={values:{}}, meta=null, error=null;
+  var ok=true, owner='guest', profile={values:{}}, meta=null, error=null, seen={}, staleHandler=null, quiet=0;
   function clone(v){return JSON.parse(JSON.stringify(v));}
   function readRaw(k,fallback){var raw=localStorage.getItem(k);return raw ? JSON.parse(raw) : fallback;}
   function profileKey(id){return prefix+'profile.'+encodeURIComponent(id);}
@@ -1313,13 +1585,34 @@ function createAccountStore(){
     owner=meta.active||'guest';profile=readRaw(profileKey(owner),{values:{}});
     if(!profile||!profile.values)throw new Error('Der lokale Kontobereich konnte nicht gelesen werden.');
   }catch(e){ok=false;error=e.message;profile={values:legacy};owner='legacy';meta=meta||{active:owner,legacyPending:meaningful(legacy),declined:{}};}
+  // Each value as this window last read or wrote it. Another window, or a
+  // frozen instance of the installed app, may have saved newer data since.
+  function text(values,k){var v=values?values[k]:undefined;return JSON.stringify(v===undefined?null:v);}
+  function stored(){return readRaw(profileKey(owner),{values:{}}).values||{};}
+  function mark(){var v=stored();seen={};keys.forEach(function(k){seen[k]=text(v,k);});}
+  function changed(){var v=stored();return keys.filter(function(k){return seen[k]!==text(v,k);});}
+  if(ok)try{mark();}catch(e){}
   function commit(p,id){try{writeRaw(profileKey(id),p);}catch(e){ok=false;error=e.message;throw new Error('Kontodaten konnten nicht gesichert werden. Der Abgleich bleibt angehalten.');}}
   function checkOwner(){var current=readRaw(metaKey,meta);if(current.active!==owner)throw new Error('Das Konto wurde in einem anderen Fenster gewechselt. Bitte die App neu laden.');}
   return {
     get available(){return ok;},get owner(){return owner;},get error(){return error;},metaKey:metaKey,
+    // Training data changed elsewhere; per-window view state (ui) alone does not count.
+    isStale:function(){try{return ok&&changed().some(function(k){return k!=='trainingsplan.v1.ui';});}catch(e){return false;}},
+    set onStale(fn){staleHandler=fn;},
+    // Rebuilding the view after another window saved must not write: this
+    // window may not see that window's latest writes yet.
+    quietly:function(fn){quiet++;try{return fn();}finally{quiet--;}},
     read:function(k,fallback){try{var v=keys.includes(k)?profile.values[k]:readRaw(k,null);return v==null?fallback:clone(v);}catch(e){return fallback;}},
-    write:function(k,v){if(!keys.includes(k)){if(ok)writeRaw(k,v);return;}if(!ok){profile.values[k]=clone(v);return;}checkOwner();var next=readRaw(profileKey(owner),profile);next.values[k]=clone(v);commit(next,owner);profile=next;},
-    activate:function(id){if(!ok)throw new Error(error||'Browser-Speicher nicht verfügbar.');var next=readRaw(profileKey(id),{values:{}});if(!next||!next.values)throw new Error('Kontodaten sind beschädigt; bitte die Sicherung verwenden.');commit(next,id);var m=readRaw(metaKey,meta);m.active=id;writeRaw(metaKey,m);meta=m;owner=id;profile=next;},
+    write:function(k,v){if(!keys.includes(k)){if(ok)writeRaw(k,v);return;}if(!ok||quiet){profile.values[k]=clone(v);return;}checkOwner();
+      // Drafts are rewritten as a whole: an outdated copy would bring back
+      // exercises that were already saved in another window.
+      if(k==='trainingsplan.v1.drafts'&&changed().includes(k)){var err=new Error('Die Daten wurden inzwischen in einem anderen Fenster gespeichert. Die Ansicht ist jetzt aktuell.');err.stale=true;if(staleHandler)staleHandler(err);throw err;}
+      var next=readRaw(profileKey(owner),profile);next.values[k]=clone(v);commit(next,owner);profile=next;seen[k]=text(next.values,k);},
+    activate:function(id){if(!ok)throw new Error(error||'Browser-Speicher nicht verfügbar.');var next=readRaw(profileKey(id),{values:{}});if(!next||!next.values)throw new Error('Kontodaten sind beschädigt; bitte die Sicherung verwenden.');
+      // Re-reading the active profile stays read-only: writing it back could
+      // overwrite a save another window has just made.
+      if(id===owner&&readRaw(metaKey,meta).active===id){profile=next;mark();return;}
+      commit(next,id);var m=readRaw(metaKey,meta);m.active=id;writeRaw(metaKey,m);meta=m;owner=id;profile=next;mark();},
     needsAssignment:function(id){var m=readRaw(metaKey,meta);return !!(m.legacyPending&&!(m.declined||{})[id]);},
     hasLegacy:function(){return !!readRaw(metaKey,meta).legacyPending;},
     decline:function(id){var m=readRaw(metaKey,meta);m.declined=m.declined||{};m.declined[id]=true;writeRaw(metaKey,m);meta=m;},
@@ -1515,12 +1808,51 @@ function lastTrend(exId){
   });
   return found && found.t;
 }
+/** Schrittweite einer Übung: die letzte Steigerung, sonst 2,5 kg. */
+function lastStep(exId){
+  var hist = historyOf(exId);
+  for(var i=hist.length-1;i>0;i--){
+    var d = Math.round((hist[i].w - hist[i-1].w) * 1000) / 1000;
+    if(d > 0) return d;
+  }
+  return 2.5;
+}
+/** Vorschlag fürs heutige Training aus letztem Gewicht und letzter Tendenz. */
+function suggestionOf(exId){
+  var last = lastWeight(exId);
+  if(last == null) return null;
+  var t = lastTrend(exId) || null, step = lastStep(exId);
+  var w = t === "up" ? last + step : t === "down" ? Math.max(0, last - step) : last;
+  return { w:Math.round(w * 1000) / 1000, t:t };
+}
+function placeholderOf(exId){
+  var s = suggestionOf(exId);
+  return s ? fmtKg(s.w) : "0";
+}
+/** Vorschlags-Chip im Kartenkopf: Tendenz vom letzten Mal + Zielgewicht.
+    Antippen trägt den Vorschlag ins Gewichtsfeld ein (noch unbestätigt). */
 function buildTrendHint(exId){
-  var trend = lastTrend(exId);
-  var info = TRENDS.find(function(t){return t.t === trend;});
-  return h('span', {class:'last-trend ' + (trend || ''), 'data-trend-ex':exId,
-    text:info ? info.gly : '', title:info ? info.label + ' – Empfehlung aus dem letzten Training' : '',
-    'aria-label':info ? info.label + ' – Empfehlung aus dem letzten Training' : ''});
+  var s = suggestionOf(exId);
+  var info = s && TRENDS.find(function(t){ return t.t === s.t; });
+  var chip = h('button', { type:'button', class:'suggest ' + (s && s.t || 'none'), 'data-suggest-ex':exId });
+  if(!s){ chip.hidden = true; return chip; }
+  var bw = !!(POOL[exId] && POOL[exId].bodyweight);
+  var label = 'Vorschlag ' + (bw ? '+' : '') + fmtKg(s.w) + ' kg' + (info ? ', letztes Mal ' + info.label : '');
+  chip.appendChild(h('span', { class:'last-trend ' + (s.t || ''), 'data-trend-ex':exId, text:info ? info.gly : '', 'aria-hidden':'true' }));
+  chip.appendChild(h('span', { class:'suggest-kg', text:(bw ? '+' : '') + fmtKg(s.w) }));
+  chip.setAttribute('aria-label', label + ' – übernehmen');
+  chip.title = label;
+  chip.addEventListener('click', function(){
+    var inp = chip.closest('.ex') && chip.closest('.ex').querySelector('.wfield input');
+    if(!inp) return;
+    inp.value = fmtKg(s.w);
+    inp.dispatchEvent(new Event('input', { bubbles:true }));
+  });
+  return chip;
+}
+function refreshTrendHint(view, exId){
+  var chip = view.querySelector('[data-suggest-ex="' + CSS.escape(exId) + '"]');
+  if(chip) chip.replaceWith(buildTrendHint(exId));
 }
 function lastWeight(exId){ var h = historyOf(exId); return h.length ? h[h.length-1].w : null; }
 function lastSessionOf(dayId){
@@ -1590,13 +1922,378 @@ function askConfirm(opts){
 }
 
 var toastTimer = null;
-function toast(msg){
+function toast(msg, action, ms){
   var el = document.getElementById("toast");
   el.textContent = msg;
+  if(action){
+    var b = h("button", { type:"button", class:"toast-action", text:action.label });
+    b.addEventListener("click", function(){
+      clearTimeout(toastTimer);
+      el.classList.remove("on", "has-action");
+      action.run();
+    });
+    el.appendChild(b);
+  }
+  el.classList.toggle("has-action", !!action);
   el.classList.add("on");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function(){ el.classList.remove("on"); }, 2600);
+  if(ms === 0) return; // bleibt stehen, bis die Aktion gewählt wird
+  toastTimer = setTimeout(function(){ el.classList.remove("on", "has-action"); }, ms || (action ? 5000 : 2600));
 }
+
+/* ============================================================
+   5a. Bewegung
+   ------------------------------------------------------------
+   Federkurve für kleine Rückmeldungen, View Transitions für Seiten-
+   wechsel (Tageskachel wächst zur Tagesansicht), Bottom-Sheets mit
+   Wischen zum Schliessen. „Bewegung reduzieren“ schaltet alles ab.
+   ============================================================ */
+const SPRING = "linear(0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 18.9%, 0.721 25.3%, 0.849 31.5%, 0.937 38.1%, 0.968 41.8%, 0.991 45.7%, 1.006 50.1%, 1.015 55%, 1.017 63.9%, 1.001)";
+function reducedMotion(){ return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); }
+/** Kleine Federbewegung per Web Animations API; still ohne Unterstützung. */
+function pop(el, frames, ms){
+  if(!el || !el.animate || reducedMotion()) return;
+  try{ el.animate(frames, { duration:ms || 380, easing:SPRING }); }
+  catch(e){ try{ el.animate(frames, { duration:ms || 380, easing:"cubic-bezier(.2,.8,.2,1)" }); }catch(ignore){} }
+}
+function buzz(ms){ if(navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){} }
+/** Seitenwechsel durch den Nutzer – mit Übergang, wenn der Browser ihn kann. */
+function goTo(id, opts){
+  opts = opts || {};
+  function apply(){ showTab(id, opts); window.scrollTo({ top:0, behavior:"auto" }); }
+  if(!document.startViewTransition || reducedMotion() || ui.tab === id){ apply(); return; }
+  var from = ui.tab, named = null, root = document.documentElement;
+  function mark(dayId){
+    var el = document.querySelector('[data-overview-day="' + CSS.escape(dayId) + '"] .day-tile-name');
+    if(el) el.style.viewTransitionName = "day-title";
+    return el;
+  }
+  if(from === "overview" && dayById(id)) named = mark(id);
+  root.dataset.vt = from === "overview" ? "in" : id === "overview" ? "out" : "side";
+  var vt;
+  try{
+    vt = document.startViewTransition(function(){
+      if(named){ named.style.viewTransitionName = ""; named = null; }
+      apply();
+      if(id === "overview" && dayById(from)) named = mark(from);
+    });
+  }catch(e){ delete root.dataset.vt; apply(); return; }
+  vt.finished.catch(function(){}).then(function(){
+    if(named) named.style.viewTransitionName = "";
+    delete root.dataset.vt;
+  });
+}
+/** Bottom-Sheets: Griff oben, nach unten ziehen schliesst. */
+function wireSheets(){
+  document.querySelectorAll("dialog.sheet").forEach(function(dlg){
+    if(dlg.querySelector(".sheet-grip")) return;
+    dlg.insertBefore(h("div", { class:"sheet-grip", "aria-hidden":"true" }), dlg.firstChild);
+    var startY = null, dy = 0, t0 = 0, id = null;
+    dlg.addEventListener("pointerdown", function(e){
+      var r = dlg.getBoundingClientRect();
+      if(e.clientY - r.top > 48 || e.target.closest("input,select,textarea")) return;
+      startY = e.clientY; dy = 0; t0 = Date.now(); id = e.pointerId;
+      try{ dlg.setPointerCapture(id); }catch(ignore){}
+      dlg.classList.add("is-dragging");
+    });
+    dlg.addEventListener("pointermove", function(e){
+      if(startY === null) return;
+      dy = Math.max(0, e.clientY - startY);
+      dlg.style.transform = "translateY(" + dy + "px)";
+    });
+    function end(){
+      if(startY === null) return;
+      var fast = dy > 30 && dy / Math.max(1, Date.now() - t0) > 0.6;
+      startY = null;
+      dlg.classList.remove("is-dragging");
+      if(dy > 90 || fast){
+        if(dlg.dispatchEvent(new Event("cancel", { cancelable:true }))){
+          if(typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
+        }
+      }
+      dlg.style.transform = "";
+    }
+    dlg.addEventListener("pointerup", end);
+    dlg.addEventListener("pointercancel", end);
+  });
+}
+
+/* Menü: Pläne, Farben, Sync, Daten. Jeder Eintrag schliesst das Menü. */
+function openMenu(){
+  var dlg=document.getElementById('menu-dialog');
+  if(typeof dlg.showModal==='function'){if(!dlg.open)dlg.showModal();}else dlg.setAttribute('open','');
+}
+function closeMenu(){
+  var dlg=document.getElementById('menu-dialog');
+  if(!dlg.open)return;
+  if(typeof dlg.close==='function')dlg.close();else dlg.removeAttribute('open');
+}
+function wireMenu(){
+  var dlg=document.getElementById('menu-dialog');
+  document.getElementById('menu-btn').addEventListener('click',openMenu);
+  var data=document.getElementById('data-dialog');
+  function closeData(){if(data.open){if(typeof data.close==='function')data.close();else data.removeAttribute('open');}}
+  document.getElementById('menu-data').addEventListener('click',function(){
+    if(typeof data.showModal==='function'){if(!data.open)data.showModal();}else data.setAttribute('open','');
+  });
+  document.getElementById('menu-export').addEventListener('click',function(){closeData();exportData();});
+  document.getElementById('menu-import').addEventListener('click',function(){closeData();importData();});
+  data.addEventListener('click',function(e){if(e.target===data)closeData();});
+  dlg.addEventListener('click',function(e){
+    if(e.target===dlg||e.target.closest('button'))closeMenu();
+  });
+}
+
+/* ============================================================
+   5b. Pausentimer
+   ------------------------------------------------------------
+   Pausendauer je Übung (exSpec[id].rest, mit dem Konto synchronisiert).
+   Uhrsymbol antippen startet, gedrückt halten stellt ein. Läuft die Pause,
+   wächst eine schmale Linie von oben Mitte im Uhrzeigersinn am Bildschirm-
+   rand entlang; ist das Rechteck geschlossen, folgen ein leiser Ton und
+   1 s Vibration. Zeitbasis ist der Endzeitpunkt (ui.restTimer), damit
+   Sperren, App-Wechsel und Neuladen nichts verschieben.
+   ============================================================ */
+const REST_PRESETS = [60, 90, 120, 180];
+const REST_MIN = 15, REST_MAX = 600;
+function fmtRest(sec){ sec = Math.max(0, Math.ceil(sec)); return Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0"); }
+
+var RestTimer = (function(){
+  var tickId = null, overlay = null, audio = null, sheetEx = null, sheetValue = 90;
+
+  function state(){ var t = ui.restTimer; return t && t.exId && t.endAt ? t : null; }
+  function restOf(exId){ var e = POOL[exId]; return e && e.rest ? e.rest : null; }
+
+  function clockIcon(){
+    var ic = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", "stroke-width":"2",
+      "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
+    svg("circle", { cx:12, cy:13, r:8 }, ic);
+    svg("path", { d:"M12 9v4l2.5 2M10 2h4" }, ic);
+    return ic;
+  }
+  function label(exId){
+    var t = state();
+    if(t && t.exId === exId) return fmtRest((t.endAt - Date.now()) / 1000);
+    var r = restOf(exId);
+    return r ? fmtRest(r) : "";
+  }
+  function paint(b){
+    var exId = b.getAttribute("data-rest-ex"), t = state(), running = !!(t && t.exId === exId);
+    var txt = b.querySelector(".rest-txt"), l = label(exId);
+    if(txt.textContent !== l) txt.textContent = l;
+    b.classList.toggle("is-running", running);
+    b.classList.toggle("has-time", !!l);
+    var name = (POOL[exId] || {}).n || "";
+    b.setAttribute("aria-label", running ? "Pause " + l + " läuft — antippen zum Abbrechen"
+      : restOf(exId) ? "Pause " + l + " starten — " + name + ". Gedrückt halten zum Einstellen."
+      : "Pausenzeit einstellen — " + name);
+  }
+  function paintAll(){ document.querySelectorAll("[data-rest-ex]").forEach(paint); }
+
+  function button(exId){
+    var b = h("button", { type:"button", class:"rest-btn", "data-rest-ex":exId });
+    b.appendChild(clockIcon());
+    b.appendChild(h("span", { class:"rest-txt" }));
+    var pressTimer = null, longPressed = false;
+    b.addEventListener("pointerdown", function(){
+      longPressed = false;
+      clearTimeout(pressTimer);
+      pressTimer = setTimeout(function(){ longPressed = true; openSheet(exId); }, 500);
+    });
+    ["pointerup","pointerleave","pointercancel"].forEach(function(ev){
+      b.addEventListener(ev, function(){ clearTimeout(pressTimer); });
+    });
+    b.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+    b.addEventListener("click", function(){
+      if(longPressed){ longPressed = false; return; }
+      var t = state();
+      if(t && t.exId === exId){ stop(); return; }
+      var r = restOf(exId);
+      if(r) start(exId, r); else openSheet(exId);
+    });
+    paint(b);
+    return b;
+  }
+
+  /* ---- Einstellung ---- */
+  function showValue(){ document.getElementById("rest-value").textContent = fmtRest(sheetValue); }
+  function openSheet(exId){
+    sheetEx = exId;
+    sheetValue = restOf(exId) || 90;
+    document.getElementById("rest-dlg-lead").textContent = (POOL[exId] || {}).n || "";
+    var box = document.getElementById("rest-presets");
+    box.replaceChildren();
+    REST_PRESETS.forEach(function(sec){
+      var p = h("button", { type:"button", class:"rest-preset" + (sec === restOf(exId) ? " is-current" : ""), text:fmtRest(sec),
+        "aria-label":fmtRest(sec) + " Minuten speichern und starten" });
+      p.addEventListener("click", function(){ choose(sec); });
+      box.appendChild(p);
+    });
+    showValue();
+    var dlg = document.getElementById("rest-dialog");
+    if(typeof dlg.showModal === "function"){ if(!dlg.open) dlg.showModal(); } else dlg.setAttribute("open", "");
+  }
+  function closeSheet(){
+    var dlg = document.getElementById("rest-dialog");
+    if(typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
+  }
+  function choose(sec){
+    var exId = sheetEx;
+    if(!exId) return;
+    sec = Math.min(REST_MAX, Math.max(REST_MIN, sec));
+    setSpec(exId, { rest:sec });
+    closeSheet();
+    start(exId, sec);
+  }
+  function wire(){
+    var dlg = document.getElementById("rest-dialog");
+    dlg.addEventListener("click", function(e){ if(e.target === dlg) closeSheet(); });
+    document.getElementById("rest-minus").addEventListener("click", function(){ sheetValue = Math.max(REST_MIN, sheetValue - 15); showValue(); });
+    document.getElementById("rest-plus").addEventListener("click", function(){ sheetValue = Math.min(REST_MAX, sheetValue + 15); showValue(); });
+    document.getElementById("rest-start").addEventListener("click", function(){ choose(sheetValue); });
+  }
+
+  /* ---- Randlinie ---- */
+  function edgePath(w, hgt){
+    var i = 2.5, r = Math.min(30, w / 6), cx = w / 2;
+    var L = i, T = i, R = w - i, B = hgt - i;
+    return "M" + cx + " " + T + " H" + (R - r) + " A" + r + " " + r + " 0 0 1 " + R + " " + (T + r)
+      + " V" + (B - r) + " A" + r + " " + r + " 0 0 1 " + (R - r) + " " + B
+      + " H" + (L + r) + " A" + r + " " + r + " 0 0 1 " + L + " " + (B - r)
+      + " V" + (T + r) + " A" + r + " " + r + " 0 0 1 " + (L + r) + " " + T + " Z";
+  }
+  function ensureOverlay(){
+    if(overlay) return overlay;
+    overlay = svg("svg", { class:"rest-edge", "aria-hidden":"true" });
+    var defs = svg("defs", {}, overlay);
+    var g = svg("linearGradient", { id:"rest-grad", x1:"0", y1:"0", x2:"0.35", y2:"1" }, defs);
+    svg("stop", { offset:"0", "stop-color":"#cfe3f7" }, g);
+    svg("stop", { offset:"0.55", "stop-color":"#7fb0e3" }, g);
+    svg("stop", { offset:"1", "stop-color":"#3f78b8" }, g);
+    svg("path", { class:"rest-edge-line", pathLength:"1000", stroke:"url(#rest-grad)" }, overlay);
+    document.body.appendChild(overlay);
+    window.addEventListener("resize", layout);
+    return overlay;
+  }
+  function layout(){
+    if(!overlay) return;
+    var w = window.innerWidth, hgt = window.innerHeight;
+    overlay.setAttribute("viewBox", "0 0 " + w + " " + hgt);
+    overlay.querySelector("path").setAttribute("d", edgePath(w, hgt));
+  }
+  function showLine(t){
+    ensureOverlay(); layout();
+    var line = overlay.querySelector("path"), total = t.total * 1000, elapsed = Math.max(0, total - (t.endAt - Date.now()));
+    line.style.animation = "none";
+    void line.getBoundingClientRect();
+    line.style.animation = "rest-draw " + total + "ms linear " + (-elapsed) + "ms forwards";
+    overlay.classList.remove("is-done");
+    overlay.classList.add("is-on");
+  }
+  function hideLine(done){
+    if(!overlay) return;
+    if(done){
+      overlay.classList.add("is-done");
+      setTimeout(function(){ if(overlay && !state()) overlay.classList.remove("is-on", "is-done"); }, 900);
+    } else overlay.classList.remove("is-on", "is-done");
+  }
+
+  /* ---- Signal ---- */
+  function unlockAudio(){
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return;
+      if(!audio) audio = new AC();
+      if(audio.state === "suspended") audio.resume();
+    }catch(e){}
+  }
+  function chime(){
+    try{
+      if(!audio) return;
+      var now = audio.currentTime;
+      [[784, 0], [1047, 0.16]].forEach(function(n){
+        var o = audio.createOscillator(), g = audio.createGain();
+        o.type = "sine"; o.frequency.value = n[0];
+        g.gain.setValueAtTime(0.0001, now + n[1]);
+        g.gain.exponentialRampToValueAtTime(0.09, now + n[1] + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + n[1] + 0.42);
+        o.connect(g); g.connect(audio.destination);
+        o.start(now + n[1]); o.stop(now + n[1] + 0.45);
+      });
+    }catch(e){}
+  }
+  function signal(){
+    chime();
+    if(navigator.vibrate) try{ navigator.vibrate(1000); }catch(e){}
+  }
+
+  /* ---- Ablauf ---- */
+  function persist(){ try{ saveUi(); }catch(e){} }
+  function start(exId, sec){
+    unlockAudio();
+    ui.restTimer = { exId:exId, endAt:Date.now() + sec * 1000, total:sec };
+    persist();
+    showLine(ui.restTimer);
+    run();
+    paintAll();
+    WakeLock.update();
+  }
+  function stop(){
+    ui.restTimer = null; persist();
+    clearInterval(tickId); tickId = null;
+    hideLine(false);
+    paintAll();
+    WakeLock.update();
+  }
+  function finish(){
+    ui.restTimer = null; persist();
+    clearInterval(tickId); tickId = null;
+    hideLine(true);
+    signal();
+    paintAll();
+    WakeLock.update();
+  }
+  function tick(){
+    var t = state();
+    if(!t){ clearInterval(tickId); tickId = null; return; }
+    if(Date.now() >= t.endAt){ finish(); return; }
+    paintAll();
+  }
+  function run(){ clearInterval(tickId); tickId = setInterval(tick, 250); }
+  /** Nach Neuladen oder Rückkehr: weiterlaufen lassen oder verspätet melden. */
+  function resume(){
+    var t = state();
+    if(!t){ hideLine(false); return; }
+    if(Date.now() >= t.endAt){
+      // Nur melden, wenn das Ende nicht schon lange zurückliegt.
+      if(Date.now() - t.endAt < 10 * 60 * 1000) finish(); else stop();
+      return;
+    }
+    showLine(t); run(); paintAll();
+  }
+  return { button:button, start:start, stop:stop, tick:tick, resume:resume, wire:wire, openSheet:openSheet,
+    get running(){ return !!state(); } };
+})();
+
+/* Bildschirm bleibt an, solange ein Trainingstag offen ist oder eine Pause läuft. */
+var WakeLock = (function(){
+  var lock = null;
+  function wanted(){ return document.visibilityState === "visible" && (document.body.classList.contains("is-training") || RestTimer.running); }
+  function update(){
+    if(!("wakeLock" in navigator)) return;
+    if(wanted()){
+      if(lock) return;
+      navigator.wakeLock.request("screen").then(function(l){
+        lock = l;
+        l.addEventListener("release", function(){ if(lock === l) lock = null; });
+        if(!wanted()) release();
+      }).catch(function(){});
+    } else release();
+  }
+  function release(){ if(lock){ var l = lock; lock = null; l.release().catch(function(){}); } }
+  document.addEventListener("visibilitychange", update);
+  return { update:update };
+})();
 
 /* ============================================================
    6. Miniverlauf (letzte 3 Trainingsgewichte)
@@ -1609,6 +2306,8 @@ function buildHistory(exId){
   var isBW = !!(POOL[exId] && POOL[exId].bodyweight);
 
   if(!hist.length){
+    /* Ohne Verlauf bleibt die Zeile weg – weniger Text, kürzere Karte. */
+    wrap.classList.add("is-empty");
     wrap.appendChild(h("span", { class:"hist-empty", text:"Noch kein Training erfasst" }));
     return wrap;
   }
@@ -1738,37 +2437,37 @@ function buildExercise(ex, idx){
     svg('circle',{cx:12,cy:12,r:9},ii);svg('path',{d:'M12 11v6m0-10v.1','stroke-linecap':'round'},ii);
     exerciseInfo.appendChild(ii);exerciseInfo.addEventListener('click',function(){StudioUI.openInfo(ex.catalogueId);});
   }
+  /* Sätze × Wiederholungen als ein Knopf; öffnet die Einstellung für beides. */
+  var specBtn = h("button", { class:"spec-chip", type:"button", text:(ex.sets != null ? ex.sets : "–") + "×" + repsText(ex),
+    "aria-label":"Sätze und Wiederholungen ändern — " + ex.n + ", aktuell " + (ex.sets != null ? ex.sets : "–") + " Sätze, " + repsText(ex) + " Wiederholungen" });
+  specBtn.addEventListener("click", function(){ openSpec(ex.id, "both"); });
+
+  /* Ergebnis der eingeloggten Übung (Gewicht + Tendenz). Zugeklappt ist das
+     die ganze Karte; Antippen klappt sie wieder auf. */
+  var doneSum = h("button", { class:"ex-sum", type:"button" });
+  doneSum.addEventListener("click", function(){ toggleOpen(); });
   card.appendChild(h("div", { class:"ex-head" }, [
     idxWrap,
-    h("h3", { class:"ex-name" }, [buildTrendHint(ex.id), document.createTextNode(ex.n)]),
-    exerciseInfo, swapBtn
+    h("h3", { class:"ex-name", text:ex.n }),
+    doneSum,
+    exerciseInfo, RestTimer.button(ex.id), swapBtn
   ]));
 
   wireReorderHandle(idxHit, card, ex);
 
-  /* Sätze und Wiederholungen getrennt — beide antippbar. */
   var meta = h("div", { class:"ex-meta" });
-
-  var setsBtn = h("button", { class:"spec-chip", type:"button",
-    "aria-label":"Sätze ändern — " + ex.n + ", aktuell " + (ex.sets != null ? ex.sets : "–") });
-  setsBtn.appendChild(h("strong", { text:ex.sets != null ? String(ex.sets) : "–" }));
-  setsBtn.appendChild(document.createTextNode(ex.sets === 1 ? " Satz" : " Sätze"));
-  setsBtn.addEventListener("click", function(){ openSpec(ex.id, "sets"); });
-  meta.appendChild(setsBtn);
-
-  var repsBtn = h("button", { class:"spec-chip", type:"button",
-    "aria-label":"Wiederholungen ändern — " + ex.n + ", aktuell " + repsText(ex) });
-  repsBtn.appendChild(h("strong", { text:repsText(ex) }));
-  repsBtn.appendChild(document.createTextNode(" Whlg."));
-  repsBtn.addEventListener("click", function(){ openSpec(ex.id, "reps"); });
-  meta.appendChild(repsBtn);
-
-  if(ex.p){
+  if(ex.p && lastWeight(ex.id) == null){
     meta.appendChild(h("span", { class:"ex-plan",
       text:"Gewicht: " + ex.p + (ex.planTrend === "up" ? " · nächstes Mal steigern" : "") }));
   }
-  card.appendChild(meta);
-  card.appendChild(buildHistory(ex.id));
+  /* Alles unter dem Kopf klappt bei bestätigten Übungen weg. */
+  var moreIn = h("div", { class:"ex-more-in" });
+  var more = h("div", { class:"ex-more" }, [ moreIn ]);
+  card.appendChild(more);
+  /* Sätze × Wiederholungen und Vorschlag in einer Zeile unter dem Namen. */
+  moreIn.appendChild(h("div", { class:"ex-tags" }, [ specBtn, buildTrendHint(ex.id) ]));
+  if(meta.firstChild) moreIn.appendChild(meta);
+  moreIn.appendChild(buildHistory(ex.id));
 
   /* Gewicht — bei Bodyweight-Übungen Zusatzgewicht zum Körpergewicht: ein
      "+" davor macht das auf einen Blick klar, 0 bleibt ein echter Wert. */
@@ -1777,27 +2476,25 @@ function buildExercise(ex, idx){
   if(ex.bodyweight) field.appendChild(h("span", { class:"wfield-prefix", text:"+", "aria-hidden":"true" }));
   var input = h("input", {
     type:"text", inputmode:"decimal", autocomplete:"off", enterkeyhint:"done",
-    placeholder: last != null ? fmtKg(last) : "0",
+    placeholder: placeholderOf(ex.id),
     "aria-label": (ex.bodyweight ? "Zusatzgewicht zum Körpergewicht " : "Trainingsgewicht ") + ex.n + " in Kilogramm"
   });
   input.value = d.w || "";
   field.appendChild(input);
   field.appendChild(h("span", { class:"unit", text:"kg" }));
 
-  /* Haken bestätigt, dass die Übung absolviert ist. Bestätigte Werte
-     werden von „Letzte Gewichte übernehmen" nicht überschrieben. */
-  var check = h("button", { class:"ex-check", type:"button",
-    "aria-label":"Als absolviert bestätigen — " + ex.n });
+  /* Grüner Haken = eingeloggt (Gewicht + Tendenz). Reine Anzeige. */
+  var check = h("span", { class:"ex-check", role:"img", "aria-label":"Eingeloggt" });
   var ci = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
     "stroke-width":"2.6", "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
   svg("path", { d:"M4 12.5l5.5 5.5L20 7" }, ci);
   check.appendChild(ci);
 
-  /** "empty" | "sug" (blau, unbestätigt) | "done" (grün, bestätigt) */
+  /** "empty" | "sug" (blau, unvollständig) | "done" (grün, eingeloggt) */
   function draftState(){
     var cur = drafts[ex.id];
     if(!cur || (!cur.w && !cur.t)) return "empty";
-    return cur.sug ? "sug" : "done";
+    return isLogged(ex.id) ? "done" : "sug";
   }
   function syncCheck(){
     var state = draftState();
@@ -1805,21 +2502,36 @@ function buildExercise(ex, idx){
     field.classList.toggle("has-val", hasW);
     field.classList.toggle("is-sug",  hasW && state === "sug");
     field.classList.toggle("is-done", hasW && state === "done");
-    check.hidden = state === "empty";
-    check.setAttribute("aria-pressed", state === "done" ? "true" : "false");
-    check.title = state === "done" ? "Absolviert — antippen zum Zurücknehmen"
-                                   : "Als absolviert bestätigen";
+    check.hidden = state !== "done";
+    syncCollapse();
   }
+  var wasDone = null;
+  function syncCollapse(){
+    var done = draftState() === "done";
+    var cur = drafts[ex.id] || {};
+    var info = TRENDS.find(function(t){ return t.t === cur.t; });
+    var w = parseKg(cur.w);
+    if(w == null && ex.bodyweight) w = 0;
+    doneSum.textContent = (w != null ? (ex.bodyweight ? "+" : "") + fmtKg(w) + " kg" : "") + (info ? " " + info.gly : "");
+    doneSum.className = "ex-sum " + (cur.t || "none");
+    var collapsed = done && !openCards[ex.id];
+    if(done && wasDone === false){ pop(doneSum, [{ transform:"scale(.6)", opacity:0 }, { transform:"none", opacity:1 }]); pop(check, [{ transform:"scale(.5)" }, { transform:"none" }]); buzz(12); }
+    wasDone = done;
+    card.classList.toggle("is-done", done);
+    card.classList.toggle("is-collapsed", collapsed);
+    doneSum.hidden = !done;
+    doneSum.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    doneSum.setAttribute("aria-label", ex.n + ": " + doneSum.textContent + (collapsed ? " — aufklappen" : " — zuklappen"));
+    more.inert = collapsed;
+  }
+  function toggleOpen(){
+    if(draftState() !== "done") return;
+    if(openCards[ex.id]) delete openCards[ex.id]; else openCards[ex.id] = true;
+    syncCollapse();
+  }
+  /* Bestätigt (Haken oder Gewicht + Tendenz) → Karte klappt zu. */
+  function confirmed(){ delete openCards[ex.id]; }
   syncCheck();
-
-  check.addEventListener("click", function(){
-    var entry = drafts[ex.id];
-    if(!entry || (!entry.w && !entry.t)) return;
-    if(entry.sug) delete entry.sug; else entry.sug = true;
-    saveDrafts();
-    syncCheck();
-    updateSaveBar(DAY_OF_EX[ex.id].id);
-  });
 
   input.addEventListener("input", function(){
     var pos = input.selectionStart;
@@ -1829,11 +2541,8 @@ function buildExercise(ex, idx){
       input.value = clean;
       try { input.setSelectionRange(pos - (before.length - clean.length), pos - (before.length - clean.length)); } catch(e){}
     }
-    var had = drafts[ex.id] && drafts[ex.id].w;
     var entry = drafts[ex.id] || (drafts[ex.id] = {});
-    /* Neu getippter Wert ist zunächst unbestätigt; eine Korrektur an einem
-       bereits bestätigten Wert bleibt bestätigt. */
-    if(clean && !had) entry.sug = true;
+    delete entry.auto; delete entry.sug; delete entry.only;
     entry.w = clean;
     if(!clean && !entry.t) delete drafts[ex.id];
     saveDrafts();
@@ -1841,22 +2550,38 @@ function buildExercise(ex, idx){
     updateSaveBar(DAY_OF_EX[ex.id].id);
   });
 
+  /* Während der Eingabe bleibt die Karte offen; erst beim Verlassen des
+     Feldes klappt eine eingeloggte Übung zu. */
+  input.addEventListener("focus", function(){ openCards[ex.id] = true; });
+  input.addEventListener("change", function(){
+    if(!isLogged(ex.id)) return;
+    confirmed();
+    syncCheck();
+  });
+  input.addEventListener("keydown", function(e){ if(e.key === "Enter") input.blur(); });
+  card.querySelector(".ex-head").addEventListener("click", function(e){
+    if(e.target.closest("button,input,a")) return;
+    toggleOpen();
+  });
+
   var body = h("div", { class:"ex-body" }, [ h("div", { class:"ex-line" }, [ field, check ]) ]);
-  card.appendChild(body);
+  moreIn.appendChild(body);
 
   /* 3-Wege-Schalter */
   var seg = h("div", { class:"seg", role:"radiogroup", "aria-label":"Nächstes Training — " + ex.n });
   TRENDS.forEach(function(tr){
     var b = h("button", { type:"button", role:"radio", "data-t":tr.t, "aria-checked": d.t === tr.t ? "true" : "false" });
     b.appendChild(h("span", { class:"gly", text:tr.gly, "aria-hidden":"true" }));
-    b.appendChild(document.createTextNode(tr.label));
+    b.setAttribute("aria-label", tr.label);
+    b.title = tr.label;
     b.tabIndex = d.t === tr.t ? 0 : (d.t ? -1 : 0);
     b.addEventListener("click", function(){
-      var fresh = !drafts[ex.id];
       var entry = drafts[ex.id] || (drafts[ex.id] = {});
       var next = entry.t === tr.t ? null : tr.t;
       entry.t = next;
-      if(fresh && next) entry.sug = true;
+      delete entry.auto; delete entry.sug; delete entry.only;
+      /* Gewicht + Tendenz = eingeloggt. */
+      if(isLogged(ex.id)) confirmed();
       if(!entry.w && !next) delete drafts[ex.id];
       saveDrafts();
       syncCheck();
@@ -2064,19 +2789,24 @@ function beginReorderDrag(handle, card, ex, pointerId, initialClientY){
 /* ============================================================
    8. Trainingstag-Ansicht
    ============================================================ */
-/** Was aus einem Entwurf in die Einheit wandert — oder null.
-    Unbestätigte (blaue) Einträge gelten als nicht vorhanden. */
-function confirmedEntry(exId){
-  if(POOL[exId] && POOL[exId].empty) return null;
+/** Eingeloggt: Tendenz gewählt und Gewicht eingetragen (bei Körpergewicht
+    genügt die Tendenz). `only` = bewusst nur die Tendenz gespeichert. */
+function isLogged(exId){
+  var e = POOL[exId];
+  if(!e || e.empty) return false;
   var d = drafts[exId];
-  if(!d || d.sug) return null;
+  if(!d || !d.t) return false;
+  return parseKg(d.w) != null || !!e.bodyweight || !!d.only;
+}
+
+/** Was aus einem Entwurf in die Einheit wandert — oder null. */
+function confirmedEntry(exId){
+  if(!isLogged(exId)) return null;
+  var d = drafts[exId];
   var w = parseKg(d.w);
-  if(w == null && !d.t) return null;
-  /* Bodyweight-Übungen: ein leeres Feld heisst "nur Körpergewicht", nicht
-     "kein Gewicht" — 0 wird zum echten, gespeicherten Wert. "Nicht gemacht"
-     bleibt davon unabhängig: keine Bestätigung, gar kein Eintrag. */
-  if(w == null && POOL[exId] && POOL[exId].bodyweight) w = 0;
-  return { w:w, t:d.t || null };
+  /* Bodyweight-Übungen: ein leeres Feld heisst "nur Körpergewicht" — 0. */
+  if(w == null && POOL[exId].bodyweight) w = 0;
+  return { w:w, t:d.t };
 }
 
 function countFilled(day){
@@ -2085,28 +2815,15 @@ function countFilled(day){
   return n;
 }
 
-/** Bestätigt in einem Rutsch alles, was eingetragen, aber noch blau ist. */
-function confirmAllOf(day){
-  var n = 0;
-  day.ex.forEach(function(e){
+/** Selbst eingetragen, aber unvollständig (Gewicht ohne Tendenz oder
+    umgekehrt). Übernommene, unberührte Vorschläge zählen nicht. */
+function openEntriesOf(day){
+  return day.ex.filter(function(e){
     var d = drafts[e.id];
-    if(d && d.sug && (d.w || d.t)){ delete d.sug; n++; }
+    return !e.empty && d && !d.auto && !isLogged(e.id) && (parseKg(d.w) != null || !!d.t);
   });
-  if(!n){ toast("Nichts zu bestätigen"); return; }
-  saveDrafts();
-  rebuildAll();
-  toast(plural(n, "Übung", "Übungen") + " bestätigt");
 }
-
-/** Eingetragen, aber noch nicht bestätigt. */
-function countOpen(day){
-  var n = 0;
-  day.ex.forEach(function(e){
-    var d = drafts[e.id];
-    if(d && d.sug && (parseKg(d.w) != null || d.t)) n++;
-  });
-  return n;
-}
+function countOpen(day){ return openEntriesOf(day).length; }
 
 function updateSaveBar(dayId){
   var day = DAYS.filter(function(d){ return d.id === dayId; })[0];
@@ -2114,24 +2831,19 @@ function updateSaveBar(dayId){
   var btn = document.getElementById("save-" + dayId);
   var hint = document.getElementById("hint-" + dayId);
   var pre = document.getElementById("prefill-" + dayId);
-  var all = document.getElementById("confirmall-" + dayId);
   if(!btn) return;
   var n = countFilled(day);
   updateTrainingSummary(day,n);
-  if(all) all.disabled = countOpen(day) === 0;
-  btn.disabled = n === 0;
+  var discard = document.getElementById("discard-" + dayId);
+  if(discard) discard.disabled = !hasTrainingInput(dayId);
+  var open = countOpen(day);
+  btn.disabled = n === 0 && open === 0;
   btn.textContent = n === 0 ? "Einheit speichern" : "Einheit speichern (" + n + ")";
   if(hint){
-    var open = countOpen(day);
-    var openTxt = open
-      ? " " + (open === 1 ? "Ein blauer Wert ist" : open + " blaue Werte sind")
-        + " nicht bestätigt und " + (open === 1 ? "wird" : "werden") + " nicht gespeichert."
-      : "";
-    hint.textContent = n === 0
-      ? (open ? "Mit dem grünen Haken bestätigen, was du absolviert hast."
-              : "Trage mindestens ein Gewicht oder eine Tendenz ein.")
-      : n + " von " + day.ex.filter(function(e){ return !e.empty; }).length + " Übungen " + (n === 1 ? "wird" : "werden")
-        + " mit dem heutigen Datum gespeichert." + openTxt;
+    hint.textContent = (n || open)
+      ? n + " von " + day.ex.filter(function(e){ return !e.empty; }).length + " Übungen eingeloggt."
+        + (open ? " " + open + " unvollständig." : "")
+      : "Gewicht eintragen und Tendenz wählen.";
   }
   if(pre){
     var hasAny = day.ex.some(function(e){ return lastWeight(e.id) != null; });
@@ -2140,6 +2852,7 @@ function updateSaveBar(dayId){
   syncOverviewRunning();
 }
 
+var summaryCount={};
 function updateTrainingSummary(day,confirmed){
   var title=document.getElementById('summary-title-'+day.id);
   var progress=document.getElementById('summary-progress-'+day.id);
@@ -2154,8 +2867,9 @@ function updateTrainingSummary(day,confirmed){
   progress.setAttribute('aria-valuetext',text);
   progress.classList.toggle('is-continuous',total>12);
   if(!total) return;
+  var before=summaryCount[day.id];summaryCount[day.id]=confirmed;
   if(total<=12){
-    for(var i=0;i<total;i++) progress.appendChild(h('span',{class:'summary-segment'+(i<confirmed?' is-filled':''),'aria-hidden':'true'}));
+    for(var i=0;i<total;i++) progress.appendChild(h('span',{class:'summary-segment'+(i<confirmed?' is-filled':'')+(before!=null&&i>=before&&i<confirmed?' is-new':''),'aria-hidden':'true'}));
   } else {
     var fill=h('span',{class:'summary-fill','aria-hidden':'true'});
     fill.style.width=(confirmed / total * 100)+'%';
@@ -2186,7 +2900,7 @@ function buildDayView(day){
   svg("path", { d:"M3 12a9 9 0 1 0 3-6.7" }, ic);
   svg("path", { d:"M3 4v5h5" }, ic);
   pre.appendChild(ic);
-  pre.appendChild(document.createTextNode("Letzte Gewichte übernehmen"));
+  pre.appendChild(document.createTextNode("Vorschläge übernehmen"));
   /* Füllt ausschliesslich leere Felder — bereits eingetragene Werte, ob
      bestätigt oder nicht, bleiben unangetastet. Übernommene Werte sind
      unbestätigt (blau), bis der Haken gedrückt wird. */
@@ -2195,11 +2909,11 @@ function buildDayView(day){
     day.ex.forEach(function(e){
       var entry = drafts[e.id];
       if(entry && entry.w){ kept++; return; }
-      var w = lastWeight(e.id);
-      if(w == null) return;
+      var sug = suggestionOf(e.id);
+      if(!sug) return;
       entry = drafts[e.id] || (drafts[e.id] = {});
-      entry.w = fmtKg(w);
-      entry.sug = true;
+      entry.w = fmtKg(sug.w);
+      entry.auto = true;
       n++;
     });
     saveDrafts();
@@ -2219,25 +2933,48 @@ function buildDayView(day){
   var plan = planById(day.planId);
   if(plan && !plan.builtin) view.appendChild(buildAddSlotRow(day));
 
-  var allBtn = h("button", { class:"btn-confirm-all", type:"button", id:"confirmall-"+day.id,
-    title:"Alle eingetragenen Werte als absolviert bestätigen",
-    "aria-label":"Alle eingetragenen Werte bestätigen — " + day.name });
-  var ai = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
-    "stroke-width":"2.6", "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
-  svg("path", { d:"M4 12.5l5.5 5.5L20 7" }, ai);
-  allBtn.appendChild(ai);
-  allBtn.appendChild(h("span", { text:"Alle" }));
-  allBtn.addEventListener("click", function(){ confirmAllOf(day); });
-
   var saveBtn = h("button", { class:"btn-primary", type:"button", id:"save-"+day.id, text:"Einheit speichern" });
   saveBtn.addEventListener("click", function(){ saveDay(day); });
 
+  var discardBtn = h("button", { class:"btn-discard", type:"button", id:"discard-"+day.id,
+    title:"Training verwerfen", "aria-label":"Training verwerfen — " + day.name });
+  var di = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
+    "stroke-width":"2.6", "stroke-linecap":"round", "aria-hidden":"true" });
+  svg("path", { d:"M6 6l12 12M18 6L6 18" }, di);
+  discardBtn.appendChild(di);
+  discardBtn.addEventListener("click", function(){ discardDay(day); });
+
+  var homeBtn = h("button", { class:"btn-home", type:"button", title:"Übersicht", "aria-label":"Zur Übersicht" });
+  var hi = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
+    "stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
+  (TAB_ICONS.overview || TAB_ICONS.default).forEach(function(d){ svg("path", { d:d }, hi); });
+  homeBtn.appendChild(hi);
+  homeBtn.addEventListener("click", function(){
+    goTo(PLANS.length ? "overview" : "progress");
+  });
+
   view.appendChild(h("div", { class:"save-bar" }, [
-    h("div", { class:"save-row" }, [ allBtn, saveBtn ]),
-    h("p", { class:"save-hint", id:"hint-"+day.id })
+    h("div", { class:"save-row" }, [ homeBtn, discardBtn, saveBtn ]),
+    h("p", { class:"save-hint vh", id:"hint-"+day.id })
   ]));
 
   return view;
+}
+
+/** Verwirft alle Eingaben des Trainingstags; 5 s lang rückgängig zu machen. */
+function discardDay(day){
+  var kept = {};
+  day.ex.forEach(function(e){ if(drafts[e.id]){ kept[e.id] = drafts[e.id]; delete drafts[e.id]; delete openCards[e.id]; } });
+  if(!Object.keys(kept).length) return;
+  saveDrafts();
+  if(ui.activeTraining && ui.activeTraining.planId === activePlanId && ui.activeTraining.dayId === day.id){ ui.activeTraining = null; saveUi(); }
+  rebuildAll();
+  if(navigator.vibrate) try{ navigator.vibrate(30); }catch(e){}
+  toast("Training verworfen", { label:"Rückgängig", run:function(){
+    Object.keys(kept).forEach(function(id){ if(!drafts[id]) drafts[id] = kept[id]; });
+    saveDrafts();
+    rebuildAll();
+  }});
 }
 
 /** Ab dieser relativen Abweichung zum letzten Gewicht wird nachgefragt. */
@@ -2280,7 +3017,43 @@ function outlierNode(list){
   return box;
 }
 
+/** Unvollständige Übungen gehen nicht still verloren: Gewicht ohne Tendenz
+    wird auf Nachfrage als „Halten“ gespeichert, Tendenz ohne Gewicht als
+    reine Tendenz. */
 function saveDay(day){
+  var open = openEntriesOf(day);
+  if(open.length){
+    var list = h("ul", { class:"odd-list" });
+    open.forEach(function(e){
+      var d = drafts[e.id];
+      list.appendChild(h("li", { class:"odd" }, [
+        h("span", { class:"odd-name", text:e.n }),
+        h("span", { class:"odd-pct", text:d.t ? "ohne Gewicht" : "\u25CF Halten" })
+      ]));
+    });
+    askConfirm({
+      title: open.length === 1 ? "Übung unvollständig" : open.length + " Übungen unvollständig",
+      lead: "Fehlende Tendenz wird als „Halten“ gespeichert.",
+      node: list,
+      okLabel: "Speichern",
+      cancelLabel: "Zurück"
+    }).then(function(ok){
+      if(!ok) return;
+      open.forEach(function(e){
+        var d = drafts[e.id];
+        if(!d) return;
+        if(!d.t) d.t = "hold";
+        if(parseKg(d.w) == null && !e.bodyweight) d.only = true;
+      });
+      saveDrafts();
+      saveConfirmed(day);
+    });
+    return;
+  }
+  saveConfirmed(day);
+}
+
+function saveConfirmed(day){
   var date = todayISO();
   var entries = {};
   var count = 0;
@@ -2291,7 +3064,7 @@ function saveDay(day){
     count++;
   });
   if(!count){
-    toast(countOpen(day) ? "Noch nichts bestätigt — Haken drücken" : "Keine Eingaben zum Speichern");
+    toast("Keine Eingaben zum Speichern");
     return;
   }
 
@@ -2318,7 +3091,13 @@ function commitDay(day, date, entries, count){
   }
   var session;
   if(existing){
-    for(var k in entries) existing.entries[k] = entries[k];
+    /* Eine nachträglich gesetzte Tendenz ohne Gewicht ergänzt den schon
+       gespeicherten Eintrag von heute, statt dessen Gewicht zu löschen. */
+    for(var k in entries){
+      var prev = existing.entries[k];
+      if(entries[k].w == null && prev && prev.w != null) entries[k].w = prev.w;
+      existing.entries[k] = entries[k];
+    }
     session = existing;
   } else {
     session = { date:date, dayId:day.id, entries:entries };
@@ -2342,18 +3121,23 @@ function commitDay(day, date, entries, count){
       inp.closest(".wfield").classList.remove("has-val", "is-sug", "is-done");
       var chk = card.querySelector(".ex-check");
       if(chk){ chk.hidden = true; chk.setAttribute("aria-pressed", "false"); }
-      var w = lastWeight(e.id);
-      inp.placeholder = w != null ? fmtKg(w) : "0";
+      delete openCards[e.id];
+      card.classList.remove("is-done", "is-collapsed");
+      var sum = card.querySelector(".ex-sum");
+      if(sum) sum.hidden = true;
+      var more = card.querySelector(".ex-more");
+      if(more) more.inert = false;
+      inp.placeholder = placeholderOf(e.id);
       card.querySelectorAll(".seg button").forEach(function(b){ b.setAttribute("aria-checked","false"); b.tabIndex = 0; });
       refreshHistory(e.id);
-      var hint = view.querySelector('[data-trend-ex="' + CSS.escape(e.id) + '"]');
-      if(hint) hint.replaceWith(buildTrendHint(e.id));
+      refreshTrendHint(view, e.id);
     });
     var meta = view.querySelector(".day-meta");
     if(meta) meta.textContent = "Zuletzt " + DF_LONG.format(isoToDate(date));
   }
   updateSaveBar(day.id);
   renderProgress();
+  buzz(20);
   toast(plural(count, "Übung", "Übungen") + " gespeichert — " + DF_LONG.format(isoToDate(date)));
 }
 
@@ -2397,6 +3181,20 @@ function buildProgressView(){
   pick.appendChild(sel);
   view.appendChild(pick);
 
+  /* Zeitraum des Diagramms */
+  var range = h("div", { class:"range-chips", role:"radiogroup", "aria-label":"Zeitraum" });
+  RANGES.forEach(function(r){
+    var b = h("button", { type:"button", role:"radio", class:"range-chip", text:r.label, "data-range":r.id,
+      "aria-checked": (ui.range || "all") === r.id ? "true" : "false" });
+    b.addEventListener("click", function(){
+      ui.range = r.id; saveUi();
+      range.querySelectorAll("button").forEach(function(o){ o.setAttribute("aria-checked", o === b ? "true" : "false"); });
+      renderProgress();
+    });
+    range.appendChild(b);
+  });
+  view.appendChild(range);
+
   var card = h("div", { class:"card progress-card" });
   card.appendChild(h("div", { class:"card-head", id:"chart-head" }, [
     h("h3", { id:"chart-title", text:"" }),
@@ -2419,19 +3217,25 @@ function buildProgressView(){
   log.appendChild(h("div", { id:"log-body" }));
   view.appendChild(log);
 
-  var tools = h("div", { class:"data-tools" });
-  var bExp = h("button", { type:"button", text:"Daten exportieren" });
-  var bImp = h("button", { type:"button", text:"Daten importieren" });
-  bExp.addEventListener("click", exportData);
-  bImp.addEventListener("click", importData);
-  tools.appendChild(bExp); tools.appendChild(bImp);
-  view.appendChild(tools);
-  view.appendChild(h("p", { class:"tools-hint", text:"Alle Daten liegen offline auf diesem Gerät. Export sichert sie als JSON-Datei." }));
 
   return view;
 }
 
 var hiddenSeries = {};
+
+const RANGES = [
+  { id:"3m", label:"3 M", days:92 },
+  { id:"6m", label:"6 M", days:183 },
+  { id:"1y", label:"1 J", days:366 },
+  { id:"all", label:"Alle", days:null }
+];
+/** Punkte im gewählten Zeitraum (ui.range). */
+function inRange(points){
+  var r = RANGES.find(function(x){ return x.id === (ui.range || "all"); });
+  if(!r || !r.days) return points;
+  var cut = new Date(); cut.setHours(0,0,0,0); cut.setDate(cut.getDate() - r.days);
+  return points.filter(function(p){ return isoToDate(p.date) >= cut; });
+}
 
 function collectSeries(){
   var metric = ui.metric || "day:total";
@@ -2449,7 +3253,7 @@ function collectSeries(){
     return {
       title: ex.n,
       sub: bits.join(" · "),
-      series: [{ id:ex.id, name:ex.n, slot:0, points:historyOf(ex.id) }]
+      series: [{ id:ex.id, name:ex.n, slot:0, points:inRange(historyOf(ex.id)) }]
     };
   }
   var day = DAYS.filter(function(d){ return d.id === parts[1]; })[0] || DAYS[0];
@@ -2458,7 +3262,7 @@ function collectSeries(){
   return {
     title: day.name,
     sub: filled.length + " Übungen · Gewichtsverlauf",
-    series: filled.map(function(e, i){ return { id:e.id, name:e.n, slot:i % 8, points:historyOf(e.id) }; })
+    series: filled.map(function(e, i){ return { id:e.id, name:e.n, slot:i % 8, points:inRange(historyOf(e.id)) }; })
   };
 }
 
@@ -2480,7 +3284,15 @@ function renderProgress(){
   var data = collectSeries();
 
   document.getElementById("chart-title").textContent = data.title;
-  document.getElementById("chart-sub").textContent = data.sub;
+  var sub = data.sub;
+  if(data.series.length === 1 && data.series[0].points.length){
+    var pts = data.series[0].points, best = pts.reduce(function(a, b){ return b.w >= a.w ? b : a; });
+    var bw = POOL[data.series[0].id] && POOL[data.series[0].id].bodyweight ? "+" : "";
+    var diff = Math.round((pts[pts.length-1].w - pts[0].w) * 1000) / 1000;
+    sub = "Bestwert " + bw + fmtKg(best.w) + " kg · " + DF_SHORT.format(isoToDate(best.date))
+      + (pts.length > 1 ? " · " + (diff > 0 ? "+" : diff < 0 ? "−" : "±") + fmtKg(Math.abs(diff)) + " kg im Zeitraum" : "");
+  }
+  document.getElementById("chart-sub").textContent = sub;
 
   var visible = data.series.filter(function(s){ return !hiddenSeries[s.id]; });
   var withData = visible.filter(function(s){ return s.points.length > 0; });
@@ -2588,6 +3400,11 @@ function drawChart(wrap, series, totalSeries){
         fill:col, stroke:"var(--surface-1)", "stroke-width":"2"
       }, s);
     });
+    if(series.length === 1 && pts.length > 1){
+      var bi = 0;
+      pts.forEach(function(p, i){ if(p.w >= pts[bi].w) bi = i; });
+      svg("circle", { class:"best-ring", cx:pts[bi].x.toFixed(1), cy:pts[bi].y.toFixed(1), r:"8", fill:"none", stroke:col, "stroke-width":"1.5", opacity:"0.6" }, s);
+    }
     if(directLabels && pts.length){
       var lastP = pts[pts.length-1];
       var lab = svg("text", {
@@ -3034,11 +3851,11 @@ function openSpec(exId, which){
   while(fields.firstChild) fields.removeChild(fields.firstChild);
 
   document.getElementById("spec-dlg-title").textContent =
-    which === "sets" ? "Sätze" : "Wiederholungen";
+    which === "sets" ? "Sätze" : which === "reps" ? "Wiederholungen" : "Sätze & Wiederholungen";
   document.getElementById("spec-dlg-lead").textContent = ex.n;
   document.getElementById("spec-hint").textContent =
     which === "sets" ? "Enter übernimmt, daneben tippen bricht ab."
-                     : "Für eine feste Zahl beide Felder gleich setzen. Enter übernimmt.";
+                     : "Feste Zahl: beide Felder gleich. Enter übernimmt.";
 
   function numField(label, value, ref){
     var wrap = h("label", { class:"spec-f" });
@@ -3057,6 +3874,12 @@ function openSpec(exId, which){
   var inputs = [];
   if(which === "sets"){
     numField("Anzahl", ex.sets, inputs);
+  } else if(which === "both"){
+    numField("Sätze", ex.sets, inputs);
+    fields.appendChild(h("span", { class:"spec-dash", text:"×" }));
+    numField("Whlg. von", ex.rmin, inputs);
+    fields.appendChild(h("span", { class:"spec-dash", text:"–" }));
+    numField("bis", ex.rmax != null ? ex.rmax : ex.rmin, inputs);
   } else {
     numField("von", ex.rmin, inputs);
     fields.appendChild(h("span", { class:"spec-dash", text:"–" }));
@@ -3070,6 +3893,10 @@ function openSpec(exId, which){
       return;
     }
     if(which === "sets") setSpec(exId, { sets:vals[0] });
+    else if(which === "both"){
+      var lo2 = Math.min(vals[1], vals[2]), hi2 = Math.max(vals[1], vals[2]);
+      setSpec(exId, { sets:vals[0], rmin:lo2, rmax:hi2 > lo2 ? hi2 : null });
+    }
     else {
       var lo = Math.min(vals[0], vals[1]), hi = Math.max(vals[0], vals[1]);
       setSpec(exId, { rmin:lo, rmax:hi > lo ? hi : null });
@@ -3097,6 +3924,8 @@ function setSpec(exId, patch){
     rmin: patch.rmin != null ? patch.rmin : (cur.rmin != null ? cur.rmin : ex.rmin),
     rmax: ("rmax" in patch) ? patch.rmax : (("rmax" in cur) ? cur.rmax : ex.rmax)
   };
+  var rest = patch.rest != null ? patch.rest : cur.rest;
+  if(rest != null) next.rest = rest;
   exSpec[exId] = next;
   savePlan();
   applyPlan();
@@ -3455,6 +4284,7 @@ function renderPlanBar(){
     "stroke-width":"2.2", "stroke-linecap":"round", "aria-hidden":"true" });
   svg("path", { d:"M12 5v14M5 12h14" }, pi);
   add.appendChild(pi);
+  add.appendChild(h("span", { text:"Neuer Plan" }));
   add.addEventListener("click", openNewPlan);
   bar.appendChild(add);
 
@@ -4449,7 +5279,8 @@ const Sync = (function(){
       if(unsubPlan){ unsubPlan(); unsubPlan = null; }
       try { await M.F.signOut(M.auth); } catch(e){failure(e);if(context())subscribe();}
     },
-    storageChanged: function(){stop();uid=null;location.reload();}
+    storageChanged: function(){stop();uid=null;location.reload();},
+    reloadOutbox: function(){outbox=store.read(K_OUTBOX,{});}
   };
 })();
 
@@ -4467,8 +5298,13 @@ const SYNC_CHIP = {
 function renderChip(){
   var meta = SYNC_CHIP[Sync.state.status] || SYNC_CHIP.unconfigured;
   document.getElementById("sync-dot").className = "sync-dot " + meta.dot;
-  document.getElementById("sync-label").textContent = meta.label;
+  var md = document.getElementById("menu-dot");
+  if(md) md.className = "sync-dot " + meta.dot;
+  var mb = document.getElementById("menu-btn");
+  if(mb) mb.setAttribute("aria-label", "Menü: Pläne, Farben, Sync (" + meta.label + ") und Daten");
+  document.getElementById("sync-label").textContent = "Sync";
   document.getElementById("sync-chip").setAttribute("aria-label", "Geräte-Sync: " + meta.label);
+  document.getElementById("sync-chip").title = meta.label;
 }
 
 /* Schritt-für-Schritt-Anleitung. Die Beschriftungen der Firebase-Konsole
@@ -4667,8 +5503,7 @@ function buildTabs(){
     b.appendChild(ic);
     b.appendChild(h("span", { text:it.label }));
     b.addEventListener("click", function(){
-      showTab(it.id);
-      window.scrollTo({ top:0, behavior:"auto" });
+      goTo(it.id);
     });
     bar.appendChild(b);
   });
@@ -4679,6 +5514,9 @@ function showTab(id,options){
   if(options.startTraining!==false&&dayById(id))markTraining(id);
   document.body.classList.toggle('has-carbon',PLANS.length>0);
   document.body.classList.toggle('is-overview',id==='overview'&&PLANS.length>0);
+  // Im Training zählen nur die Übungen: keine Kopfleiste, keine Tableiste.
+  document.body.classList.toggle('is-training',!!dayById(id));
+  WakeLock.update();
   document.querySelectorAll(".view").forEach(function(v){ v.classList.toggle("is-active", v.getAttribute("data-view") === id); });
   document.querySelectorAll(".tabbar button").forEach(function(b){ b.setAttribute("aria-selected", b.id === "tab-"+id ? "true" : "false"); });
   ui.tab = id;if(DAYS.some(function(d){return d.id===id;}))ui.lastTrainingTab=id;saveUi();
@@ -4716,7 +5554,7 @@ window.addEventListener('popstate',function(event){
     window.history.pushState(navigationState(ui.tab,ui.tab!=='overview'),'');return;
   }
   var next=currentNavigation(event.state),view=next&&next.child&&(next.view==='progress'||dayById(next.view))?next.view:'overview';
-  showTab(view,{history:false});window.scrollTo({top:0,behavior:'auto'});
+  goTo(view,{history:false});
   if(!next)window.history.replaceState(navigationState(view,false),'');
 });
 window.addEventListener('pagehide',rememberTrainingPosition);
@@ -4738,12 +5576,10 @@ function refreshFromData(){
     }
     day.ex.forEach(function(e){
       refreshHistory(e.id);
-      var hint = view.querySelector('[data-trend-ex="' + CSS.escape(e.id) + '"]');
-      if(hint) hint.replaceWith(buildTrendHint(e.id));
+      refreshTrendHint(view, e.id);
       var inp = view.querySelector('.ex[data-ex="' + CSS.escape(e.id) + '"] input');
       if(inp && document.activeElement !== inp){
-        var w = lastWeight(e.id);
-        inp.placeholder = w != null ? fmtKg(w) : "0";
+        inp.placeholder = placeholderOf(e.id);
       }
     });
     updateSaveBar(day.id);
@@ -4754,12 +5590,14 @@ function refreshFromData(){
 function buildOverviewView(){
   var view=h('section',{class:'view',id:'panel-overview','data-view':'overview',role:'tabpanel','aria-labelledby':'tab-overview'});
   var head=h('div',{class:'overview-head'}),plan=planById(activePlanId);
-  head.appendChild(h('div',{class:'overview-eyebrow',text:plan?plan.name:'MinMax'}));
+  var eyebrow=h('button',{type:'button',class:'overview-eyebrow',text:plan?plan.name:'MinMax','aria-label':'Trainingsplan wechseln — aktuell '+(plan?plan.name:'MinMax')});
+  eyebrow.addEventListener('click',openMenu);head.appendChild(eyebrow);
   head.appendChild(h('h2',{text:'Dein Training'}));
   var actions=h('div',{class:'overview-actions'},[h('p',{text:'Wähle deinen Trainingstag.'})]);
   var progress=h('button',{class:'overview-progress',type:'button',text:'Fortschritt'}),ic=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.8','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'});
-  svg('path',{d:'M4 19h16M6 15l4-5 3 3 5-7'},ic);progress.prepend(ic);progress.addEventListener('click',function(){showTab('progress');window.scrollTo({top:0,behavior:'auto'});});actions.appendChild(progress);head.appendChild(actions);view.appendChild(head);
-  view.appendChild(h('div',{class:'day-overview-grid',id:'day-overview-grid'}));return view;
+  svg('path',{d:'M4 19h16M6 15l4-5 3 3 5-7'},ic);progress.prepend(ic);progress.addEventListener('click',function(){goTo('progress');});actions.appendChild(progress);head.appendChild(actions);view.appendChild(head);
+  view.appendChild(h('div',{class:'day-overview-grid',id:'day-overview-grid'}));
+  view.appendChild(h('div',{class:'train-cal',id:'train-cal'}));return view;
 }
 
 function overviewFingerprint(){
@@ -4778,7 +5616,45 @@ function syncOverviewRunning(){
   });
   grid.dataset.overviewFingerprint=overviewFingerprint();
 }
+/** „Heute“, „Gestern“, „Vor 5 Tagen“, ab 2 Wochen „Vor 3 Wochen“. */
+function relDay(iso){
+  var t=new Date();t.setHours(0,0,0,0);
+  var d=Math.round((t-isoToDate(iso))/864e5);
+  if(d<=0)return 'Heute';if(d===1)return 'Gestern';if(d<14)return 'Vor '+d+' Tagen';
+  var w=Math.round(d/7);return w<9?'Vor '+w+' Wochen':'Vor '+Math.round(d/30)+' Monaten';
+}
+var calShown=null;
+/** Kalenderleiste: die letzten 6 Wochen (Mo–So), trainierte Tage gefüllt. */
+function renderTrainingCalendar(){
+  var box=document.getElementById('train-cal');if(!box)return;
+  var trained={};
+  sessions.forEach(function(s){if(s.entries&&Object.keys(s.entries).length){var d=dayById(s.dayId)||BASE_DAYS.find(function(b){return b.id===s.dayId;});(trained[s.date]=trained[s.date]||[]).push(d?d.name:s.dayId);}});
+  var today=new Date();today.setHours(0,0,0,0);
+  var start=new Date(today);start.setDate(start.getDate()-((start.getDay()+6)%7)-35);
+  var iso=function(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+  var count=0,grid=h('div',{class:'cal-grid',role:'img'});
+  var wd=h('div',{class:'cal-wds','aria-hidden':'true'});
+  ['M','D','M','D','F','S','S'].forEach(function(l,j){wd.appendChild(h('span',{class:'cal-wd'+(j>4?' is-weekend':''),text:l}));});
+  for(var i=0;i<42;i++){
+    var d=new Date(start);d.setDate(start.getDate()+i);var k=iso(d),names=trained[k];
+    if(names)count++;
+    var cell=h('span',{class:'cal-day'+(names?' is-trained':'')+(k===iso(today)?' is-today':'')+(d>today?' is-future':'')+(i%7>4?' is-weekend':'')});
+    if(names)cell.appendChild(h('i'));
+    cell.title=DF_LONG.format(d)+(names?': '+names.join(', '):'');
+    grid.appendChild(cell);
+  }
+  grid.setAttribute('aria-label',count+' Trainings in den letzten 6 Wochen');
+  var num=h('strong',{text:String(count)});
+  box.replaceChildren(h('div',{class:'cal-head'},[num,h('span',{text:'6 Wochen'})]),h('div',{class:'cal-body'},[wd,grid]));
+  // Beim ersten Anzeigen zählt die Zahl kurz hoch.
+  if(calShown===null&&count>0&&!reducedMotion()&&window.requestAnimationFrame){
+    var t0=null;num.textContent='0';
+    (function step(t){t0=t0||t;var k=Math.min(1,(t-t0)/650),e=1-Math.pow(1-k,3);num.textContent=String(Math.round(count*e));if(k<1)requestAnimationFrame(step);})(performance.now());
+  }
+  calShown=count;
+}
 function refreshOverview(){
+  renderTrainingCalendar();
   var grid=document.getElementById('day-overview-grid');if(!grid)return;
   var fingerprint=overviewFingerprint();
   if(grid.dataset.overviewFingerprint===fingerprint)return;
@@ -4788,12 +5664,11 @@ function refreshOverview(){
   DAYS.forEach(function(day,i){
     var last=lastSessionOf(day.id),date=last?DF_LONG.format(isoToDate(last.date)):null,running=hasTrainingInput(day.id);
     var tile=h('button',{type:'button',class:'day-tile'+(running?' is-running':''),'data-overview-day':day.id,'aria-label':day.name+(running?', im Gange':'')+(date?', zuletzt am '+date:'')});
-    var top=h('span',{class:'day-tile-top','aria-hidden':'true'});top.appendChild(h('span',{class:'day-tile-number',text:String(i+1).padStart(2,'0')}));
-    var arrow=svg('svg',{class:'day-tile-arrow',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-linecap':'round','stroke-linejoin':'round'});svg('path',{d:'M5 12h14m-6-6 6 6-6 6'},arrow);top.appendChild(arrow);tile.appendChild(top);
+    var arrow=svg('svg',{class:'day-tile-arrow',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'});svg('path',{d:'M5 12h14m-6-6 6 6-6 6'},arrow);tile.appendChild(arrow);
     tile.appendChild(h('strong',{class:'day-tile-name',text:day.name}));
-    if(date){var line=h('span',{class:'day-tile-last'});line.appendChild(document.createTextNode('Zuletzt '));line.appendChild(h('time',{datetime:last.date,text:date}));tile.appendChild(line);}
+    if(date){var line=h('span',{class:'day-tile-last'});line.appendChild(h('span',{class:'day-tile-rel',text:relDay(last.date)}));line.appendChild(h('time',{datetime:last.date,text:date}));tile.appendChild(line);}
     if(running)tile.appendChild(h('span',{class:'day-tile-running',text:'im Gange'}));
-    tile.addEventListener('click',function(){showTab(day.id);window.scrollTo({top:0,behavior:'auto'});});grid.appendChild(tile);
+    tile.addEventListener('click',function(){goTo(day.id);});grid.appendChild(tile);
   });
   if(focus)Array.from(grid.children).some(function(tile){if(tile.getAttribute('data-overview-day')===focus){tile.focus({preventScroll:true});return true;}return false;});
 }
@@ -4831,6 +5706,11 @@ buildTabs();
 wireSyncUi();
 wireSwapUi();
 wireSpecUi();
+wireMenu();
+wireSheets();
+RestTimer.wire();
+RestTimer.resume();
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')RestTimer.resume();});
 wireFillSlotUi();
 wireNewPlanUi();
 wireColorUi();
@@ -4841,6 +5721,28 @@ showStartScreen();
 Sync.init();
 
 window.addEventListener('storage',function(e){if(e.key===store.metaKey){try{var m=JSON.parse(e.newValue||'null');if(m&&m.active!==store.owner)Sync.storageChanged();}catch(ignore){}}});
+/* Ein eingefrorenes Fenster der installierten App (oder ein zweiter Tab)
+   hält seinen alten Stand im Arbeitsspeicher. Beim Zurückkehren und bei
+   Änderungen aus einem anderen Fenster wird der gespeicherte Stand neu
+   geladen — sonst würden bereits gespeicherte Einheiten als offene Entwürfe
+   wieder auftauchen und beim nächsten Antippen zurückgeschrieben. */
+function refreshFromStore(){
+  if(!store.available||!store.isStale())return false;
+  var meta=store.read(store.metaKey,null);
+  if(meta&&meta.active!==store.owner){Sync.storageChanged();return true;}
+  var tab=ui.tab;
+  try{store.quietly(function(){
+    activateAccount(store.owner,{deferStart:true});Sync.reloadOutbox();RestTimer.resume();
+    // Stay on the page this window showed; only the data is refreshed.
+    if(tab&&tab!==ui.tab&&(dayById(tab)||tab==='progress'||(tab==='overview'&&PLANS.length)))showTab(tab,{history:false,startTraining:false});
+  });}catch(e){toast(e.message);}
+  return true;
+}
+store.onStale=function(e){refreshFromStore();toast(e.message);};
+window.addEventListener('storage',function(e){if(e.key&&e.key!==store.metaKey&&e.key.indexOf(store.metaKey.replace(/meta$/,'profile.'))===0)refreshFromStore();});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')refreshFromStore();});
+window.addEventListener('pageshow',function(){refreshFromStore();});
+window.addEventListener('focus',function(){refreshFromStore();});
 
 if(!store.available) toast("Speicher nicht verfügbar — Daten gehen beim Schließen verloren");
 
@@ -4852,9 +5754,30 @@ window.addEventListener("resize", function(){
   }, 150);
 });
 
+/* Neue Version: Der Service Worker übernimmt sofort (skipWaiting). Ein
+   länger offenes Fenster läuft aber noch mit dem alten Code weiter – dann
+   ein dauerhafter Hinweis mit „Neu laden“. Eingaben und eine laufende Pause
+   sind gespeichert und überstehen das Neuladen. */
+function showUpdateNotice(){
+  if(showUpdateNotice.shown) return;
+  showUpdateNotice.shown = true;
+  toast("Neue Version", { label:"Neu laden", run:function(){
+    try{ rememberTrainingPosition(); }catch(e){}
+    location.reload();
+  }}, 0);
+}
 if("serviceWorker" in navigator && location.protocol.indexOf("http") === 0){
+  var hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", function(){
+    if(hadController) showUpdateNotice();
+    hadController = true;
+  });
   window.addEventListener("load", function(){
-    navigator.serviceWorker.register("sw.js").catch(function(){});
+    navigator.serviceWorker.register("sw.js").then(function(reg){
+      function check(){ reg.update().catch(function(){}); }
+      document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") check(); });
+      setInterval(check, 60 * 60 * 1000);
+    }).catch(function(){});
   });
 }
 })();

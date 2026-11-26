@@ -4,7 +4,7 @@ const record={date:'2026-09-30',dayId:'total',entries:{[exercise]:{w:50,t:'hold'
  const a=await run({local:[record]});assert.equal(a.get('ui.tab'),'overview');
  a.get('showTab("total")');assert.equal(a.get('ui.activeTraining.dayId'),'total');
  const input=a.w.document.querySelector(`[data-ex="${exercise}"] input`);input.value='52';input.dispatchEvent(new a.w.Event('input',{bubbles:true}));
- a.w.document.querySelector(`[data-ex="${exercise}"] .ex-check`).click();
+ a.w.document.querySelector(`[data-ex="${exercise}"] .seg button[data-t="up"]`).click();
  const snapshot=a.snapshot();a.dom.window.close();
  const progress=await run({storage:snapshot});progress.get('showTab("progress")');const fromProgress=progress.snapshot();progress.dom.window.close();
  const continueDay=await run({storage:fromProgress});assert.equal(continueDay.get('ui.tab'),'total','Progress does not end an unfinished workout');continueDay.dom.window.close();

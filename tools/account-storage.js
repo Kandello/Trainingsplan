@@ -2,7 +2,7 @@
 function createAccountStore(){
   var prefix='trainingsplan.v3.accounts.minmax-workouttracker.', metaKey=prefix+'meta';
   var keys=['plan','customExercises','exerciseSpec','sessions','drafts','ui','plans','theme','colors','builderDraft','templates'].map(function(k){return 'trainingsplan.v1.'+k;}).concat(['trainingsplan.v2.recovery','trainingsplan.v2.outbox']);
-  var ok=true, owner='guest', profile={values:{}}, meta=null, error=null;
+  var ok=true, owner='guest', profile={values:{}}, meta=null, error=null, seen={}, staleHandler=null, quiet=0;
   function clone(v){return JSON.parse(JSON.stringify(v));}
   function readRaw(k,fallback){var raw=localStorage.getItem(k);return raw ? JSON.parse(raw) : fallback;}
   function profileKey(id){return prefix+'profile.'+encodeURIComponent(id);}
@@ -28,13 +28,34 @@ function createAccountStore(){
     owner=meta.active||'guest';profile=readRaw(profileKey(owner),{values:{}});
     if(!profile||!profile.values)throw new Error('Der lokale Kontobereich konnte nicht gelesen werden.');
   }catch(e){ok=false;error=e.message;profile={values:legacy};owner='legacy';meta=meta||{active:owner,legacyPending:meaningful(legacy),declined:{}};}
+  // Each value as this window last read or wrote it. Another window, or a
+  // frozen instance of the installed app, may have saved newer data since.
+  function text(values,k){var v=values?values[k]:undefined;return JSON.stringify(v===undefined?null:v);}
+  function stored(){return readRaw(profileKey(owner),{values:{}}).values||{};}
+  function mark(){var v=stored();seen={};keys.forEach(function(k){seen[k]=text(v,k);});}
+  function changed(){var v=stored();return keys.filter(function(k){return seen[k]!==text(v,k);});}
+  if(ok)try{mark();}catch(e){}
   function commit(p,id){try{writeRaw(profileKey(id),p);}catch(e){ok=false;error=e.message;throw new Error('Kontodaten konnten nicht gesichert werden. Der Abgleich bleibt angehalten.');}}
   function checkOwner(){var current=readRaw(metaKey,meta);if(current.active!==owner)throw new Error('Das Konto wurde in einem anderen Fenster gewechselt. Bitte die App neu laden.');}
   return {
     get available(){return ok;},get owner(){return owner;},get error(){return error;},metaKey:metaKey,
+    // Training data changed elsewhere; per-window view state (ui) alone does not count.
+    isStale:function(){try{return ok&&changed().some(function(k){return k!=='trainingsplan.v1.ui';});}catch(e){return false;}},
+    set onStale(fn){staleHandler=fn;},
+    // Rebuilding the view after another window saved must not write: this
+    // window may not see that window's latest writes yet.
+    quietly:function(fn){quiet++;try{return fn();}finally{quiet--;}},
     read:function(k,fallback){try{var v=keys.includes(k)?profile.values[k]:readRaw(k,null);return v==null?fallback:clone(v);}catch(e){return fallback;}},
-    write:function(k,v){if(!keys.includes(k)){if(ok)writeRaw(k,v);return;}if(!ok){profile.values[k]=clone(v);return;}checkOwner();var next=readRaw(profileKey(owner),profile);next.values[k]=clone(v);commit(next,owner);profile=next;},
-    activate:function(id){if(!ok)throw new Error(error||'Browser-Speicher nicht verfügbar.');var next=readRaw(profileKey(id),{values:{}});if(!next||!next.values)throw new Error('Kontodaten sind beschädigt; bitte die Sicherung verwenden.');commit(next,id);var m=readRaw(metaKey,meta);m.active=id;writeRaw(metaKey,m);meta=m;owner=id;profile=next;},
+    write:function(k,v){if(!keys.includes(k)){if(ok)writeRaw(k,v);return;}if(!ok||quiet){profile.values[k]=clone(v);return;}checkOwner();
+      // Drafts are rewritten as a whole: an outdated copy would bring back
+      // exercises that were already saved in another window.
+      if(k==='trainingsplan.v1.drafts'&&changed().includes(k)){var err=new Error('Die Daten wurden inzwischen in einem anderen Fenster gespeichert. Die Ansicht ist jetzt aktuell.');err.stale=true;if(staleHandler)staleHandler(err);throw err;}
+      var next=readRaw(profileKey(owner),profile);next.values[k]=clone(v);commit(next,owner);profile=next;seen[k]=text(next.values,k);},
+    activate:function(id){if(!ok)throw new Error(error||'Browser-Speicher nicht verfügbar.');var next=readRaw(profileKey(id),{values:{}});if(!next||!next.values)throw new Error('Kontodaten sind beschädigt; bitte die Sicherung verwenden.');
+      // Re-reading the active profile stays read-only: writing it back could
+      // overwrite a save another window has just made.
+      if(id===owner&&readRaw(metaKey,meta).active===id){profile=next;mark();return;}
+      commit(next,id);var m=readRaw(metaKey,meta);m.active=id;writeRaw(metaKey,m);meta=m;owner=id;profile=next;mark();},
     needsAssignment:function(id){var m=readRaw(metaKey,meta);return !!(m.legacyPending&&!(m.declined||{})[id]);},
     hasLegacy:function(){return !!readRaw(metaKey,meta).legacyPending;},
     decline:function(id){var m=readRaw(metaKey,meta);m.declined=m.declined||{};m.declined[id]=true;writeRaw(metaKey,m);meta=m;},

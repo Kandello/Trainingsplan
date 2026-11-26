@@ -10,9 +10,9 @@ const server=http.createServer((req,res)=>{
 });
 (async()=>{
  await new Promise(r=>server.listen(0,'127.0.0.1',r));fs.mkdirSync(path.join(root,'artifacts'),{recursive:true});
- const browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
+ const browser=await chromium.launch({executablePath:process.env.MINMAX_BROWSER||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
  try{for(const width of [360,412,1280]){
-  const context=await browser.newContext({viewport:{width,height:915},deviceScaleFactor:2,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
+  const context=await browser.newContext({viewport:{width,height:915},deviceScaleFactor:2,reducedMotion:'reduce',serviceWorkers:'block'}),page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await context.addInitScript(()=>{
    localStorage.setItem('trainingsplan.v1.ui',JSON.stringify({minMaxPlanEnabled:true,tab:'arms'}));
@@ -24,7 +24,7 @@ const server=http.createServer((req,res)=>{
   const check=async()=>{const m=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth+1,small:[...document.querySelectorAll('.day-tile,.tabbar button,.app-header button')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&(r.width<43.9||r.height<43.9);}).map(e=>e.textContent),clipped:[...document.querySelectorAll('.day-tile-name,.tabbar button span')].some(e=>e.scrollWidth>e.clientWidth+1),overlaps:[...document.querySelectorAll('.day-tile')].some(e=>{const a=e.getBoundingClientRect(),b=e.querySelector('strong').getBoundingClientRect();return b.left<a.left||b.right>a.right;})}));assert.equal(m.overflow,false);assert.deepEqual(m.small,[]);assert.equal(m.clipped,false);assert.equal(m.overlaps,false);};
   await check();await page.screenshot({path:path.join(root,'artifacts','overview-'+width+'.png'),animations:'disabled'});
   await page.locator('[data-overview-day="arms"]').focus();await page.keyboard.press('Enter');assert.equal(await page.locator('.view.is-active').getAttribute('data-view'),'arms');assert.equal(await page.locator('body').evaluate(b=>b.classList.contains('is-overview')),false);assert.equal(await page.locator('body').evaluate(b=>b.classList.contains('has-carbon')),true);
-  await page.getByRole('tab',{name:'Übersicht',exact:true}).click();assert.equal(await page.locator('body').evaluate(b=>b.classList.contains('is-overview')),true);
+  await page.locator('#panel-arms .btn-home').click();assert.equal(await page.locator('body').evaluate(b=>b.classList.contains('is-overview')),true);
   await page.evaluate(()=>window.__test("userPlans=[{id:'long',name:'Ein Plan mit fünf Tagen',days:Array.from({length:5},(_,i)=>({id:'long-'+i,name:i?'Tag '+(i+1):'Brust, Schultern und Trizeps — ein langer Trainingstag',base:[]}))}];rebuildPlanRegistry();switchPlan('long')"));
   assert.equal(await page.locator('.day-tile').count(),5);await check();assert.equal(await page.locator('.day-tile time').count(),0);
   await page.screenshot({path:path.join(root,'artifacts','overview-long-'+width+'.png'),animations:'disabled'});
