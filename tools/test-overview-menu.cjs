@@ -29,7 +29,7 @@ const ago=n=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-n);re
  assert.equal(tile('total').querySelector('.day-tile-rel').textContent,'Vor 2 Tagen');
  assert.equal(tile('upper').querySelector('.day-tile-rel').textContent,'Gestern');
  assert.equal(tile('lower').querySelector('.day-tile-rel').textContent,'Noch nie','Days never trained keep the same two lines');
- assert.equal(tile('lower').querySelector('.day-tile-last time').textContent,'–');
+ assert.equal(tile('lower').querySelector('.day-tile-date').textContent,'–');
  assert.equal(a.get(`relDay('${ago(0)}')`),'Heute');assert.equal(a.get(`relDay('${ago(21)}')`),'Vor 3 Wochen');
  // Calendar: 6 weeks of Monday–Sunday, trained days filled.
  const cells=doc.querySelectorAll('#train-cal .cal-day');assert.equal(cells.length,42);
