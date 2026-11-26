@@ -1025,6 +1025,44 @@ dialog.sheet .dlg-inner{padding-top:12px}
 .suggest.hold{--chip-bg:color-mix(in srgb,var(--hold) 7%,var(--surface-1));--chip-bd:color-mix(in srgb,var(--hold) 40%,transparent);background:none;border:0}
 .ex-sum,.ex-sum.up{--chip-bg:color-mix(in srgb,var(--good) 10%,var(--surface-1));--chip-bd:color-mix(in srgb,var(--good) 50%,transparent);background:none;border:0}
 .ex-head .ex-sum{margin:-6px 0}
+
+/* Runde 2: kompakter Kalender, Pausen, Beschriftung, Verlauf */
+.train-cal,.train-cal:is(*){display:block;padding:10px 12px 10px}
+.train-cal .cal-head,.train-cal .cal-head:is(*){flex-direction:row;align-items:baseline;justify-content:flex-start;gap:0;margin:0 0 6px;font-size:12px}
+.train-cal .cal-head strong{font-size:15px;line-height:1.2;font-weight:800;margin-right:4px}
+.cal-day,.cal-day.is-trained,.cal-day.is-future,.cal-day.is-today{box-sizing:border-box}
+.cal-wds,.cal-grid,.cal-wds:is(*),.cal-grid:is(*){grid-template-columns:repeat(7,1fr)}
+.cal-wd{font-size:9px}
+.cal-day,.cal-day.is-trained,.cal-day.is-future,.cal-day.is-today{height:13px}
+.cal-day i{width:4px;height:4px}
+.rest-presets{gap:6px;margin-top:10px}
+.rest-preset{min-height:40px;border-radius:10px;font-size:15px}
+.rest-adjust{margin:10px 0}
+.rest-step{min-height:40px}
+.btn-home[hidden]{display:none}
+.ex-tags{margin-top:10px;align-items:flex-end;gap:8px}
+.tag-col{display:flex;flex-direction:column;align-items:flex-start;gap:0}
+.tag-col:has(> [hidden]){display:none}
+.tag-lbl{font-size:10px;font-weight:700;letter-spacing:.03em;color:var(--muted);padding-left:4px;margin-bottom:-4px}
+.hist,.hist:is(*){padding:6px;gap:6px;min-height:0}
+.hist-vals,.hist-vals:is(*){flex:0 1 auto;justify-content:flex-start;gap:4px}
+.hitem,.hitem:is(*){align-items:center;padding:3px 6px;border:1px solid var(--border);border-radius:7px;background:var(--ex-bg);gap:0;min-width:38px}
+.hdate{font-size:9.5px}
+.hkg{font-size:12px}
+.hist .spark,.hist .delta{display:none}
+.hitem,.hitem:is(*){flex:1 1 0;max-width:56px;min-width:0;padding:3px 4px}
+.day-head,.day-head:is(*){display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.day-hist-btn{flex:0 0 auto;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:#ffffff1f;border:1px solid #ffffff40;color:#f8fbff;margin-top:2px}
+.day-hist-btn svg{width:22px;height:22px}
+.day-hist-btn:active{transform:scale(.94)}
+.dh-scroll{overflow-x:auto;margin:8px -4px 0;max-height:60vh}
+.dh-table{border-collapse:separate;border-spacing:3px;font-size:12px;font-variant-numeric:tabular-nums}
+.dh-table thead th{font-size:10px;color:var(--muted);font-weight:700;text-align:center}
+.dh-table tbody th{text-align:left;font-weight:650;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:4px;position:sticky;left:0;background:var(--surface-1)}
+.dh-table td{text-align:center;padding:4px 5px;border:1px solid var(--border);border-radius:6px;background:var(--ex-bg);white-space:nowrap;min-width:40px}
+.dh-t{font-size:8px;margin-left:2px}
+.dh-t.up{color:var(--good-text)}.dh-t.down{color:var(--critical)}.dh-t.hold{color:var(--hold)}
+#dayhist-dialog{background:var(--surface-1);color:var(--text-1)}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */
@@ -1198,6 +1236,13 @@ dialog#spec-dialog{border-color:var(--satin-frame);color:var(--text-1)}
     <div class="spec-fields" id="spec-fields"></div>
     <p class="dlg-note" id="spec-hint"></p>
   </form>
+</dialog>
+
+<dialog id="dayhist-dialog" class="sheet" aria-labelledby="dayhist-title">
+  <div class="dlg-inner">
+    <h2 id="dayhist-title">Verlauf</h2>
+    <div id="dayhist-body"></div>
+  </div>
 </dialog>
 
 <dialog id="rest-dialog" class="sheet" aria-labelledby="rest-dlg-title">
@@ -2054,7 +2099,7 @@ function wireMenu(){
    1 s Vibration. Zeitbasis ist der Endzeitpunkt (ui.restTimer), damit
    Sperren, App-Wechsel und Neuladen nichts verschieben.
    ============================================================ */
-const REST_PRESETS = [60, 90, 120, 180];
+const REST_PRESETS = [90, 120, 150, 180];
 const REST_MIN = 15, REST_MAX = 600;
 function fmtRest(sec){ sec = Math.max(0, Math.ceil(sec)); return Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0"); }
 
@@ -2302,7 +2347,7 @@ var WakeLock = (function(){
     Passt nicht alles in eine Zeile, fallen die ältesten Einträge weg (mind. 1). */
 function buildHistory(exId){
   var wrap = h("div", { class:"hist" });
-  var hist = historyOf(exId).slice(-3);
+  var hist = historyOf(exId).slice(-6);
   var isBW = !!(POOL[exId] && POOL[exId].bodyweight);
 
   if(!hist.length){
@@ -2335,7 +2380,7 @@ function buildHistory(exId){
     var item = h("span", { class:"hitem" + (i === hist.length-1 ? " hitem-last" : "") });
     item.appendChild(h("span", { class:"hdate", text:DF_TINY.format(isoToDate(p.date)) }));
     item.appendChild(h("span", { class:"hkg",
-      text:val + (i === hist.length-1 ? " kg" : "") }));
+      text:val }));
     item.title = DF_LONG.format(isoToDate(p.date)) + ": " + val + " kg";
     valsBox.appendChild(item);
   });
@@ -2465,7 +2510,10 @@ function buildExercise(ex, idx){
   var more = h("div", { class:"ex-more" }, [ moreIn ]);
   card.appendChild(more);
   /* Sätze × Wiederholungen und Vorschlag in einer Zeile unter dem Namen. */
-  moreIn.appendChild(h("div", { class:"ex-tags" }, [ specBtn, buildTrendHint(ex.id) ]));
+  moreIn.appendChild(h("div", { class:"ex-tags" }, [
+    h("div", { class:"tag-col" }, [ h("span", { class:"tag-lbl", text:"Whlg." }), specBtn ]),
+    h("div", { class:"tag-col" }, [ h("span", { class:"tag-lbl", text:"Gewicht" }), buildTrendHint(ex.id) ])
+  ]));
   if(meta.firstChild) moreIn.appendChild(meta);
   moreIn.appendChild(buildHistory(ex.id));
 
@@ -2877,6 +2925,41 @@ function updateTrainingSummary(day,confirmed){
   }
 }
 
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+/** Verlauf eines Trainingstags: Übungen als Zeilen, letzte Einheiten als Spalten. */
+function openDayHistory(day){
+  var dlg = document.getElementById("dayhist-dialog");
+  document.getElementById("dayhist-title").textContent = day.name;
+  var list = sessions.filter(function(s){ return s.dayId === day.id && s.entries && Object.keys(s.entries).length; })
+    .sort(function(a,b){ return a.date < b.date ? 1 : -1; }).slice(0, 8);
+  var box = document.getElementById("dayhist-body");
+  if(!list.length){ box.replaceChildren(h("p", { class:"hist-empty", text:"Noch kein Training erfasst" })); }
+  else {
+    var ids = day.ex.map(function(e){ return e.id; });
+    list.forEach(function(s){ Object.keys(s.entries).forEach(function(id){ if(ids.indexOf(id) < 0) ids.push(id); }); });
+    var tbl = h("table", { class:"dh-table" });
+    var hr = h("tr", null, [ h("th") ]);
+    list.forEach(function(s){ hr.appendChild(h("th", { text:DF_TINY.format(isoToDate(s.date)) })); });
+    tbl.appendChild(h("thead", null, [ hr ]));
+    var tb = h("tbody");
+    ids.forEach(function(id){
+      if(!list.some(function(s){ return s.entries[id]; })) return;
+      var tr = h("tr", null, [ h("th", { text:(POOL[id] || {}).n || id }) ]);
+      list.forEach(function(s){
+        var e = s.entries[id], info = e && TRENDS.find(function(t){ return t.t === e.t; });
+        var td = h("td");
+        if(e){ td.appendChild(document.createTextNode(((POOL[id] || {}).bodyweight ? "+" : "") + fmtKg(e.w))); if(info) td.appendChild(h("span", { class:"dh-t " + e.t, text:info.gly })); }
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+    box.replaceChildren(h("div", { class:"dh-scroll" }, [ tbl ]));
+  }
+  if(typeof dlg.showModal === "function"){ if(!dlg.open) dlg.showModal(); } else dlg.setAttribute("open", "");
+}
+
 function buildDayView(day){
   var view = h("section", { class:"view", "data-view":day.id, role:"tabpanel", id:"panel-"+day.id, "aria-labelledby":"tab-"+day.id, tabindex:"-1" });
 
@@ -2885,9 +2968,14 @@ function buildDayView(day){
   meta.textContent = lastS
     ? "Zuletzt " + DF_LONG.format(isoToDate(lastS.date))
     : "Noch kein Training erfasst";
+  var histBtn = h("button", { class:"day-hist-btn", type:"button", title:"Verlauf", "aria-label":"Verlauf " + day.name });
+  var hsv = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", "stroke-width":"1.9", "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
+  svg("path", { d:"M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3.5 2" }, hsv);
+  histBtn.appendChild(hsv);
+  histBtn.addEventListener("click", function(){ openDayHistory(day); });
   view.appendChild(h("div", { class:"day-head" }, [
-    h("h2", { text:day.name }),
-    meta
+    h("div", { class:"day-head-txt" }, [ h("h2", { text:day.name }), meta ]),
+    histBtn
   ]));
   view.appendChild(h('div',{class:'training-summary'},[
     h('p',{class:'summary-eyebrow',text:'DEIN TRAINING'}),
@@ -2944,7 +3032,9 @@ function buildDayView(day){
   discardBtn.appendChild(di);
   discardBtn.addEventListener("click", function(){ discardDay(day); });
 
+  /* Android hat die System-Zurück-Taste, iOS als Home-Bildschirm-App nicht. */
   var homeBtn = h("button", { class:"btn-home", type:"button", title:"Übersicht", "aria-label":"Zur Übersicht" });
+  homeBtn.hidden = !IS_IOS;
   var hi = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
     "stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
   (TAB_ICONS.overview || TAB_ICONS.default).forEach(function(d){ svg("path", { d:d }, hi); });
@@ -5645,7 +5735,7 @@ function renderTrainingCalendar(){
   }
   grid.setAttribute('aria-label',count+' Trainings in den letzten 6 Wochen');
   var num=h('strong',{text:String(count)});
-  box.replaceChildren(h('div',{class:'cal-head'},[num,h('span',{text:'6 Wochen'})]),h('div',{class:'cal-body'},[wd,grid]));
+  box.replaceChildren(h('div',{class:'cal-head'},[num,h('span',{text:count===1?' Training · 6 Wochen':' Trainings · 6 Wochen'})]),h('div',{class:'cal-body'},[wd,grid]));
   // Beim ersten Anzeigen zählt die Zahl kurz hoch.
   if(calShown===null&&count>0&&!reducedMotion()&&window.requestAnimationFrame){
     var t0=null;num.textContent='0';

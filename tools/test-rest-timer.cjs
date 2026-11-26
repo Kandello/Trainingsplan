@@ -31,7 +31,7 @@ const q=(a,id,sel)=>a.w.document.querySelector(`[data-ex="${id}"] ${sel}`);
  now+=105000;a.get('RestTimer.tick()');
  assert.deepEqual(vib,[1000]);assert.equal(a.get('ui.restTimer'),null);assert.equal(btn().classList.contains('is-running'),false);
  // A preset saves and starts at once; a second exercise replaces the running pause.
- a.get(`RestTimer.openSheet('${secondExercise}')`);a.w.document.querySelectorAll('.rest-preset')[2].click();
+ a.get(`RestTimer.openSheet('${secondExercise}')`);a.w.document.querySelectorAll('.rest-preset')[1].click();
  assert.equal(a.get(`exSpec['${secondExercise}'].rest`),120);assert.equal(a.get('ui.restTimer.exId'),secondExercise);
  btn().click();assert.equal(a.get('ui.restTimer.exId'),exercise,'Only one pause runs at a time');
  assert.equal(q(a,secondExercise,'.rest-btn').classList.contains('is-running'),false);

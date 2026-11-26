@@ -79,7 +79,7 @@ das Neuladen.
 
 Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs`, `node tools/test-motion.cjs`, `node tools/test-overview-menu.cjs`,
 `node tools/test-training-view.cjs`, `node tools/test-rest-timer.cjs`,
-`node tools/test-studio.cjs` und `node tools/test-stale-instance.cjs`.
+`node tools/test-round2.cjs`, `node tools/test-studio.cjs` und `node tools/test-stale-instance.cjs`.
 Kontotrennung: `node tools/test-accounts.cjs`; Browser-/Mehrtab-Prüfung:
 `node tools/preview-accounts.cjs`. Der echte lokale Regeltest läuft mit
 `node tools/run-account-rules.cjs` (Firebase CLI und Java 21; ausschließlich
