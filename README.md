@@ -32,8 +32,15 @@ Alle Oberflächentokens stehen gemeinsam in `index.html`; Geometrie, Daten und
 Sync werden dafür nicht geändert. Browserprüfungen und echte Screenshots mit
 Standard- und persönlichen Farben: `node tools/preview-surfaces.cjs`.
 
-Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs` und
-`node tools/test-studio.cjs`.
+Ein im Hintergrund eingefrorenes App-Fenster lädt beim Zurückkehren
+(Sichtbarkeit, Fokus, `pageshow`, `storage`) den gespeicherten Stand neu,
+ohne dabei selbst zu schreiben. Entwürfe aus einem veralteten Fenster werden
+nicht zurückgeschrieben; gespeicherte Einheiten tauchen so nicht erneut als
+„im Gange“ auf. Ist für eine noch blaue (unbestätigte) Übung eine Tendenz
+gewählt, fragt „Einheit speichern“ nach, statt sie zu verwerfen.
+
+Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs`,
+`node tools/test-studio.cjs` und `node tools/test-stale-instance.cjs`.
 Kontotrennung: `node tools/test-accounts.cjs`; Browser-/Mehrtab-Prüfung:
 `node tools/preview-accounts.cjs`. Der echte lokale Regeltest läuft mit
 `node tools/run-account-rules.cjs` (Firebase CLI und Java 21; ausschließlich
