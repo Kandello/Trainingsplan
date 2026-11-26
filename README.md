@@ -66,7 +66,13 @@ Fortschritt lässt sich der Zeitraum (3 M, 6 M, 1 J, Alle) wählen; bei einer
 Einzelübung stehen Bestwert und Veränderung im Zeitraum unter dem Titel, der
 Bestwert ist im Diagramm markiert.
 
-Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs`, `node tools/test-overview-menu.cjs`,
+Bewegung: Seitenwechsel laufen mit View Transitions (die Tageskachel wächst
+zur Tagesansicht), Dialoge kommen als Bottom-Sheets von unten und schliessen
+per Ziehen am Griff. Eingeloggte Übungen, Fortschrittssegmente und Hinweise
+federn kurz ein; Einloggen und Speichern geben eine kurze Vibration. Mit
+„Bewegung reduzieren“ im System entfallen alle Animationen.
+
+Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs`, `node tools/test-motion.cjs`, `node tools/test-overview-menu.cjs`,
 `node tools/test-training-view.cjs`, `node tools/test-rest-timer.cjs`,
 `node tools/test-studio.cjs` und `node tools/test-stale-instance.cjs`.
 Kontotrennung: `node tools/test-accounts.cjs`; Browser-/Mehrtab-Prüfung:

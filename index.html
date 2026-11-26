@@ -878,7 +878,6 @@ span.ex-check[hidden]{display:none}
 dialog.sheet{width:100%;max-width:520px;margin:auto auto 0;border:0;border-radius:22px 22px 0 0;padding:0;padding-bottom:env(safe-area-inset-bottom)}
 dialog.sheet::backdrop{background:rgba(6,22,40,.45)}
 dialog.sheet .dlg-inner{padding:18px 16px 16px}
-dialog.sheet[open]{animation:sheet-in .26s cubic-bezier(.2,.8,.2,1)}
 @keyframes sheet-in{from{transform:translateY(100%)}to{transform:none}}
 #rest-dialog{background:var(--surface-1);color:var(--text-1)}
 .rest-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
@@ -894,7 +893,7 @@ dialog.sheet[open]{animation:sheet-in .26s cubic-bezier(.2,.8,.2,1)}
 .rest-edge-line{fill:none;stroke-width:3.5;stroke-linecap:round;stroke-dasharray:1000;stroke-dashoffset:1000;filter:drop-shadow(0 0 4px rgba(127,176,227,.55))}
 .rest-edge.is-done{opacity:0;transition:opacity .8s .15s}
 @keyframes rest-draw{from{stroke-dashoffset:1000}to{stroke-dashoffset:0}}
-@media (prefers-reduced-motion:reduce){dialog.sheet[open]{animation:none}.rest-edge-line{filter:none}}
+@media (prefers-reduced-motion:reduce){.rest-edge-line{filter:none}}
 
 /* Pausentimer als kleine, dezente quadratische Kachel */
 .rest-btn{flex-direction:column;justify-content:center;gap:1px;width:46px;min-width:46px;height:46px;margin:-6px 0;padding:0;border:1px solid var(--border);border-radius:11px;background:var(--surface-1);color:var(--text-2);font-size:10.5px;line-height:1;box-shadow:0 1px 3px #172b440a}
@@ -973,6 +972,48 @@ dialog.sheet[open]{animation:sheet-in .26s cubic-bezier(.2,.8,.2,1)}
 
 /* Wochenende leicht abgesetzt */
 .cal-wd.is-weekend{color:var(--hold)}
+
+/* ---------- Phase 4: Bewegung ---------- */
+:root{--spring:cubic-bezier(.2,.8,.2,1)}
+@supports (transition-timing-function:linear(0,1)){:root{--spring:linear(0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 18.9%, 0.721 25.3%, 0.849 31.5%, 0.937 38.1%, 0.968 41.8%, 0.991 45.7%, 1.006 50.1%, 1.015 55%, 1.017 63.9%, 1.001)}}
+/* Seitenwechsel */
+html[data-vt] .view.is-active{animation:none}
+.view.is-active:not([data-view="progress"]) .day-head h2{view-transition-name:day-title}
+::view-transition-old(root){animation:vt-out .16s ease-in both}
+::view-transition-new(root){animation:vt-in .34s var(--spring) both}
+html[data-vt="out"]::view-transition-new(root){animation-name:vt-in-down}
+::view-transition-group(day-title){animation-duration:.4s;animation-timing-function:var(--spring)}
+::view-transition-old(day-title),::view-transition-new(day-title){height:100%;object-fit:none;object-position:left center}
+@keyframes vt-out{to{opacity:0}}
+@keyframes vt-in{from{opacity:0;transform:translateY(14px)}}
+@keyframes vt-in-down{from{opacity:0;transform:translateY(-10px)}}
+/* Bottom-Sheets: Ein- und Ausfahren, Griff, Ziehen */
+dialog.sheet,dialog.sheet#confirm-dialog,dialog.sheet#spec-dialog{width:100%;max-width:520px;margin:auto auto 0;border:0;border-radius:22px 22px 0 0;padding:0 0 env(safe-area-inset-bottom);background:var(--surface-1);box-shadow:0 -10px 40px #06162833}
+dialog.sheet{transform:translateY(105%);transition:transform .32s var(--spring),overlay .32s allow-discrete,display .32s allow-discrete}
+dialog.sheet[open]{transform:none}
+@starting-style{dialog.sheet[open]{transform:translateY(105%)}}
+dialog.sheet::backdrop{background:rgba(6,22,40,0);transition:background .25s,overlay .32s allow-discrete,display .32s allow-discrete}
+dialog.sheet[open]::backdrop{background:rgba(6,22,40,.45)}
+@starting-style{dialog.sheet[open]::backdrop{background:rgba(6,22,40,0)}}
+dialog.sheet.is-dragging{transition:none}
+.sheet-grip{width:40px;height:5px;margin:8px auto 0;border-radius:99px;background:#172b4426}
+dialog.sheet .dlg-inner{padding-top:12px}
+/* Mikro-Rückmeldungen */
+.seg button,.suggest,.ex-sum,.rest-btn,.btn-primary,.btn-discard,.btn-home,.day-tile,.menu-row,.plan-btn,.range-chip{transition:transform .28s var(--spring),background .15s,color .15s,border-color .15s,box-shadow .15s}
+.seg button:active{transform:scale(.9)}
+.day-tile:active{transform:scale(.97)}
+.menu-row:active,.plan-btn:active,.range-chip:active{transform:scale(.97)}
+.summary-segment{transition:background .25s}
+.summary-segment.is-new{animation:seg-fill .5s var(--spring)}
+@keyframes seg-fill{from{transform:scaleX(.3);opacity:.4}}
+.toast{transform:translate(-50%,18px);transition:opacity .2s,transform .38s var(--spring)}
+.toast.on{transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){
+  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
+  dialog.sheet,dialog.sheet::backdrop{transition:none}
+  .summary-segment.is-new{animation:none}
+  .toast{transition:opacity .2s}
+}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */
@@ -1127,7 +1168,7 @@ dialog#spec-dialog{border-color:var(--satin-frame);color:var(--text-1)}
 
 <nav class="tabbar" role="tablist" aria-label="Trainingstage"></nav>
 
-<dialog id="confirm-dialog" aria-labelledby="confirm-dlg-title">
+<dialog id="confirm-dialog" class="sheet" aria-labelledby="confirm-dlg-title">
   <div class="dlg-inner">
     <h2 id="confirm-dlg-title"></h2>
     <p class="dlg-lead" id="confirm-dlg-lead"></p>
@@ -1139,7 +1180,7 @@ dialog#spec-dialog{border-color:var(--satin-frame);color:var(--text-1)}
   </div>
 </dialog>
 
-<dialog id="spec-dialog" class="dlg-compact" aria-labelledby="spec-dlg-title">
+<dialog id="spec-dialog" class="dlg-compact sheet" aria-labelledby="spec-dlg-title">
   <form method="dialog" class="dlg-inner" id="spec-form">
     <h2 id="spec-dlg-title"></h2>
     <p class="dlg-lead" id="spec-dlg-lead"></p>
@@ -1888,6 +1929,83 @@ function toast(msg, action){
   toastTimer = setTimeout(function(){ el.classList.remove("on", "has-action"); }, action ? 5000 : 2600);
 }
 
+/* ============================================================
+   5a. Bewegung
+   ------------------------------------------------------------
+   Federkurve für kleine Rückmeldungen, View Transitions für Seiten-
+   wechsel (Tageskachel wächst zur Tagesansicht), Bottom-Sheets mit
+   Wischen zum Schliessen. „Bewegung reduzieren“ schaltet alles ab.
+   ============================================================ */
+const SPRING = "linear(0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 18.9%, 0.721 25.3%, 0.849 31.5%, 0.937 38.1%, 0.968 41.8%, 0.991 45.7%, 1.006 50.1%, 1.015 55%, 1.017 63.9%, 1.001)";
+function reducedMotion(){ return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); }
+/** Kleine Federbewegung per Web Animations API; still ohne Unterstützung. */
+function pop(el, frames, ms){
+  if(!el || !el.animate || reducedMotion()) return;
+  try{ el.animate(frames, { duration:ms || 380, easing:SPRING }); }
+  catch(e){ try{ el.animate(frames, { duration:ms || 380, easing:"cubic-bezier(.2,.8,.2,1)" }); }catch(ignore){} }
+}
+function buzz(ms){ if(navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){} }
+/** Seitenwechsel durch den Nutzer – mit Übergang, wenn der Browser ihn kann. */
+function goTo(id, opts){
+  opts = opts || {};
+  function apply(){ showTab(id, opts); window.scrollTo({ top:0, behavior:"auto" }); }
+  if(!document.startViewTransition || reducedMotion() || ui.tab === id){ apply(); return; }
+  var from = ui.tab, named = null, root = document.documentElement;
+  function mark(dayId){
+    var el = document.querySelector('[data-overview-day="' + CSS.escape(dayId) + '"] .day-tile-name');
+    if(el) el.style.viewTransitionName = "day-title";
+    return el;
+  }
+  if(from === "overview" && dayById(id)) named = mark(id);
+  root.dataset.vt = from === "overview" ? "in" : id === "overview" ? "out" : "side";
+  var vt;
+  try{
+    vt = document.startViewTransition(function(){
+      if(named){ named.style.viewTransitionName = ""; named = null; }
+      apply();
+      if(id === "overview" && dayById(from)) named = mark(from);
+    });
+  }catch(e){ delete root.dataset.vt; apply(); return; }
+  vt.finished.catch(function(){}).then(function(){
+    if(named) named.style.viewTransitionName = "";
+    delete root.dataset.vt;
+  });
+}
+/** Bottom-Sheets: Griff oben, nach unten ziehen schliesst. */
+function wireSheets(){
+  document.querySelectorAll("dialog.sheet").forEach(function(dlg){
+    if(dlg.querySelector(".sheet-grip")) return;
+    dlg.insertBefore(h("div", { class:"sheet-grip", "aria-hidden":"true" }), dlg.firstChild);
+    var startY = null, dy = 0, t0 = 0, id = null;
+    dlg.addEventListener("pointerdown", function(e){
+      var r = dlg.getBoundingClientRect();
+      if(e.clientY - r.top > 48 || e.target.closest("input,select,textarea")) return;
+      startY = e.clientY; dy = 0; t0 = Date.now(); id = e.pointerId;
+      try{ dlg.setPointerCapture(id); }catch(ignore){}
+      dlg.classList.add("is-dragging");
+    });
+    dlg.addEventListener("pointermove", function(e){
+      if(startY === null) return;
+      dy = Math.max(0, e.clientY - startY);
+      dlg.style.transform = "translateY(" + dy + "px)";
+    });
+    function end(){
+      if(startY === null) return;
+      var fast = dy > 30 && dy / Math.max(1, Date.now() - t0) > 0.6;
+      startY = null;
+      dlg.classList.remove("is-dragging");
+      if(dy > 90 || fast){
+        if(dlg.dispatchEvent(new Event("cancel", { cancelable:true }))){
+          if(typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
+        }
+      }
+      dlg.style.transform = "";
+    }
+    dlg.addEventListener("pointerup", end);
+    dlg.addEventListener("pointercancel", end);
+  });
+}
+
 /* Menü: Pläne, Farben, Sync, Daten. Jeder Eintrag schliesst das Menü. */
 function openMenu(){
   var dlg=document.getElementById('menu-dialog');
@@ -2375,6 +2493,7 @@ function buildExercise(ex, idx){
     check.hidden = state !== "done";
     syncCollapse();
   }
+  var wasDone = null;
   function syncCollapse(){
     var done = draftState() === "done";
     var cur = drafts[ex.id] || {};
@@ -2384,6 +2503,8 @@ function buildExercise(ex, idx){
     doneSum.textContent = (w != null ? (ex.bodyweight ? "+" : "") + fmtKg(w) + " kg" : "") + (info ? " " + info.gly : "");
     doneSum.className = "ex-sum " + (cur.t || "none");
     var collapsed = done && !openCards[ex.id];
+    if(done && wasDone === false){ pop(doneSum, [{ transform:"scale(.6)", opacity:0 }, { transform:"none", opacity:1 }]); pop(check, [{ transform:"scale(.5)" }, { transform:"none" }]); buzz(12); }
+    wasDone = done;
     card.classList.toggle("is-done", done);
     card.classList.toggle("is-collapsed", collapsed);
     doneSum.hidden = !done;
@@ -2719,6 +2840,7 @@ function updateSaveBar(dayId){
   syncOverviewRunning();
 }
 
+var summaryCount={};
 function updateTrainingSummary(day,confirmed){
   var title=document.getElementById('summary-title-'+day.id);
   var progress=document.getElementById('summary-progress-'+day.id);
@@ -2733,8 +2855,9 @@ function updateTrainingSummary(day,confirmed){
   progress.setAttribute('aria-valuetext',text);
   progress.classList.toggle('is-continuous',total>12);
   if(!total) return;
+  var before=summaryCount[day.id];summaryCount[day.id]=confirmed;
   if(total<=12){
-    for(var i=0;i<total;i++) progress.appendChild(h('span',{class:'summary-segment'+(i<confirmed?' is-filled':''),'aria-hidden':'true'}));
+    for(var i=0;i<total;i++) progress.appendChild(h('span',{class:'summary-segment'+(i<confirmed?' is-filled':'')+(before!=null&&i>=before&&i<confirmed?' is-new':''),'aria-hidden':'true'}));
   } else {
     var fill=h('span',{class:'summary-fill','aria-hidden':'true'});
     fill.style.width=(confirmed / total * 100)+'%';
@@ -2815,8 +2938,7 @@ function buildDayView(day){
   (TAB_ICONS.overview || TAB_ICONS.default).forEach(function(d){ svg("path", { d:d }, hi); });
   homeBtn.appendChild(hi);
   homeBtn.addEventListener("click", function(){
-    if(PLANS.length) showTab("overview"); else showTab("progress");
-    window.scrollTo({ top:0, behavior:"auto" });
+    goTo(PLANS.length ? "overview" : "progress");
   });
 
   view.appendChild(h("div", { class:"save-bar" }, [
@@ -3003,6 +3125,7 @@ function commitDay(day, date, entries, count){
   }
   updateSaveBar(day.id);
   renderProgress();
+  buzz(20);
   toast(plural(count, "Übung", "Übungen") + " gespeichert — " + DF_LONG.format(isoToDate(date)));
 }
 
@@ -5368,8 +5491,7 @@ function buildTabs(){
     b.appendChild(ic);
     b.appendChild(h("span", { text:it.label }));
     b.addEventListener("click", function(){
-      showTab(it.id);
-      window.scrollTo({ top:0, behavior:"auto" });
+      goTo(it.id);
     });
     bar.appendChild(b);
   });
@@ -5420,7 +5542,7 @@ window.addEventListener('popstate',function(event){
     window.history.pushState(navigationState(ui.tab,ui.tab!=='overview'),'');return;
   }
   var next=currentNavigation(event.state),view=next&&next.child&&(next.view==='progress'||dayById(next.view))?next.view:'overview';
-  showTab(view,{history:false});window.scrollTo({top:0,behavior:'auto'});
+  goTo(view,{history:false});
   if(!next)window.history.replaceState(navigationState(view,false),'');
 });
 window.addEventListener('pagehide',rememberTrainingPosition);
@@ -5461,7 +5583,7 @@ function buildOverviewView(){
   head.appendChild(h('h2',{text:'Dein Training'}));
   var actions=h('div',{class:'overview-actions'},[h('p',{text:'Wähle deinen Trainingstag.'})]);
   var progress=h('button',{class:'overview-progress',type:'button',text:'Fortschritt'}),ic=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.8','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'});
-  svg('path',{d:'M4 19h16M6 15l4-5 3 3 5-7'},ic);progress.prepend(ic);progress.addEventListener('click',function(){showTab('progress');window.scrollTo({top:0,behavior:'auto'});});actions.appendChild(progress);head.appendChild(actions);view.appendChild(head);
+  svg('path',{d:'M4 19h16M6 15l4-5 3 3 5-7'},ic);progress.prepend(ic);progress.addEventListener('click',function(){goTo('progress');});actions.appendChild(progress);head.appendChild(actions);view.appendChild(head);
   view.appendChild(h('div',{class:'day-overview-grid',id:'day-overview-grid'}));
   view.appendChild(h('div',{class:'train-cal',id:'train-cal'}));return view;
 }
@@ -5489,6 +5611,7 @@ function relDay(iso){
   if(d<=0)return 'Heute';if(d===1)return 'Gestern';if(d<14)return 'Vor '+d+' Tagen';
   var w=Math.round(d/7);return w<9?'Vor '+w+' Wochen':'Vor '+Math.round(d/30)+' Monaten';
 }
+var calShown=null;
 /** Kalenderleiste: die letzten 6 Wochen (Mo–So), trainierte Tage gefüllt. */
 function renderTrainingCalendar(){
   var box=document.getElementById('train-cal');if(!box)return;
@@ -5509,7 +5632,14 @@ function renderTrainingCalendar(){
     grid.appendChild(cell);
   }
   grid.setAttribute('aria-label',count+' Trainings in den letzten 6 Wochen');
-  box.replaceChildren(h('div',{class:'cal-head'},[h('strong',{text:String(count)}),h('span',{text:'6 Wochen'})]),h('div',{class:'cal-body'},[wd,grid]));
+  var num=h('strong',{text:String(count)});
+  box.replaceChildren(h('div',{class:'cal-head'},[num,h('span',{text:'6 Wochen'})]),h('div',{class:'cal-body'},[wd,grid]));
+  // Beim ersten Anzeigen zählt die Zahl kurz hoch.
+  if(calShown===null&&count>0&&!reducedMotion()&&window.requestAnimationFrame){
+    var t0=null;num.textContent='0';
+    (function step(t){t0=t0||t;var k=Math.min(1,(t-t0)/650),e=1-Math.pow(1-k,3);num.textContent=String(Math.round(count*e));if(k<1)requestAnimationFrame(step);})(performance.now());
+  }
+  calShown=count;
 }
 function refreshOverview(){
   renderTrainingCalendar();
@@ -5526,7 +5656,7 @@ function refreshOverview(){
     tile.appendChild(h('strong',{class:'day-tile-name',text:day.name}));
     if(date){var line=h('span',{class:'day-tile-last'});line.appendChild(h('span',{class:'day-tile-rel',text:relDay(last.date)}));line.appendChild(h('time',{datetime:last.date,text:date}));tile.appendChild(line);}
     if(running)tile.appendChild(h('span',{class:'day-tile-running',text:'im Gange'}));
-    tile.addEventListener('click',function(){showTab(day.id);window.scrollTo({top:0,behavior:'auto'});});grid.appendChild(tile);
+    tile.addEventListener('click',function(){goTo(day.id);});grid.appendChild(tile);
   });
   if(focus)Array.from(grid.children).some(function(tile){if(tile.getAttribute('data-overview-day')===focus){tile.focus({preventScroll:true});return true;}return false;});
 }
@@ -5565,6 +5695,7 @@ wireSyncUi();
 wireSwapUi();
 wireSpecUi();
 wireMenu();
+wireSheets();
 RestTimer.wire();
 RestTimer.resume();
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')RestTimer.resume();});
