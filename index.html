@@ -1911,7 +1911,7 @@ function askConfirm(opts){
 }
 
 var toastTimer = null;
-function toast(msg, action){
+function toast(msg, action, ms){
   var el = document.getElementById("toast");
   el.textContent = msg;
   if(action){
@@ -1926,7 +1926,8 @@ function toast(msg, action){
   el.classList.toggle("has-action", !!action);
   el.classList.add("on");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function(){ el.classList.remove("on", "has-action"); }, action ? 5000 : 2600);
+  if(ms === 0) return; // bleibt stehen, bis die Aktion gewählt wird
+  toastTimer = setTimeout(function(){ el.classList.remove("on", "has-action"); }, ms || (action ? 5000 : 2600));
 }
 
 /* ============================================================
@@ -5742,9 +5743,30 @@ window.addEventListener("resize", function(){
   }, 150);
 });
 
+/* Neue Version: Der Service Worker übernimmt sofort (skipWaiting). Ein
+   länger offenes Fenster läuft aber noch mit dem alten Code weiter – dann
+   ein dauerhafter Hinweis mit „Neu laden“. Eingaben und eine laufende Pause
+   sind gespeichert und überstehen das Neuladen. */
+function showUpdateNotice(){
+  if(showUpdateNotice.shown) return;
+  showUpdateNotice.shown = true;
+  toast("Neue Version", { label:"Neu laden", run:function(){
+    try{ rememberTrainingPosition(); }catch(e){}
+    location.reload();
+  }}, 0);
+}
 if("serviceWorker" in navigator && location.protocol.indexOf("http") === 0){
+  var hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", function(){
+    if(hadController) showUpdateNotice();
+    hadController = true;
+  });
   window.addEventListener("load", function(){
-    navigator.serviceWorker.register("sw.js").catch(function(){});
+    navigator.serviceWorker.register("sw.js").then(function(reg){
+      function check(){ reg.update().catch(function(){}); }
+      document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") check(); });
+      setInterval(check, 60 * 60 * 1000);
+    }).catch(function(){});
   });
 }
 })();

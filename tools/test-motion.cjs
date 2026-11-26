@@ -27,6 +27,10 @@ const record={date:'2026-09-30',dayId:'total',entries:{[exercise]:{w:50,t:'hold'
  a.get('saveDay(dayById("total"))');await a.settle();assert.deepEqual(vib,[12,20]);
  // Home button returns to the overview.
  doc.querySelector('.view.is-active .btn-home').click();assert.equal(a.get('ui.tab'),'overview');
+ // Update notice stays until chosen.
+ a.get('showUpdateNotice()');const t=doc.getElementById('toast');
+ assert.equal(t.classList.contains('on'),true);assert.equal(t.classList.contains('has-action'),true);
+ assert.match(t.textContent,/^Neue Version/);assert.equal(t.querySelector('.toast-action').textContent,'Neu laden');
  a.dom.window.close();
- console.log('PASS: navigation fallback, bottom sheets with grip and drag-to-close, haptics, segment animation');
+ console.log('PASS: update notice, navigation fallback, bottom sheets with grip and drag-to-close, haptics, segment animation');
 })().then(()=>process.exit(0),e=>{console.error(e);process.exit(1);});

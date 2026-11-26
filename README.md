@@ -72,6 +72,11 @@ per Ziehen am Griff. Eingeloggte Übungen, Fortschrittssegmente und Hinweise
 federn kurz ein; Einloggen und Speichern geben eine kurze Vibration. Mit
 „Bewegung reduzieren“ im System entfallen alle Animationen.
 
+Neue Version: Die App prüft beim Zurückkehren und stündlich auf ein Update.
+Übernimmt ein neuer Service Worker, erscheint „Neue Version · Neu laden“ und
+bleibt stehen, bis es gewählt wird. Eingaben und laufende Pausen überstehen
+das Neuladen.
+
 Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs`, `node tools/test-motion.cjs`, `node tools/test-overview-menu.cjs`,
 `node tools/test-training-view.cjs`, `node tools/test-rest-timer.cjs`,
 `node tools/test-studio.cjs` und `node tools/test-stale-instance.cjs`.
