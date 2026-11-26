@@ -49,7 +49,7 @@ function click(a,id,sel){a.w.document.querySelector(`[data-ex="${id}"] ${sel}`).
  // Unconfirmed entries with a chosen trend are not silently discarded.
  const c=await run({local:[record]});c.get('showTab("total")');
  type(c,exercise,'52');click(c,exercise,'.ex-check');
- type(c,secondExercise,'30');click(c,secondExercise,'.seg button[data-t="up"]');
+ click(c,secondExercise,'.seg button[data-t="up"]');type(c,secondExercise,'30');
  c.get('saveDay(dayById("total"))');await c.settle();
  assert.equal(c.w.document.getElementById('confirm-dialog').open,true,'Saving asks about the unconfirmed trend');
  c.w.document.getElementById('confirm-yes').click();await c.settle();
@@ -59,7 +59,7 @@ function click(a,id,sel){a.w.document.querySelector(`[data-ex="${id}"] ${sel}`).
  c.dom.window.close();
  // Cancelling keeps everything for a later decision.
  const d=await run({local:[record]});d.get('showTab("total")');
- type(d,secondExercise,'30');click(d,secondExercise,'.seg button[data-t="up"]');type(d,exercise,'52');click(d,exercise,'.ex-check');
+ click(d,secondExercise,'.seg button[data-t="up"]');type(d,secondExercise,'30');type(d,exercise,'52');click(d,exercise,'.ex-check');
  d.get('saveDay(dayById("total"))');await d.settle();d.w.document.getElementById('confirm-no').click();await d.settle();
  assert.equal(d.get(`drafts['${secondExercise}'].t`),'up');assert.equal(d.get(`findSession("total","${d.get('todayISO()')}")`),null);
  d.dom.window.close();

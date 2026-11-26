@@ -39,7 +39,15 @@ nicht zurückgeschrieben; gespeicherte Einheiten tauchen so nicht erneut als
 „im Gange“ auf. Ist für eine noch blaue (unbestätigte) Übung eine Tendenz
 gewählt, fragt „Einheit speichern“ nach, statt sie zu verwerfen.
 
+Trainingsansicht: Ein Chip im Kartenkopf zeigt den Vorschlag fürs heutige
+Training (letztes Gewicht ± letzte Steigerung, je nach Tendenz; sonst 2,5 kg).
+Antippen trägt ihn ein. Gewicht + Tendenz bestätigen eine Übung mit einem Tipp;
+bestätigte Karten klappen auf eine Zeile zusammen und öffnen sich per Antippen.
+Die Speicherleiste bleibt unten sichtbar; das rote ✕ verwirft das offene
+Training (5 s „Rückgängig“).
+
 Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs`,
+`node tools/test-training-view.cjs`,
 `node tools/test-studio.cjs` und `node tools/test-stale-instance.cjs`.
 Kontotrennung: `node tools/test-accounts.cjs`; Browser-/Mehrtab-Prüfung:
 `node tools/preview-accounts.cjs`. Der echte lokale Regeltest läuft mit

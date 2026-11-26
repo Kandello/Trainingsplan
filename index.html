@@ -805,6 +805,38 @@ body.has-carbon{background-color:#102d48;background-image:linear-gradient(145deg
 @media(max-width:380px){.day-overview-grid{gap:12px}.day-tile{padding:15px;min-height:170px}.day-tile-name{font-size:20px}.day-tile-last{font-size:11px}}
 @media(min-width:720px){.overview-head{padding-top:32px;padding-bottom:30px}.day-tile{padding:24px;min-height:190px}.day-tile-name{font-size:25px}}
 @media(prefers-reduced-motion:reduce){.day-tile{transition:none}}
+
+/* ---------- Phase 1: Vorschlag, zugeklappte Karten, feste Speicherleiste ---------- */
+.suggest,.ex-sum{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:0 10px;border-radius:999px;border:1px solid var(--border);background:var(--surface-1);font-size:13px;font-weight:700;color:var(--text-1);font-variant-numeric:tabular-nums;white-space:nowrap;transition:transform .15s,background .15s}
+.suggest[hidden],.ex-sum[hidden]{display:none}
+.suggest:active,.ex-sum:active{transform:scale(.96)}
+.suggest .last-trend{margin:0;font-size:11px;transform:none}
+.suggest .last-trend:empty{display:none}
+.suggest.up{border-color:color-mix(in srgb,var(--good) 45%,transparent);background:color-mix(in srgb,var(--good) 8%,var(--surface-1))}
+.suggest.down{border-color:color-mix(in srgb,var(--critical) 45%,transparent);background:color-mix(in srgb,var(--critical) 7%,var(--surface-1))}
+.suggest.hold{border-color:color-mix(in srgb,var(--hold) 40%,transparent);background:color-mix(in srgb,var(--hold) 7%,var(--surface-1))}
+.ex-sum{color:var(--good-text);border-color:color-mix(in srgb,var(--good) 50%,transparent);background:color-mix(in srgb,var(--good) 10%,var(--surface-1))}
+.ex-sum.up{color:var(--good-text)}
+.ex.is-done .suggest{display:none}
+.ex-more{display:grid;grid-template-rows:1fr;transition:grid-template-rows .28s cubic-bezier(.2,.8,.2,1),opacity .2s}
+.ex-more-in{min-height:0;overflow:hidden}
+.ex.is-collapsed .ex-more{grid-template-rows:0fr;opacity:0}
+.ex.is-collapsed{padding-top:9px;padding-bottom:9px;cursor:pointer}
+.ex.is-done{border-color:color-mix(in srgb,var(--good) 35%,var(--border))}
+.ex.is-done .idx-dot{background:var(--good);color:#fff}
+@media (prefers-reduced-motion:reduce){.ex-more{transition:none}}
+
+.save-bar{position:sticky;bottom:calc(env(safe-area-inset-bottom) + 78px);z-index:15;margin-top:18px;padding:6px;border:1px solid #ffffff80;border-radius:20px;background:#f0f5f9e8;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 22px #06162840}
+.save-row{align-items:stretch}
+.btn-discard{flex:0 0 52px;min-height:52px;border-radius:14px;display:grid;place-items:center;background:var(--critical);color:#fff;transition:transform .12s,background .15s}
+.btn-discard svg{width:20px;height:20px}
+.btn-discard:active{transform:scale(.95)}
+.btn-discard:disabled{background:#d8c5c8;color:#fff;cursor:default;transform:none}
+.btn-confirm-all{flex-basis:20%}
+.hist.is-empty{display:none}
+body:not(.is-overview) .toast{bottom:calc(env(safe-area-inset-bottom) + 150px)}
+.toast.has-action{pointer-events:auto;display:flex;align-items:center;gap:14px;padding-right:8px}
+.toast-action{min-height:36px;padding:0 12px;border-radius:999px;background:#ffffff1f;color:#cfe3ff;font-weight:700}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */
@@ -1264,6 +1296,9 @@ function replacedExercises(){
     .sort(function(a,b){ return a.n.localeCompare(b.n, "de"); });
 }
 
+/** Bestätigte Übungen, die gerade bewusst aufgeklappt sind (nur Ansicht). */
+var openCards = {};
+
 const TRENDS = [
   { t:"down", label:"Senken",   gly:"▼" },
   { t:"hold", label:"Halten",   gly:"●" },
@@ -1537,12 +1572,51 @@ function lastTrend(exId){
   });
   return found && found.t;
 }
+/** Schrittweite einer Übung: die letzte Steigerung, sonst 2,5 kg. */
+function lastStep(exId){
+  var hist = historyOf(exId);
+  for(var i=hist.length-1;i>0;i--){
+    var d = Math.round((hist[i].w - hist[i-1].w) * 1000) / 1000;
+    if(d > 0) return d;
+  }
+  return 2.5;
+}
+/** Vorschlag fürs heutige Training aus letztem Gewicht und letzter Tendenz. */
+function suggestionOf(exId){
+  var last = lastWeight(exId);
+  if(last == null) return null;
+  var t = lastTrend(exId) || null, step = lastStep(exId);
+  var w = t === "up" ? last + step : t === "down" ? Math.max(0, last - step) : last;
+  return { w:Math.round(w * 1000) / 1000, t:t };
+}
+function placeholderOf(exId){
+  var s = suggestionOf(exId);
+  return s ? fmtKg(s.w) : "0";
+}
+/** Vorschlags-Chip im Kartenkopf: Tendenz vom letzten Mal + Zielgewicht.
+    Antippen trägt den Vorschlag ins Gewichtsfeld ein (noch unbestätigt). */
 function buildTrendHint(exId){
-  var trend = lastTrend(exId);
-  var info = TRENDS.find(function(t){return t.t === trend;});
-  return h('span', {class:'last-trend ' + (trend || ''), 'data-trend-ex':exId,
-    text:info ? info.gly : '', title:info ? info.label + ' – Empfehlung aus dem letzten Training' : '',
-    'aria-label':info ? info.label + ' – Empfehlung aus dem letzten Training' : ''});
+  var s = suggestionOf(exId);
+  var info = s && TRENDS.find(function(t){ return t.t === s.t; });
+  var chip = h('button', { type:'button', class:'suggest ' + (s && s.t || 'none'), 'data-suggest-ex':exId });
+  if(!s){ chip.hidden = true; return chip; }
+  var bw = !!(POOL[exId] && POOL[exId].bodyweight);
+  var label = 'Vorschlag ' + (bw ? '+' : '') + fmtKg(s.w) + ' kg' + (info ? ', letztes Mal ' + info.label : '');
+  chip.appendChild(h('span', { class:'last-trend ' + (s.t || ''), 'data-trend-ex':exId, text:info ? info.gly : '', 'aria-hidden':'true' }));
+  chip.appendChild(h('span', { class:'suggest-kg', text:(bw ? '+' : '') + fmtKg(s.w) }));
+  chip.setAttribute('aria-label', label + ' – übernehmen');
+  chip.title = label;
+  chip.addEventListener('click', function(){
+    var inp = chip.closest('.ex') && chip.closest('.ex').querySelector('.wfield input');
+    if(!inp) return;
+    inp.value = fmtKg(s.w);
+    inp.dispatchEvent(new Event('input', { bubbles:true }));
+  });
+  return chip;
+}
+function refreshTrendHint(view, exId){
+  var chip = view.querySelector('[data-suggest-ex="' + CSS.escape(exId) + '"]');
+  if(chip) chip.replaceWith(buildTrendHint(exId));
 }
 function lastWeight(exId){ var h = historyOf(exId); return h.length ? h[h.length-1].w : null; }
 function lastSessionOf(dayId){
@@ -1612,12 +1686,22 @@ function askConfirm(opts){
 }
 
 var toastTimer = null;
-function toast(msg){
+function toast(msg, action){
   var el = document.getElementById("toast");
   el.textContent = msg;
+  if(action){
+    var b = h("button", { type:"button", class:"toast-action", text:action.label });
+    b.addEventListener("click", function(){
+      clearTimeout(toastTimer);
+      el.classList.remove("on", "has-action");
+      action.run();
+    });
+    el.appendChild(b);
+  }
+  el.classList.toggle("has-action", !!action);
   el.classList.add("on");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function(){ el.classList.remove("on"); }, 2600);
+  toastTimer = setTimeout(function(){ el.classList.remove("on", "has-action"); }, action ? 5000 : 2600);
 }
 
 /* ============================================================
@@ -1631,6 +1715,8 @@ function buildHistory(exId){
   var isBW = !!(POOL[exId] && POOL[exId].bodyweight);
 
   if(!hist.length){
+    /* Ohne Verlauf bleibt die Zeile weg – weniger Text, kürzere Karte. */
+    wrap.classList.add("is-empty");
     wrap.appendChild(h("span", { class:"hist-empty", text:"Noch kein Training erfasst" }));
     return wrap;
   }
@@ -1760,9 +1846,14 @@ function buildExercise(ex, idx){
     svg('circle',{cx:12,cy:12,r:9},ii);svg('path',{d:'M12 11v6m0-10v.1','stroke-linecap':'round'},ii);
     exerciseInfo.appendChild(ii);exerciseInfo.addEventListener('click',function(){StudioUI.openInfo(ex.catalogueId);});
   }
+  /* Ergebnis der bestätigten Übung (Gewicht + Tendenz). Zugeklappt ist das
+     die ganze Karte; Antippen klappt sie wieder auf. */
+  var doneSum = h("button", { class:"ex-sum", type:"button" });
+  doneSum.addEventListener("click", function(){ toggleOpen(); });
   card.appendChild(h("div", { class:"ex-head" }, [
     idxWrap,
-    h("h3", { class:"ex-name" }, [buildTrendHint(ex.id), document.createTextNode(ex.n)]),
+    h("h3", { class:"ex-name", text:ex.n }),
+    buildTrendHint(ex.id), doneSum,
     exerciseInfo, swapBtn
   ]));
 
@@ -1785,12 +1876,16 @@ function buildExercise(ex, idx){
   repsBtn.addEventListener("click", function(){ openSpec(ex.id, "reps"); });
   meta.appendChild(repsBtn);
 
-  if(ex.p){
+  if(ex.p && lastWeight(ex.id) == null){
     meta.appendChild(h("span", { class:"ex-plan",
       text:"Gewicht: " + ex.p + (ex.planTrend === "up" ? " · nächstes Mal steigern" : "") }));
   }
-  card.appendChild(meta);
-  card.appendChild(buildHistory(ex.id));
+  /* Alles unter dem Kopf klappt bei bestätigten Übungen weg. */
+  var moreIn = h("div", { class:"ex-more-in" });
+  var more = h("div", { class:"ex-more" }, [ moreIn ]);
+  card.appendChild(more);
+  moreIn.appendChild(meta);
+  moreIn.appendChild(buildHistory(ex.id));
 
   /* Gewicht — bei Bodyweight-Übungen Zusatzgewicht zum Körpergewicht: ein
      "+" davor macht das auf einen Blick klar, 0 bleibt ein echter Wert. */
@@ -1799,7 +1894,7 @@ function buildExercise(ex, idx){
   if(ex.bodyweight) field.appendChild(h("span", { class:"wfield-prefix", text:"+", "aria-hidden":"true" }));
   var input = h("input", {
     type:"text", inputmode:"decimal", autocomplete:"off", enterkeyhint:"done",
-    placeholder: last != null ? fmtKg(last) : "0",
+    placeholder: placeholderOf(ex.id),
     "aria-label": (ex.bodyweight ? "Zusatzgewicht zum Körpergewicht " : "Trainingsgewicht ") + ex.n + " in Kilogramm"
   });
   input.value = d.w || "";
@@ -1831,13 +1926,37 @@ function buildExercise(ex, idx){
     check.setAttribute("aria-pressed", state === "done" ? "true" : "false");
     check.title = state === "done" ? "Absolviert — antippen zum Zurücknehmen"
                                    : "Als absolviert bestätigen";
+    syncCollapse();
   }
+  function syncCollapse(){
+    var done = draftState() === "done";
+    var cur = drafts[ex.id] || {};
+    var info = TRENDS.find(function(t){ return t.t === cur.t; });
+    var w = parseKg(cur.w);
+    if(w == null && ex.bodyweight) w = 0;
+    doneSum.textContent = (w != null ? (ex.bodyweight ? "+" : "") + fmtKg(w) + " kg" : "") + (info ? " " + info.gly : "");
+    doneSum.className = "ex-sum " + (cur.t || "none");
+    var collapsed = done && !openCards[ex.id];
+    card.classList.toggle("is-done", done);
+    card.classList.toggle("is-collapsed", collapsed);
+    doneSum.hidden = !done;
+    doneSum.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    doneSum.setAttribute("aria-label", ex.n + ": " + doneSum.textContent + (collapsed ? " — aufklappen" : " — zuklappen"));
+    more.inert = collapsed;
+  }
+  function toggleOpen(){
+    if(draftState() !== "done") return;
+    if(openCards[ex.id]) delete openCards[ex.id]; else openCards[ex.id] = true;
+    syncCollapse();
+  }
+  /* Bestätigt (Haken oder Gewicht + Tendenz) → Karte klappt zu. */
+  function confirmed(){ delete openCards[ex.id]; }
   syncCheck();
 
   check.addEventListener("click", function(){
     var entry = drafts[ex.id];
     if(!entry || (!entry.w && !entry.t)) return;
-    if(entry.sug) delete entry.sug; else entry.sug = true;
+    if(entry.sug){ delete entry.sug; confirmed(); } else entry.sug = true;
     saveDrafts();
     syncCheck();
     updateSaveBar(DAY_OF_EX[ex.id].id);
@@ -1863,8 +1982,22 @@ function buildExercise(ex, idx){
     updateSaveBar(DAY_OF_EX[ex.id].id);
   });
 
+  input.addEventListener("change", function(){
+    var entry = drafts[ex.id];
+    if(!entry || !entry.sug || !entry.t || parseKg(entry.w) == null) return;
+    delete entry.sug; confirmed();
+    saveDrafts();
+    syncCheck();
+    updateSaveBar(DAY_OF_EX[ex.id].id);
+  });
+  input.addEventListener("keydown", function(e){ if(e.key === "Enter") input.blur(); });
+  card.querySelector(".ex-head").addEventListener("click", function(e){
+    if(e.target.closest("button,input,a")) return;
+    toggleOpen();
+  });
+
   var body = h("div", { class:"ex-body" }, [ h("div", { class:"ex-line" }, [ field, check ]) ]);
-  card.appendChild(body);
+  moreIn.appendChild(body);
 
   /* 3-Wege-Schalter */
   var seg = h("div", { class:"seg", role:"radiogroup", "aria-label":"Nächstes Training — " + ex.n });
@@ -1879,6 +2012,8 @@ function buildExercise(ex, idx){
       var next = entry.t === tr.t ? null : tr.t;
       entry.t = next;
       if(fresh && next) entry.sug = true;
+      /* Ein Tipp: Gewicht + Tendenz bestätigt die Übung. */
+      if(next && entry.sug && (parseKg(entry.w) != null || ex.bodyweight)){ delete entry.sug; confirmed(); }
       if(!entry.w && !next) delete drafts[ex.id];
       saveDrafts();
       syncCheck();
@@ -2141,6 +2276,8 @@ function updateSaveBar(dayId){
   var n = countFilled(day);
   updateTrainingSummary(day,n);
   if(all) all.disabled = countOpen(day) === 0;
+  var discard = document.getElementById("discard-" + dayId);
+  if(discard) discard.disabled = !hasTrainingInput(dayId);
   btn.disabled = n === 0;
   btn.textContent = n === 0 ? "Einheit speichern" : "Einheit speichern (" + n + ")";
   if(hint){
@@ -2208,7 +2345,7 @@ function buildDayView(day){
   svg("path", { d:"M3 12a9 9 0 1 0 3-6.7" }, ic);
   svg("path", { d:"M3 4v5h5" }, ic);
   pre.appendChild(ic);
-  pre.appendChild(document.createTextNode("Letzte Gewichte übernehmen"));
+  pre.appendChild(document.createTextNode("Vorschläge übernehmen"));
   /* Füllt ausschliesslich leere Felder — bereits eingetragene Werte, ob
      bestätigt oder nicht, bleiben unangetastet. Übernommene Werte sind
      unbestätigt (blau), bis der Haken gedrückt wird. */
@@ -2217,10 +2354,10 @@ function buildDayView(day){
     day.ex.forEach(function(e){
       var entry = drafts[e.id];
       if(entry && entry.w){ kept++; return; }
-      var w = lastWeight(e.id);
-      if(w == null) return;
+      var sug = suggestionOf(e.id);
+      if(!sug) return;
       entry = drafts[e.id] || (drafts[e.id] = {});
-      entry.w = fmtKg(w);
+      entry.w = fmtKg(sug.w);
       entry.sug = true;
       n++;
     });
@@ -2254,12 +2391,36 @@ function buildDayView(day){
   var saveBtn = h("button", { class:"btn-primary", type:"button", id:"save-"+day.id, text:"Einheit speichern" });
   saveBtn.addEventListener("click", function(){ saveDay(day); });
 
+  var discardBtn = h("button", { class:"btn-discard", type:"button", id:"discard-"+day.id,
+    title:"Training verwerfen", "aria-label":"Training verwerfen — " + day.name });
+  var di = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
+    "stroke-width":"2.6", "stroke-linecap":"round", "aria-hidden":"true" });
+  svg("path", { d:"M6 6l12 12M18 6L6 18" }, di);
+  discardBtn.appendChild(di);
+  discardBtn.addEventListener("click", function(){ discardDay(day); });
+
   view.appendChild(h("div", { class:"save-bar" }, [
-    h("div", { class:"save-row" }, [ allBtn, saveBtn ]),
-    h("p", { class:"save-hint", id:"hint-"+day.id })
+    h("div", { class:"save-row" }, [ discardBtn, allBtn, saveBtn ]),
+    h("p", { class:"save-hint vh", id:"hint-"+day.id })
   ]));
 
   return view;
+}
+
+/** Verwirft alle Eingaben des Trainingstags; 5 s lang rückgängig zu machen. */
+function discardDay(day){
+  var kept = {};
+  day.ex.forEach(function(e){ if(drafts[e.id]){ kept[e.id] = drafts[e.id]; delete drafts[e.id]; delete openCards[e.id]; } });
+  if(!Object.keys(kept).length) return;
+  saveDrafts();
+  if(ui.activeTraining && ui.activeTraining.planId === activePlanId && ui.activeTraining.dayId === day.id){ ui.activeTraining = null; saveUi(); }
+  rebuildAll();
+  if(navigator.vibrate) try{ navigator.vibrate(30); }catch(e){}
+  toast("Training verworfen", { label:"Rückgängig", run:function(){
+    Object.keys(kept).forEach(function(id){ if(!drafts[id]) drafts[id] = kept[id]; });
+    saveDrafts();
+    rebuildAll();
+  }});
 }
 
 /** Ab dieser relativen Abweichung zum letzten Gewicht wird nachgefragt. */
@@ -2402,12 +2563,16 @@ function commitDay(day, date, entries, count){
       inp.closest(".wfield").classList.remove("has-val", "is-sug", "is-done");
       var chk = card.querySelector(".ex-check");
       if(chk){ chk.hidden = true; chk.setAttribute("aria-pressed", "false"); }
-      var w = lastWeight(e.id);
-      inp.placeholder = w != null ? fmtKg(w) : "0";
+      delete openCards[e.id];
+      card.classList.remove("is-done", "is-collapsed");
+      var sum = card.querySelector(".ex-sum");
+      if(sum) sum.hidden = true;
+      var more = card.querySelector(".ex-more");
+      if(more) more.inert = false;
+      inp.placeholder = placeholderOf(e.id);
       card.querySelectorAll(".seg button").forEach(function(b){ b.setAttribute("aria-checked","false"); b.tabIndex = 0; });
       refreshHistory(e.id);
-      var hint = view.querySelector('[data-trend-ex="' + CSS.escape(e.id) + '"]');
-      if(hint) hint.replaceWith(buildTrendHint(e.id));
+      refreshTrendHint(view, e.id);
     });
     var meta = view.querySelector(".day-meta");
     if(meta) meta.textContent = "Zuletzt " + DF_LONG.format(isoToDate(date));
@@ -4799,12 +4964,10 @@ function refreshFromData(){
     }
     day.ex.forEach(function(e){
       refreshHistory(e.id);
-      var hint = view.querySelector('[data-trend-ex="' + CSS.escape(e.id) + '"]');
-      if(hint) hint.replaceWith(buildTrendHint(e.id));
+      refreshTrendHint(view, e.id);
       var inp = view.querySelector('.ex[data-ex="' + CSS.escape(e.id) + '"] input');
       if(inp && document.activeElement !== inp){
-        var w = lastWeight(e.id);
-        inp.placeholder = w != null ? fmtKg(w) : "0";
+        inp.placeholder = placeholderOf(e.id);
       }
     });
     updateSaveBar(day.id);
