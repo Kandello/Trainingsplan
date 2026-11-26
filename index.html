@@ -852,7 +852,7 @@ body.is-training .toast{bottom:calc(env(safe-area-inset-bottom) + 84px)}
 .seg{flex:0 0 auto;width:auto;margin-left:auto}
 .seg button{flex:0 0 auto;width:44px;min-height:48px;padding:0;flex-direction:row}
 .seg button .gly{font-size:15px}
-@media(max-width:399px){.ex-body{flex-direction:row;align-items:center}.seg{flex:0 0 auto;width:auto}.seg button{width:42px;min-height:48px}.wfield{width:104px}}
+@media(max-width:399px){.ex-body{flex-direction:row;align-items:center}.seg{flex:0 0 auto;width:auto}.seg button{width:44px;min-height:48px}.wfield{width:100px}}
 
 /* ---------- Leiste am Ende, grüne Anzeige, kombinierter Spec-Knopf ---------- */
 .save-bar,.is-training .save-bar{position:static}
@@ -988,7 +988,7 @@ html[data-vt="out"]::view-transition-new(root){animation-name:vt-in-down}
 @keyframes vt-in{from{opacity:0;transform:translateY(14px)}}
 @keyframes vt-in-down{from{opacity:0;transform:translateY(-10px)}}
 /* Bottom-Sheets: Ein- und Ausfahren, Griff, Ziehen */
-dialog.sheet,dialog.sheet#confirm-dialog,dialog.sheet#spec-dialog{width:100%;max-width:520px;margin:auto auto 0;border:0;border-radius:22px 22px 0 0;padding:0 0 env(safe-area-inset-bottom);background:var(--surface-1);box-shadow:0 -10px 40px #06162833}
+dialog.sheet,dialog.sheet#confirm-dialog,dialog.sheet#spec-dialog{width:100%;max-width:520px;margin:auto auto 0;border:0;border-radius:22px 22px 0 0;padding:0 0 env(safe-area-inset-bottom);background-color:var(--surface-1);box-shadow:0 -10px 40px #06162833}
 dialog.sheet{transform:translateY(105%);transition:transform .32s var(--spring),overlay .32s allow-discrete,display .32s allow-discrete}
 dialog.sheet[open]{transform:none}
 @starting-style{dialog.sheet[open]{transform:translateY(105%)}}
@@ -1014,6 +1014,17 @@ dialog.sheet .dlg-inner{padding-top:12px}
   .summary-segment.is-new{animation:none}
   .toast{transition:opacity .2s}
 }
+
+/* Chips: 44 px Tippfläche, sichtbar als 32-px-Pille (Fläche per ::before) */
+.ex-tags{margin:0 0 4px 32px}
+.ex-tags .spec-chip,.suggest,.ex-sum{position:relative;z-index:0;min-height:44px;background:none;border:0;box-shadow:none;--chip-bg:var(--surface-1);--chip-bd:var(--border)}
+.ex-tags .spec-chip::before,.suggest::before,.ex-sum::before{content:"";position:absolute;inset:6px 0;z-index:-1;border-radius:999px;background:var(--chip-bg);border:1px solid var(--chip-bd)}
+.ex-tags .spec-chip{--chip-bg:var(--sunken);--chip-bd:transparent}
+.suggest.up{--chip-bg:color-mix(in srgb,var(--good) 8%,var(--surface-1));--chip-bd:color-mix(in srgb,var(--good) 45%,transparent);background:none;border:0}
+.suggest.down{--chip-bg:color-mix(in srgb,var(--critical) 7%,var(--surface-1));--chip-bd:color-mix(in srgb,var(--critical) 45%,transparent);background:none;border:0}
+.suggest.hold{--chip-bg:color-mix(in srgb,var(--hold) 7%,var(--surface-1));--chip-bd:color-mix(in srgb,var(--hold) 40%,transparent);background:none;border:0}
+.ex-sum,.ex-sum.up{--chip-bg:color-mix(in srgb,var(--good) 10%,var(--surface-1));--chip-bd:color-mix(in srgb,var(--good) 50%,transparent);background:none;border:0}
+.ex-head .ex-sum{margin:-6px 0}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */

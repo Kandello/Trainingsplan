@@ -27,7 +27,7 @@ const server=http.createServer((req,res)=>{
  res.setHeader('Content-Type',name.endsWith('.js')?'text/javascript':name.endsWith('.jpg')?'image/jpeg':name.endsWith('.webp')?'image/webp':'application/json');res.end(fs.readFileSync(f));
 });
 (async()=>{
- await new Promise(r=>server.listen(0,'127.0.0.1',r));const browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const browser=await chromium.launch({executablePath:process.env.MINMAX_BROWSER||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
  try{
   const c=await browser.newContext({viewport:{width:412,height:915},serviceWorkers:'block'}),p=await c.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
   await p.addInitScript(()=>{

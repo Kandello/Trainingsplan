@@ -86,7 +86,10 @@ Kontotrennung: `node tools/test-accounts.cjs`; Browser-/Mehrtab-Prüfung:
 Demo-Projekt `demo-minmax-accounts`, Auth/Firestore auf localhost).
 Für optionale Browserprüfungen und Screenshots mit isolierten Beispieldaten:
 `npm install --prefix tools --no-save --package-lock=false playwright`,
-danach `node tools/preview.cjs` (verwendet eine lokale Edge-Installation).
+danach `node tools/preview.cjs` (verwendet eine lokale Edge-Installation;
+ein anderer Chromium-Browser lässt sich mit der Umgebungsvariable
+`MINMAX_BROWSER=<Pfad zur Programmdatei>` wählen). Die Browserskripte laufen mit
+reduzierter Bewegung, damit Seitenwechsel ohne Übergang sofort prüfbar sind.
 Screenshots werden im nicht veröffentlichten Ordner `artifacts/` abgelegt.
 
 ## Nutzung
