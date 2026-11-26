@@ -1026,6 +1026,10 @@ dialog.sheet .dlg-inner{padding-top:12px}
 .ex-sum,.ex-sum.up{--chip-bg:color-mix(in srgb,var(--good) 10%,var(--surface-1));--chip-bd:color-mix(in srgb,var(--good) 50%,transparent);background:none;border:0}
 .ex-head .ex-sum{margin:-6px 0}
 
+/* Alle Tageskacheln gleich hoch, auch ohne Training */
+.day-overview-grid{grid-auto-rows:1fr}
+.day-tile-last.is-none .day-tile-rel{font-weight:600;color:var(--muted)}
+
 /* Runde 2: kompakter Kalender, Pausen, Beschriftung, Verlauf */
 .train-cal,.train-cal:is(*){display:block;padding:10px 12px 10px}
 .train-cal .cal-head,.train-cal .cal-head:is(*){flex-direction:row;align-items:baseline;justify-content:flex-start;gap:0;margin:0 0 6px;font-size:12px}
@@ -5757,6 +5761,7 @@ function refreshOverview(){
     var arrow=svg('svg',{class:'day-tile-arrow',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'});svg('path',{d:'M5 12h14m-6-6 6 6-6 6'},arrow);tile.appendChild(arrow);
     tile.appendChild(h('strong',{class:'day-tile-name',text:day.name}));
     if(date){var line=h('span',{class:'day-tile-last'});line.appendChild(h('span',{class:'day-tile-rel',text:relDay(last.date)}));line.appendChild(h('time',{datetime:last.date,text:date}));tile.appendChild(line);}
+    else{var none=h('span',{class:'day-tile-last is-none'});none.appendChild(h('span',{class:'day-tile-rel',text:'Noch nie'}));none.appendChild(h('time',{text:'–'}));tile.appendChild(none);}
     if(running)tile.appendChild(h('span',{class:'day-tile-running',text:'im Gange'}));
     tile.addEventListener('click',function(){goTo(day.id);});grid.appendChild(tile);
   });
