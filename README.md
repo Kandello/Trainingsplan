@@ -49,8 +49,16 @@ der Liste (Übersicht, rotes ✕ mit 5 s „Rückgängig“, Speichern). Unvolls
 Übungen fragt „Einheit speichern“ nach (fehlende Tendenz = „Halten“);
 unberührte übernommene Vorschläge werden nicht gespeichert.
 
+Pausentimer: Das Uhrsymbol im Kartenkopf startet die Pause mit der je Übung
+gespeicherten Dauer (mit dem Konto synchronisiert); gedrückt halten öffnet die
+Einstellung (1:00 / 1:30 / 2:00 / 3:00, ±15 s). Eine schmale Linie mit
+dezentem Blauverlauf wächst von oben Mitte im Uhrzeigersinn um den Bildschirm;
+ist sie geschlossen, folgen ein leiser Ton und 1 s Vibration. Das Uhrsymbol
+zeigt die Restzeit, Antippen bricht ab. Die Pause läuft über Endzeitpunkt und
+übersteht Sperren und Neuladen. Während eines Trainings bleibt der Bildschirm an.
+
 Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs`,
-`node tools/test-training-view.cjs`,
+`node tools/test-training-view.cjs`, `node tools/test-rest-timer.cjs`,
 `node tools/test-studio.cjs` und `node tools/test-stale-instance.cjs`.
 Kontotrennung: `node tools/test-accounts.cjs`; Browser-/Mehrtab-Prüfung:
 `node tools/preview-accounts.cjs`. Der echte lokale Regeltest läuft mit

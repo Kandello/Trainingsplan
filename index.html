@@ -867,6 +867,34 @@ span.ex-check[hidden]{display:none}
 .ex-tags .spec-chip{flex:0 0 auto;min-height:32px;padding:0 10px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap}
 .ex-name{overflow-wrap:break-word}
 .ex-meta{margin-top:0}
+
+/* ---------- Pausentimer ---------- */
+.rest-btn{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;min-width:44px;height:44px;margin:-8px 0;padding:0 8px;border-radius:12px;color:var(--muted);font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;justify-content:center;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+.rest-btn svg{width:19px;height:19px;flex:0 0 auto}
+.rest-btn .rest-txt:empty{display:none}
+.rest-btn:active{transform:scale(.95)}
+.rest-btn.is-running{color:#fff;background:var(--hold);box-shadow:0 2px 8px #2d69ad40}
+.ex.is-collapsed .rest-btn:not(.is-running){display:none}
+dialog.sheet{width:100%;max-width:520px;margin:auto auto 0;border:0;border-radius:22px 22px 0 0;padding:0;padding-bottom:env(safe-area-inset-bottom)}
+dialog.sheet::backdrop{background:rgba(6,22,40,.45)}
+dialog.sheet .dlg-inner{padding:18px 16px 16px}
+dialog.sheet[open]{animation:sheet-in .26s cubic-bezier(.2,.8,.2,1)}
+@keyframes sheet-in{from{transform:translateY(100%)}to{transform:none}}
+#rest-dialog{background:var(--surface-1);color:var(--text-1)}
+.rest-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.rest-preset{min-height:56px;border-radius:14px;border:1px solid var(--border);background:var(--ex-bg);font-size:17px;font-weight:750;font-variant-numeric:tabular-nums}
+.rest-preset.is-current{border-color:var(--hold);box-shadow:0 0 0 1px var(--hold)}
+.rest-preset:active,.rest-step:active{transform:scale(.96)}
+.rest-adjust{display:flex;align-items:center;justify-content:center;gap:14px;margin:16px 0 14px}
+.rest-step{min-width:64px;min-height:48px;border-radius:12px;border:1px solid var(--border);background:var(--ex-bg);font-weight:700}
+#rest-value{min-width:72px;text-align:center;font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.rest-start{width:100%}
+.rest-edge{position:fixed;inset:0;width:100vw;height:100vh;z-index:60;pointer-events:none;opacity:0;transition:opacity .25s}
+.rest-edge.is-on{opacity:1}
+.rest-edge-line{fill:none;stroke-width:3.5;stroke-linecap:round;stroke-dasharray:1000;stroke-dashoffset:1000;filter:drop-shadow(0 0 4px rgba(127,176,227,.55))}
+.rest-edge.is-done{opacity:0;transition:opacity .8s .15s}
+@keyframes rest-draw{from{stroke-dashoffset:1000}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){dialog.sheet[open]{animation:none}.rest-edge-line{filter:none}}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */
@@ -1007,6 +1035,20 @@ dialog#spec-dialog{border-color:var(--satin-frame);color:var(--text-1)}
     <div class="spec-fields" id="spec-fields"></div>
     <p class="dlg-note" id="spec-hint"></p>
   </form>
+</dialog>
+
+<dialog id="rest-dialog" class="sheet" aria-labelledby="rest-dlg-title">
+  <div class="dlg-inner">
+    <h2 id="rest-dlg-title">Pause</h2>
+    <p class="dlg-lead" id="rest-dlg-lead"></p>
+    <div class="rest-presets" id="rest-presets"></div>
+    <div class="rest-adjust">
+      <button type="button" class="rest-step" id="rest-minus" aria-label="15 Sekunden weniger">−15</button>
+      <output id="rest-value" aria-live="polite">1:30</output>
+      <button type="button" class="rest-step" id="rest-plus" aria-label="15 Sekunden mehr">+15</button>
+    </div>
+    <button type="button" class="btn-primary rest-start" id="rest-start">Start</button>
+  </div>
 </dialog>
 
 <dialog id="swap-dialog" aria-labelledby="swap-dlg-title">
@@ -1268,6 +1310,7 @@ function applyPlan(){
     if(o.sets != null) e.sets = o.sets;
     if(o.rmin != null) e.rmin = o.rmin;
     e.rmax = o.rmax != null ? o.rmax : null;
+    if(o.rest != null) e.rest = o.rest;
   });
   DAY_OF_EX = {};
   Object.keys(POOL).forEach(function(id){
@@ -1735,6 +1778,257 @@ function toast(msg, action){
 }
 
 /* ============================================================
+   5b. Pausentimer
+   ------------------------------------------------------------
+   Pausendauer je Übung (exSpec[id].rest, mit dem Konto synchronisiert).
+   Uhrsymbol antippen startet, gedrückt halten stellt ein. Läuft die Pause,
+   wächst eine schmale Linie von oben Mitte im Uhrzeigersinn am Bildschirm-
+   rand entlang; ist das Rechteck geschlossen, folgen ein leiser Ton und
+   1 s Vibration. Zeitbasis ist der Endzeitpunkt (ui.restTimer), damit
+   Sperren, App-Wechsel und Neuladen nichts verschieben.
+   ============================================================ */
+const REST_PRESETS = [60, 90, 120, 180];
+const REST_MIN = 15, REST_MAX = 600;
+function fmtRest(sec){ sec = Math.max(0, Math.ceil(sec)); return Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0"); }
+
+var RestTimer = (function(){
+  var tickId = null, overlay = null, audio = null, sheetEx = null, sheetValue = 90;
+
+  function state(){ var t = ui.restTimer; return t && t.exId && t.endAt ? t : null; }
+  function restOf(exId){ var e = POOL[exId]; return e && e.rest ? e.rest : null; }
+
+  function clockIcon(){
+    var ic = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", "stroke-width":"2",
+      "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
+    svg("circle", { cx:12, cy:13, r:8 }, ic);
+    svg("path", { d:"M12 9v4l2.5 2M10 2h4" }, ic);
+    return ic;
+  }
+  function label(exId){
+    var t = state();
+    if(t && t.exId === exId) return fmtRest((t.endAt - Date.now()) / 1000);
+    var r = restOf(exId);
+    return r ? fmtRest(r) : "";
+  }
+  function paint(b){
+    var exId = b.getAttribute("data-rest-ex"), t = state(), running = !!(t && t.exId === exId);
+    var txt = b.querySelector(".rest-txt"), l = label(exId);
+    if(txt.textContent !== l) txt.textContent = l;
+    b.classList.toggle("is-running", running);
+    b.classList.toggle("has-time", !!l);
+    var name = (POOL[exId] || {}).n || "";
+    b.setAttribute("aria-label", running ? "Pause " + l + " läuft — antippen zum Abbrechen"
+      : restOf(exId) ? "Pause " + l + " starten — " + name + ". Gedrückt halten zum Einstellen."
+      : "Pausenzeit einstellen — " + name);
+  }
+  function paintAll(){ document.querySelectorAll("[data-rest-ex]").forEach(paint); }
+
+  function button(exId){
+    var b = h("button", { type:"button", class:"rest-btn", "data-rest-ex":exId });
+    b.appendChild(clockIcon());
+    b.appendChild(h("span", { class:"rest-txt" }));
+    var pressTimer = null, longPressed = false;
+    b.addEventListener("pointerdown", function(){
+      longPressed = false;
+      clearTimeout(pressTimer);
+      pressTimer = setTimeout(function(){ longPressed = true; openSheet(exId); }, 500);
+    });
+    ["pointerup","pointerleave","pointercancel"].forEach(function(ev){
+      b.addEventListener(ev, function(){ clearTimeout(pressTimer); });
+    });
+    b.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+    b.addEventListener("click", function(){
+      if(longPressed){ longPressed = false; return; }
+      var t = state();
+      if(t && t.exId === exId){ stop(); return; }
+      var r = restOf(exId);
+      if(r) start(exId, r); else openSheet(exId);
+    });
+    paint(b);
+    return b;
+  }
+
+  /* ---- Einstellung ---- */
+  function showValue(){ document.getElementById("rest-value").textContent = fmtRest(sheetValue); }
+  function openSheet(exId){
+    sheetEx = exId;
+    sheetValue = restOf(exId) || 90;
+    document.getElementById("rest-dlg-lead").textContent = (POOL[exId] || {}).n || "";
+    var box = document.getElementById("rest-presets");
+    box.replaceChildren();
+    REST_PRESETS.forEach(function(sec){
+      var p = h("button", { type:"button", class:"rest-preset" + (sec === restOf(exId) ? " is-current" : ""), text:fmtRest(sec),
+        "aria-label":fmtRest(sec) + " Minuten speichern und starten" });
+      p.addEventListener("click", function(){ choose(sec); });
+      box.appendChild(p);
+    });
+    showValue();
+    var dlg = document.getElementById("rest-dialog");
+    if(typeof dlg.showModal === "function"){ if(!dlg.open) dlg.showModal(); } else dlg.setAttribute("open", "");
+  }
+  function closeSheet(){
+    var dlg = document.getElementById("rest-dialog");
+    if(typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
+  }
+  function choose(sec){
+    var exId = sheetEx;
+    if(!exId) return;
+    sec = Math.min(REST_MAX, Math.max(REST_MIN, sec));
+    setSpec(exId, { rest:sec });
+    closeSheet();
+    start(exId, sec);
+  }
+  function wire(){
+    var dlg = document.getElementById("rest-dialog");
+    dlg.addEventListener("click", function(e){ if(e.target === dlg) closeSheet(); });
+    document.getElementById("rest-minus").addEventListener("click", function(){ sheetValue = Math.max(REST_MIN, sheetValue - 15); showValue(); });
+    document.getElementById("rest-plus").addEventListener("click", function(){ sheetValue = Math.min(REST_MAX, sheetValue + 15); showValue(); });
+    document.getElementById("rest-start").addEventListener("click", function(){ choose(sheetValue); });
+  }
+
+  /* ---- Randlinie ---- */
+  function edgePath(w, hgt){
+    var i = 2.5, r = Math.min(30, w / 6), cx = w / 2;
+    var L = i, T = i, R = w - i, B = hgt - i;
+    return "M" + cx + " " + T + " H" + (R - r) + " A" + r + " " + r + " 0 0 1 " + R + " " + (T + r)
+      + " V" + (B - r) + " A" + r + " " + r + " 0 0 1 " + (R - r) + " " + B
+      + " H" + (L + r) + " A" + r + " " + r + " 0 0 1 " + L + " " + (B - r)
+      + " V" + (T + r) + " A" + r + " " + r + " 0 0 1 " + (L + r) + " " + T + " Z";
+  }
+  function ensureOverlay(){
+    if(overlay) return overlay;
+    overlay = svg("svg", { class:"rest-edge", "aria-hidden":"true" });
+    var defs = svg("defs", {}, overlay);
+    var g = svg("linearGradient", { id:"rest-grad", x1:"0", y1:"0", x2:"0.35", y2:"1" }, defs);
+    svg("stop", { offset:"0", "stop-color":"#cfe3f7" }, g);
+    svg("stop", { offset:"0.55", "stop-color":"#7fb0e3" }, g);
+    svg("stop", { offset:"1", "stop-color":"#3f78b8" }, g);
+    svg("path", { class:"rest-edge-line", pathLength:"1000", stroke:"url(#rest-grad)" }, overlay);
+    document.body.appendChild(overlay);
+    window.addEventListener("resize", layout);
+    return overlay;
+  }
+  function layout(){
+    if(!overlay) return;
+    var w = window.innerWidth, hgt = window.innerHeight;
+    overlay.setAttribute("viewBox", "0 0 " + w + " " + hgt);
+    overlay.querySelector("path").setAttribute("d", edgePath(w, hgt));
+  }
+  function showLine(t){
+    ensureOverlay(); layout();
+    var line = overlay.querySelector("path"), total = t.total * 1000, elapsed = Math.max(0, total - (t.endAt - Date.now()));
+    line.style.animation = "none";
+    void line.getBoundingClientRect();
+    line.style.animation = "rest-draw " + total + "ms linear " + (-elapsed) + "ms forwards";
+    overlay.classList.remove("is-done");
+    overlay.classList.add("is-on");
+  }
+  function hideLine(done){
+    if(!overlay) return;
+    if(done){
+      overlay.classList.add("is-done");
+      setTimeout(function(){ if(overlay && !state()) overlay.classList.remove("is-on", "is-done"); }, 900);
+    } else overlay.classList.remove("is-on", "is-done");
+  }
+
+  /* ---- Signal ---- */
+  function unlockAudio(){
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return;
+      if(!audio) audio = new AC();
+      if(audio.state === "suspended") audio.resume();
+    }catch(e){}
+  }
+  function chime(){
+    try{
+      if(!audio) return;
+      var now = audio.currentTime;
+      [[784, 0], [1047, 0.16]].forEach(function(n){
+        var o = audio.createOscillator(), g = audio.createGain();
+        o.type = "sine"; o.frequency.value = n[0];
+        g.gain.setValueAtTime(0.0001, now + n[1]);
+        g.gain.exponentialRampToValueAtTime(0.09, now + n[1] + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + n[1] + 0.42);
+        o.connect(g); g.connect(audio.destination);
+        o.start(now + n[1]); o.stop(now + n[1] + 0.45);
+      });
+    }catch(e){}
+  }
+  function signal(){
+    chime();
+    if(navigator.vibrate) try{ navigator.vibrate(1000); }catch(e){}
+  }
+
+  /* ---- Ablauf ---- */
+  function persist(){ try{ saveUi(); }catch(e){} }
+  function start(exId, sec){
+    unlockAudio();
+    ui.restTimer = { exId:exId, endAt:Date.now() + sec * 1000, total:sec };
+    persist();
+    showLine(ui.restTimer);
+    run();
+    paintAll();
+    WakeLock.update();
+  }
+  function stop(){
+    ui.restTimer = null; persist();
+    clearInterval(tickId); tickId = null;
+    hideLine(false);
+    paintAll();
+    WakeLock.update();
+  }
+  function finish(){
+    ui.restTimer = null; persist();
+    clearInterval(tickId); tickId = null;
+    hideLine(true);
+    signal();
+    paintAll();
+    WakeLock.update();
+  }
+  function tick(){
+    var t = state();
+    if(!t){ clearInterval(tickId); tickId = null; return; }
+    if(Date.now() >= t.endAt){ finish(); return; }
+    paintAll();
+  }
+  function run(){ clearInterval(tickId); tickId = setInterval(tick, 250); }
+  /** Nach Neuladen oder Rückkehr: weiterlaufen lassen oder verspätet melden. */
+  function resume(){
+    var t = state();
+    if(!t){ hideLine(false); return; }
+    if(Date.now() >= t.endAt){
+      // Nur melden, wenn das Ende nicht schon lange zurückliegt.
+      if(Date.now() - t.endAt < 10 * 60 * 1000) finish(); else stop();
+      return;
+    }
+    showLine(t); run(); paintAll();
+  }
+  return { button:button, start:start, stop:stop, tick:tick, resume:resume, wire:wire, openSheet:openSheet,
+    get running(){ return !!state(); } };
+})();
+
+/* Bildschirm bleibt an, solange ein Trainingstag offen ist oder eine Pause läuft. */
+var WakeLock = (function(){
+  var lock = null;
+  function wanted(){ return document.visibilityState === "visible" && (document.body.classList.contains("is-training") || RestTimer.running); }
+  function update(){
+    if(!("wakeLock" in navigator)) return;
+    if(wanted()){
+      if(lock) return;
+      navigator.wakeLock.request("screen").then(function(l){
+        lock = l;
+        l.addEventListener("release", function(){ if(lock === l) lock = null; });
+        if(!wanted()) release();
+      }).catch(function(){});
+    } else release();
+  }
+  function release(){ if(lock){ var l = lock; lock = null; l.release().catch(function(){}); } }
+  document.addEventListener("visibilitychange", update);
+  return { update:update };
+})();
+
+/* ============================================================
    6. Miniverlauf (letzte 3 Trainingsgewichte)
    ============================================================ */
 /** Verlauf der letzten Trainings mit Datum und Gewicht, direkt unter dem Namen.
@@ -1889,7 +2183,7 @@ function buildExercise(ex, idx){
     idxWrap,
     h("h3", { class:"ex-name", text:ex.n }),
     doneSum,
-    exerciseInfo, swapBtn
+    exerciseInfo, RestTimer.button(ex.id), swapBtn
   ]));
 
   wireReorderHandle(idxHit, card, ex);
@@ -3325,6 +3619,8 @@ function setSpec(exId, patch){
     rmin: patch.rmin != null ? patch.rmin : (cur.rmin != null ? cur.rmin : ex.rmin),
     rmax: ("rmax" in patch) ? patch.rmax : (("rmax" in cur) ? cur.rmax : ex.rmax)
   };
+  var rest = patch.rest != null ? patch.rest : cur.rest;
+  if(rest != null) next.rest = rest;
   exSpec[exId] = next;
   savePlan();
   applyPlan();
@@ -4910,6 +5206,7 @@ function showTab(id,options){
   document.body.classList.toggle('is-overview',id==='overview'&&PLANS.length>0);
   // Im Training zählen nur die Übungen: keine Kopfleiste, keine Tableiste.
   document.body.classList.toggle('is-training',!!dayById(id));
+  WakeLock.update();
   document.querySelectorAll(".view").forEach(function(v){ v.classList.toggle("is-active", v.getAttribute("data-view") === id); });
   document.querySelectorAll(".tabbar button").forEach(function(b){ b.setAttribute("aria-selected", b.id === "tab-"+id ? "true" : "false"); });
   ui.tab = id;if(DAYS.some(function(d){return d.id===id;}))ui.lastTrainingTab=id;saveUi();
@@ -5060,6 +5357,9 @@ buildTabs();
 wireSyncUi();
 wireSwapUi();
 wireSpecUi();
+RestTimer.wire();
+RestTimer.resume();
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')RestTimer.resume();});
 wireFillSlotUi();
 wireNewPlanUi();
 wireColorUi();
@@ -5081,7 +5381,7 @@ function refreshFromStore(){
   if(meta&&meta.active!==store.owner){Sync.storageChanged();return true;}
   var tab=ui.tab;
   try{store.quietly(function(){
-    activateAccount(store.owner,{deferStart:true});Sync.reloadOutbox();
+    activateAccount(store.owner,{deferStart:true});Sync.reloadOutbox();RestTimer.resume();
     // Stay on the page this window showed; only the data is refreshed.
     if(tab&&tab!==ui.tab&&(dayById(tab)||tab==='progress'||(tab==='overview'&&PLANS.length)))showTab(tab,{history:false,startTraining:false});
   });}catch(e){toast(e.message);}
