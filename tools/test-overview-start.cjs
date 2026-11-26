@@ -42,7 +42,7 @@ const server=http.createServer((req,res)=>{
   });
   await p.goto('http://127.0.0.1:'+server.address().port);await p.waitForFunction(()=>window.__test('Sync.state.status')==='ready'&&window.MockFirebase.events>=4);
   assert.deepEqual(await p.evaluate(()=>({mounts:window.__mounts,fades:window.__fades,tiles:window.__tileChanges,same:window.__firstTile===document.querySelector('.day-tile')})),{mounts:1,fades:0,tiles:4,same:true},'Authentication, reconciliation and duplicate listeners keep the original tiles');
-  await p.locator('[data-overview-day="total"]').click();await p.locator('[data-ex="tb-lying-leg-curl"] .ex-sum').click();const input=p.locator('[data-ex="tb-lying-leg-curl"] input');await input.fill('52');await input.focus();
+  await p.locator('[data-overview-day="total"]').click();const input=p.locator('[data-ex="tb-lying-leg-curl"] input');await input.fill('52');await input.focus();
   await p.evaluate(()=>window.MockFirebase.repeatAuth());await p.waitForFunction(()=>window.__test('Sync.state.status')==='ready'&&window.MockFirebase.events>=8);
   assert.equal(await input.inputValue(),'52');assert.equal(await input.evaluate(e=>document.activeElement===e),true);assert.equal(await p.evaluate(()=>window.__mounts),1,'A repeated auth event preserves in-progress input and its DOM');
   await p.evaluate(()=>window.MockFirebase.emitPlan({order:{},exercises:{},spec:{},plans:[],templates:[{id:'tpl-focus',name:'Testvorlage',days:[{name:'Tag',exercises:[]}]}]}));

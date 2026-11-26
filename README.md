@@ -39,12 +39,15 @@ nicht zurückgeschrieben; gespeicherte Einheiten tauchen so nicht erneut als
 „im Gange“ auf. Ist für eine noch blaue (unbestätigte) Übung eine Tendenz
 gewählt, fragt „Einheit speichern“ nach, statt sie zu verwerfen.
 
-Trainingsansicht: Ein Chip im Kartenkopf zeigt den Vorschlag fürs heutige
-Training (letztes Gewicht ± letzte Steigerung, je nach Tendenz; sonst 2,5 kg).
-Antippen trägt ihn ein. Gewicht + Tendenz bestätigen eine Übung mit einem Tipp;
-bestätigte Karten klappen auf eine Zeile zusammen und öffnen sich per Antippen.
-Die Speicherleiste bleibt unten sichtbar; das rote ✕ verwirft das offene
-Training (5 s „Rückgängig“).
+Trainingsansicht: Unter dem Übungsnamen stehen Sätze × Wiederholungen (ein
+Knopf für beides) und der Vorschlag fürs heutige Training (letztes Gewicht ±
+letzte Steigerung, je nach Tendenz; sonst 2,5 kg). Eine Übung ist eingeloggt,
+sobald Gewicht und Tendenz gesetzt sind (Körpergewicht: Tendenz genügt); der
+grüne Haken zeigt das nur an. Eingeloggte Karten klappen auf eine Zeile zusammen.
+Im Training gibt es weder Kopf- noch Tableiste; die Speicherleiste steht am Ende
+der Liste (Übersicht, rotes ✕ mit 5 s „Rückgängig“, Speichern). Unvollständige
+Übungen fragt „Einheit speichern“ nach (fehlende Tendenz = „Halten“);
+unberührte übernommene Vorschläge werden nicht gespeichert.
 
 Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs`,
 `node tools/test-training-view.cjs`,

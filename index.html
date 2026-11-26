@@ -853,6 +853,20 @@ body.is-training .toast{bottom:calc(env(safe-area-inset-bottom) + 84px)}
 .seg button{flex:0 0 auto;width:44px;min-height:48px;padding:0;flex-direction:row}
 .seg button .gly{font-size:15px}
 @media(max-width:399px){.ex-body{flex-direction:row;align-items:center}.seg{flex:0 0 auto;width:auto}.seg button{width:42px;min-height:48px}.wfield{width:104px}}
+
+/* ---------- Leiste am Ende, grüne Anzeige, kombinierter Spec-Knopf ---------- */
+.save-bar,.is-training .save-bar{position:static}
+body.is-training .toast{bottom:calc(env(safe-area-inset-bottom) + 24px)}
+span.ex-check{display:grid;place-items:center;flex:0 0 auto;background:var(--good);color:#fff;border:1px solid var(--good);cursor:default}
+span.ex-check[hidden]{display:none}
+.ex-head .spec-chip{flex:0 0 auto;min-height:32px;padding:0 9px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ex.is-done .ex-head .spec-chip{display:none}
+#spec-fields{flex-wrap:wrap}
+
+.ex-tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0 10px 32px}
+.ex-tags .spec-chip{flex:0 0 auto;min-height:32px;padding:0 10px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ex-name{overflow-wrap:break-word}
+.ex-meta{margin-top:0}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */
@@ -1862,36 +1876,25 @@ function buildExercise(ex, idx){
     svg('circle',{cx:12,cy:12,r:9},ii);svg('path',{d:'M12 11v6m0-10v.1','stroke-linecap':'round'},ii);
     exerciseInfo.appendChild(ii);exerciseInfo.addEventListener('click',function(){StudioUI.openInfo(ex.catalogueId);});
   }
-  /* Ergebnis der bestätigten Übung (Gewicht + Tendenz). Zugeklappt ist das
+  /* Sätze × Wiederholungen als ein Knopf; öffnet die Einstellung für beides. */
+  var specBtn = h("button", { class:"spec-chip", type:"button", text:(ex.sets != null ? ex.sets : "–") + "×" + repsText(ex),
+    "aria-label":"Sätze und Wiederholungen ändern — " + ex.n + ", aktuell " + (ex.sets != null ? ex.sets : "–") + " Sätze, " + repsText(ex) + " Wiederholungen" });
+  specBtn.addEventListener("click", function(){ openSpec(ex.id, "both"); });
+
+  /* Ergebnis der eingeloggten Übung (Gewicht + Tendenz). Zugeklappt ist das
      die ganze Karte; Antippen klappt sie wieder auf. */
   var doneSum = h("button", { class:"ex-sum", type:"button" });
   doneSum.addEventListener("click", function(){ toggleOpen(); });
   card.appendChild(h("div", { class:"ex-head" }, [
     idxWrap,
     h("h3", { class:"ex-name", text:ex.n }),
-    buildTrendHint(ex.id), doneSum,
+    doneSum,
     exerciseInfo, swapBtn
   ]));
 
   wireReorderHandle(idxHit, card, ex);
 
-  /* Sätze und Wiederholungen getrennt — beide antippbar. */
   var meta = h("div", { class:"ex-meta" });
-
-  var setsBtn = h("button", { class:"spec-chip", type:"button",
-    "aria-label":"Sätze ändern — " + ex.n + ", aktuell " + (ex.sets != null ? ex.sets : "–") });
-  setsBtn.appendChild(h("strong", { text:ex.sets != null ? String(ex.sets) : "–" }));
-  setsBtn.appendChild(document.createTextNode(ex.sets === 1 ? " Satz" : " Sätze"));
-  setsBtn.addEventListener("click", function(){ openSpec(ex.id, "sets"); });
-  meta.appendChild(setsBtn);
-
-  var repsBtn = h("button", { class:"spec-chip", type:"button",
-    "aria-label":"Wiederholungen ändern — " + ex.n + ", aktuell " + repsText(ex) });
-  repsBtn.appendChild(h("strong", { text:repsText(ex) }));
-  repsBtn.appendChild(document.createTextNode(" Whlg."));
-  repsBtn.addEventListener("click", function(){ openSpec(ex.id, "reps"); });
-  meta.appendChild(repsBtn);
-
   if(ex.p && lastWeight(ex.id) == null){
     meta.appendChild(h("span", { class:"ex-plan",
       text:"Gewicht: " + ex.p + (ex.planTrend === "up" ? " · nächstes Mal steigern" : "") }));
@@ -1900,7 +1903,9 @@ function buildExercise(ex, idx){
   var moreIn = h("div", { class:"ex-more-in" });
   var more = h("div", { class:"ex-more" }, [ moreIn ]);
   card.appendChild(more);
-  moreIn.appendChild(meta);
+  /* Sätze × Wiederholungen und Vorschlag in einer Zeile unter dem Namen. */
+  moreIn.appendChild(h("div", { class:"ex-tags" }, [ specBtn, buildTrendHint(ex.id) ]));
+  if(meta.firstChild) moreIn.appendChild(meta);
   moreIn.appendChild(buildHistory(ex.id));
 
   /* Gewicht — bei Bodyweight-Übungen Zusatzgewicht zum Körpergewicht: ein
@@ -1917,20 +1922,18 @@ function buildExercise(ex, idx){
   field.appendChild(input);
   field.appendChild(h("span", { class:"unit", text:"kg" }));
 
-  /* Haken bestätigt, dass die Übung absolviert ist. Bestätigte Werte
-     werden von „Letzte Gewichte übernehmen" nicht überschrieben. */
-  var check = h("button", { class:"ex-check", type:"button",
-    "aria-label":"Als absolviert bestätigen — " + ex.n });
+  /* Grüner Haken = eingeloggt (Gewicht + Tendenz). Reine Anzeige. */
+  var check = h("span", { class:"ex-check", role:"img", "aria-label":"Eingeloggt" });
   var ci = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
     "stroke-width":"2.6", "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
   svg("path", { d:"M4 12.5l5.5 5.5L20 7" }, ci);
   check.appendChild(ci);
 
-  /** "empty" | "sug" (blau, unbestätigt) | "done" (grün, bestätigt) */
+  /** "empty" | "sug" (blau, unvollständig) | "done" (grün, eingeloggt) */
   function draftState(){
     var cur = drafts[ex.id];
     if(!cur || (!cur.w && !cur.t)) return "empty";
-    return cur.sug ? "sug" : "done";
+    return isLogged(ex.id) ? "done" : "sug";
   }
   function syncCheck(){
     var state = draftState();
@@ -1938,10 +1941,7 @@ function buildExercise(ex, idx){
     field.classList.toggle("has-val", hasW);
     field.classList.toggle("is-sug",  hasW && state === "sug");
     field.classList.toggle("is-done", hasW && state === "done");
-    check.hidden = state === "empty";
-    check.setAttribute("aria-pressed", state === "done" ? "true" : "false");
-    check.title = state === "done" ? "Absolviert — antippen zum Zurücknehmen"
-                                   : "Als absolviert bestätigen";
+    check.hidden = state !== "done";
     syncCollapse();
   }
   function syncCollapse(){
@@ -1969,15 +1969,6 @@ function buildExercise(ex, idx){
   function confirmed(){ delete openCards[ex.id]; }
   syncCheck();
 
-  check.addEventListener("click", function(){
-    var entry = drafts[ex.id];
-    if(!entry || (!entry.w && !entry.t)) return;
-    if(entry.sug){ delete entry.sug; confirmed(); } else entry.sug = true;
-    saveDrafts();
-    syncCheck();
-    updateSaveBar(DAY_OF_EX[ex.id].id);
-  });
-
   input.addEventListener("input", function(){
     var pos = input.selectionStart;
     var before = input.value;
@@ -1986,11 +1977,8 @@ function buildExercise(ex, idx){
       input.value = clean;
       try { input.setSelectionRange(pos - (before.length - clean.length), pos - (before.length - clean.length)); } catch(e){}
     }
-    var had = drafts[ex.id] && drafts[ex.id].w;
     var entry = drafts[ex.id] || (drafts[ex.id] = {});
-    /* Neu getippter Wert ist zunächst unbestätigt; eine Korrektur an einem
-       bereits bestätigten Wert bleibt bestätigt. */
-    if(clean && !had) entry.sug = true;
+    delete entry.auto; delete entry.sug; delete entry.only;
     entry.w = clean;
     if(!clean && !entry.t) delete drafts[ex.id];
     saveDrafts();
@@ -1998,13 +1986,13 @@ function buildExercise(ex, idx){
     updateSaveBar(DAY_OF_EX[ex.id].id);
   });
 
+  /* Während der Eingabe bleibt die Karte offen; erst beim Verlassen des
+     Feldes klappt eine eingeloggte Übung zu. */
+  input.addEventListener("focus", function(){ openCards[ex.id] = true; });
   input.addEventListener("change", function(){
-    var entry = drafts[ex.id];
-    if(!entry || !entry.sug || !entry.t || parseKg(entry.w) == null) return;
-    delete entry.sug; confirmed();
-    saveDrafts();
+    if(!isLogged(ex.id)) return;
+    confirmed();
     syncCheck();
-    updateSaveBar(DAY_OF_EX[ex.id].id);
   });
   input.addEventListener("keydown", function(e){ if(e.key === "Enter") input.blur(); });
   card.querySelector(".ex-head").addEventListener("click", function(e){
@@ -2024,13 +2012,12 @@ function buildExercise(ex, idx){
     b.title = tr.label;
     b.tabIndex = d.t === tr.t ? 0 : (d.t ? -1 : 0);
     b.addEventListener("click", function(){
-      var fresh = !drafts[ex.id];
       var entry = drafts[ex.id] || (drafts[ex.id] = {});
       var next = entry.t === tr.t ? null : tr.t;
       entry.t = next;
-      if(fresh && next) entry.sug = true;
-      /* Ein Tipp: Gewicht + Tendenz bestätigt die Übung. */
-      if(next && entry.sug && (parseKg(entry.w) != null || ex.bodyweight)){ delete entry.sug; confirmed(); }
+      delete entry.auto; delete entry.sug; delete entry.only;
+      /* Gewicht + Tendenz = eingeloggt. */
+      if(isLogged(ex.id)) confirmed();
       if(!entry.w && !next) delete drafts[ex.id];
       saveDrafts();
       syncCheck();
@@ -2238,19 +2225,24 @@ function beginReorderDrag(handle, card, ex, pointerId, initialClientY){
 /* ============================================================
    8. Trainingstag-Ansicht
    ============================================================ */
-/** Was aus einem Entwurf in die Einheit wandert — oder null.
-    Unbestätigte (blaue) Einträge gelten als nicht vorhanden. */
-function confirmedEntry(exId){
-  if(POOL[exId] && POOL[exId].empty) return null;
+/** Eingeloggt: Tendenz gewählt und Gewicht eingetragen (bei Körpergewicht
+    genügt die Tendenz). `only` = bewusst nur die Tendenz gespeichert. */
+function isLogged(exId){
+  var e = POOL[exId];
+  if(!e || e.empty) return false;
   var d = drafts[exId];
-  if(!d || d.sug) return null;
+  if(!d || !d.t) return false;
+  return parseKg(d.w) != null || !!e.bodyweight || !!d.only;
+}
+
+/** Was aus einem Entwurf in die Einheit wandert — oder null. */
+function confirmedEntry(exId){
+  if(!isLogged(exId)) return null;
+  var d = drafts[exId];
   var w = parseKg(d.w);
-  if(w == null && !d.t) return null;
-  /* Bodyweight-Übungen: ein leeres Feld heisst "nur Körpergewicht", nicht
-     "kein Gewicht" — 0 wird zum echten, gespeicherten Wert. "Nicht gemacht"
-     bleibt davon unabhängig: keine Bestätigung, gar kein Eintrag. */
-  if(w == null && POOL[exId] && POOL[exId].bodyweight) w = 0;
-  return { w:w, t:d.t || null };
+  /* Bodyweight-Übungen: ein leeres Feld heisst "nur Körpergewicht" — 0. */
+  if(w == null && POOL[exId].bodyweight) w = 0;
+  return { w:w, t:d.t };
 }
 
 function countFilled(day){
@@ -2259,28 +2251,15 @@ function countFilled(day){
   return n;
 }
 
-/** Bestätigt in einem Rutsch alles, was eingetragen, aber noch blau ist. */
-function confirmAllOf(day){
-  var n = 0;
-  day.ex.forEach(function(e){
+/** Selbst eingetragen, aber unvollständig (Gewicht ohne Tendenz oder
+    umgekehrt). Übernommene, unberührte Vorschläge zählen nicht. */
+function openEntriesOf(day){
+  return day.ex.filter(function(e){
     var d = drafts[e.id];
-    if(d && d.sug && (d.w || d.t)){ delete d.sug; n++; }
+    return !e.empty && d && !d.auto && !isLogged(e.id) && (parseKg(d.w) != null || !!d.t);
   });
-  if(!n){ toast("Nichts zu bestätigen"); return; }
-  saveDrafts();
-  rebuildAll();
-  toast(plural(n, "Übung", "Übungen") + " bestätigt");
 }
-
-/** Eingetragen, aber noch nicht bestätigt. */
-function countOpen(day){
-  var n = 0;
-  day.ex.forEach(function(e){
-    var d = drafts[e.id];
-    if(d && d.sug && (parseKg(d.w) != null || d.t)) n++;
-  });
-  return n;
-}
+function countOpen(day){ return openEntriesOf(day).length; }
 
 function updateSaveBar(dayId){
   var day = DAYS.filter(function(d){ return d.id === dayId; })[0];
@@ -2288,26 +2267,19 @@ function updateSaveBar(dayId){
   var btn = document.getElementById("save-" + dayId);
   var hint = document.getElementById("hint-" + dayId);
   var pre = document.getElementById("prefill-" + dayId);
-  var all = document.getElementById("confirmall-" + dayId);
   if(!btn) return;
   var n = countFilled(day);
   updateTrainingSummary(day,n);
-  if(all) all.disabled = countOpen(day) === 0;
   var discard = document.getElementById("discard-" + dayId);
   if(discard) discard.disabled = !hasTrainingInput(dayId);
-  btn.disabled = n === 0;
+  var open = countOpen(day);
+  btn.disabled = n === 0 && open === 0;
   btn.textContent = n === 0 ? "Einheit speichern" : "Einheit speichern (" + n + ")";
   if(hint){
-    var open = countOpen(day);
-    var openTxt = open
-      ? " " + (open === 1 ? "Ein blauer Wert ist" : open + " blaue Werte sind")
-        + " nicht bestätigt und " + (open === 1 ? "wird" : "werden") + " nicht gespeichert."
-      : "";
-    hint.textContent = n === 0
-      ? (open ? "Mit dem grünen Haken bestätigen, was du absolviert hast."
-              : "Trage mindestens ein Gewicht oder eine Tendenz ein.")
-      : n + " von " + day.ex.filter(function(e){ return !e.empty; }).length + " Übungen " + (n === 1 ? "wird" : "werden")
-        + " mit dem heutigen Datum gespeichert." + openTxt;
+    hint.textContent = (n || open)
+      ? n + " von " + day.ex.filter(function(e){ return !e.empty; }).length + " Übungen eingeloggt."
+        + (open ? " " + open + " unvollständig." : "")
+      : "Gewicht eintragen und Tendenz wählen.";
   }
   if(pre){
     var hasAny = day.ex.some(function(e){ return lastWeight(e.id) != null; });
@@ -2375,7 +2347,7 @@ function buildDayView(day){
       if(!sug) return;
       entry = drafts[e.id] || (drafts[e.id] = {});
       entry.w = fmtKg(sug.w);
-      entry.sug = true;
+      entry.auto = true;
       n++;
     });
     saveDrafts();
@@ -2394,16 +2366,6 @@ function buildDayView(day){
      im Code, dort gibt es "neue Übung hinzufügen" per Anfrage im Chat. */
   var plan = planById(day.planId);
   if(plan && !plan.builtin) view.appendChild(buildAddSlotRow(day));
-
-  var allBtn = h("button", { class:"btn-confirm-all", type:"button", id:"confirmall-"+day.id,
-    title:"Alle eingetragenen Werte als absolviert bestätigen",
-    "aria-label":"Alle eingetragenen Werte bestätigen — " + day.name });
-  var ai = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
-    "stroke-width":"2.6", "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
-  svg("path", { d:"M4 12.5l5.5 5.5L20 7" }, ai);
-  allBtn.appendChild(ai);
-  allBtn.appendChild(h("span", { text:"Alle" }));
-  allBtn.addEventListener("click", function(){ confirmAllOf(day); });
 
   var saveBtn = h("button", { class:"btn-primary", type:"button", id:"save-"+day.id, text:"Einheit speichern" });
   saveBtn.addEventListener("click", function(){ saveDay(day); });
@@ -2427,7 +2389,7 @@ function buildDayView(day){
   });
 
   view.appendChild(h("div", { class:"save-bar" }, [
-    h("div", { class:"save-row" }, [ homeBtn, discardBtn, allBtn, saveBtn ]),
+    h("div", { class:"save-row" }, [ homeBtn, discardBtn, saveBtn ]),
     h("p", { class:"save-hint vh", id:"hint-"+day.id })
   ]));
 
@@ -2490,30 +2452,34 @@ function outlierNode(list){
   return box;
 }
 
-/** Unbestätigte (blaue) Übungen, für die bewusst eine Tendenz gewählt wurde.
-    Die Tendenz ist eine Absicht für das nächste Training und darf beim
-    Speichern nicht stillschweigend mit dem Entwurf verschwinden. */
-function openTrendsOf(day){
-  return day.ex.filter(function(e){
-    var d = drafts[e.id];
-    return !e.empty && d && d.sug && d.t;
-  });
-}
-
+/** Unvollständige Übungen gehen nicht still verloren: Gewicht ohne Tendenz
+    wird auf Nachfrage als „Halten“ gespeichert, Tendenz ohne Gewicht als
+    reine Tendenz. */
 function saveDay(day){
-  var pending = openTrendsOf(day);
-  if(pending.length){
+  var open = openEntriesOf(day);
+  if(open.length){
+    var list = h("ul", { class:"odd-list" });
+    open.forEach(function(e){
+      var d = drafts[e.id];
+      list.appendChild(h("li", { class:"odd" }, [
+        h("span", { class:"odd-name", text:e.n }),
+        h("span", { class:"odd-pct", text:d.t ? "ohne Gewicht" : "\u25CF Halten" })
+      ]));
+    });
     askConfirm({
-      title: pending.length === 1 ? "Tendenz nicht bestätigt" : "Tendenzen nicht bestätigt",
-      lead: (pending.length === 1 ? "Für eine Übung ist eine Tendenz gewählt, die Übung ist"
-                                  : "Für " + pending.length + " Übungen ist eine Tendenz gewählt, die Übungen sind")
-          + " aber noch nicht abgehakt. Unbestätigte Werte werden sonst verworfen.",
-      node: h("ul", { class:"odd-list" }, pending.map(function(e){ return h("li", { class:"odd-name", text:e.n }); })),
-      okLabel: "Bestätigen und speichern",
+      title: open.length === 1 ? "Übung unvollständig" : open.length + " Übungen unvollständig",
+      lead: "Fehlende Tendenz wird als „Halten“ gespeichert.",
+      node: list,
+      okLabel: "Speichern",
       cancelLabel: "Zurück"
     }).then(function(ok){
       if(!ok) return;
-      pending.forEach(function(e){ if(drafts[e.id]) delete drafts[e.id].sug; });
+      open.forEach(function(e){
+        var d = drafts[e.id];
+        if(!d) return;
+        if(!d.t) d.t = "hold";
+        if(parseKg(d.w) == null && !e.bodyweight) d.only = true;
+      });
       saveDrafts();
       saveConfirmed(day);
     });
@@ -2533,7 +2499,7 @@ function saveConfirmed(day){
     count++;
   });
   if(!count){
-    toast(countOpen(day) ? "Noch nichts bestätigt — Haken drücken" : "Keine Eingaben zum Speichern");
+    toast("Keine Eingaben zum Speichern");
     return;
   }
 
@@ -3286,11 +3252,11 @@ function openSpec(exId, which){
   while(fields.firstChild) fields.removeChild(fields.firstChild);
 
   document.getElementById("spec-dlg-title").textContent =
-    which === "sets" ? "Sätze" : "Wiederholungen";
+    which === "sets" ? "Sätze" : which === "reps" ? "Wiederholungen" : "Sätze & Wiederholungen";
   document.getElementById("spec-dlg-lead").textContent = ex.n;
   document.getElementById("spec-hint").textContent =
     which === "sets" ? "Enter übernimmt, daneben tippen bricht ab."
-                     : "Für eine feste Zahl beide Felder gleich setzen. Enter übernimmt.";
+                     : "Feste Zahl: beide Felder gleich. Enter übernimmt.";
 
   function numField(label, value, ref){
     var wrap = h("label", { class:"spec-f" });
@@ -3309,6 +3275,12 @@ function openSpec(exId, which){
   var inputs = [];
   if(which === "sets"){
     numField("Anzahl", ex.sets, inputs);
+  } else if(which === "both"){
+    numField("Sätze", ex.sets, inputs);
+    fields.appendChild(h("span", { class:"spec-dash", text:"×" }));
+    numField("Whlg. von", ex.rmin, inputs);
+    fields.appendChild(h("span", { class:"spec-dash", text:"–" }));
+    numField("bis", ex.rmax != null ? ex.rmax : ex.rmin, inputs);
   } else {
     numField("von", ex.rmin, inputs);
     fields.appendChild(h("span", { class:"spec-dash", text:"–" }));
@@ -3322,6 +3294,10 @@ function openSpec(exId, which){
       return;
     }
     if(which === "sets") setSpec(exId, { sets:vals[0] });
+    else if(which === "both"){
+      var lo2 = Math.min(vals[1], vals[2]), hi2 = Math.max(vals[1], vals[2]);
+      setSpec(exId, { sets:vals[0], rmin:lo2, rmax:hi2 > lo2 ? hi2 : null });
+    }
     else {
       var lo = Math.min(vals[0], vals[1]), hi = Math.max(vals[0], vals[1]);
       setSpec(exId, { rmin:lo, rmax:hi > lo ? hi : null });
