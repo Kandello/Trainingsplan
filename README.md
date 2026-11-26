@@ -57,7 +57,16 @@ ist sie geschlossen, folgen ein leiser Ton und 1 s Vibration. Das Uhrsymbol
 zeigt die Restzeit, Antippen bricht ab. Die Pause läuft über Endzeitpunkt und
 übersteht Sperren und Neuladen. Während eines Trainings bleibt der Bildschirm an.
 
-Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs`,
+Übersicht: Oben rechts sitzt nur noch ein Menü-Knopf (Punkt = Sync-Status) mit
+Trainingsplänen, Farben, Konto & Sync sowie Datenexport/-import; auch der
+Planname über „Dein Training“ öffnet es. Die Tageskacheln zeigen das letzte
+Training relativ („Gestern“, „Vor 4 Tagen“) mit Datum. Darunter zeigt eine
+Kalenderleiste die trainierten Tage der letzten 6 Wochen (Mo–So). Im
+Fortschritt lässt sich der Zeitraum (3 M, 6 M, 1 J, Alle) wählen; bei einer
+Einzelübung stehen Bestwert und Veränderung im Zeitraum unter dem Titel, der
+Bestwert ist im Diagramm markiert.
+
+Prüfungen: `node tools/test.cjs`, `node tools/test-sdk.cjs`, `node tools/test-overview-menu.cjs`,
 `node tools/test-training-view.cjs`, `node tools/test-rest-timer.cjs`,
 `node tools/test-studio.cjs` und `node tools/test-stale-instance.cjs`.
 Kontotrennung: `node tools/test-accounts.cjs`; Browser-/Mehrtab-Prüfung:

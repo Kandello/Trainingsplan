@@ -900,6 +900,47 @@ dialog.sheet[open]{animation:sheet-in .26s cubic-bezier(.2,.8,.2,1)}
 .rest-btn{flex-direction:column;justify-content:center;gap:1px;width:46px;min-width:46px;height:46px;margin:-6px 0;padding:0;border:1px solid var(--border);border-radius:11px;background:var(--surface-1);color:var(--text-2);font-size:10.5px;line-height:1;box-shadow:0 1px 3px #172b440a}
 .rest-btn svg{width:17px;height:17px}
 .rest-btn.is-running{color:var(--hold);background:color-mix(in srgb,var(--hold) 9%,var(--surface-1));border-color:color-mix(in srgb,var(--hold) 45%,transparent);box-shadow:none}
+
+/* ---------- Phase 3: Menü, Kacheln, Kalender, Zeitraum ---------- */
+.app-header{position:relative;justify-content:flex-end;padding-bottom:0}
+.menu-btn{position:relative;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--surface-1);color:var(--text-1);border:1px solid var(--border)}
+.has-carbon .menu-btn{background:#f0f5f9e8;color:#19344f;border-color:#ffffff66;backdrop-filter:blur(8px)}
+.menu-btn svg{width:21px;height:21px}
+.menu-btn .sync-dot{position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:var(--muted);box-shadow:0 0 0 2px #f0f5f9}
+.menu-btn .sync-dot.ok{background:var(--good)}.menu-btn .sync-dot.pending{background:var(--warning)}.menu-btn .sync-dot.err{background:var(--critical)}
+#menu-dialog{background:var(--surface-1);color:var(--text-1)}
+#menu-dialog h2{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+#menu-dialog .plan-bar{display:flex;flex-direction:column;align-items:stretch;gap:6px;overflow:visible}
+#menu-dialog .plan-btn{width:100%;min-height:48px;justify-content:flex-start;text-align:left;padding:0 14px;border-radius:12px;background:var(--ex-bg);color:var(--text-1);border:1px solid var(--border);font-size:15px;font-weight:650}
+#menu-dialog .plan-btn.is-active{background:var(--hold);color:#fff;border-color:var(--hold)}
+#menu-dialog .plan-btn-new{width:100%;height:auto;min-height:48px;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:12px;border:1px dashed var(--ring);background:transparent;color:var(--hold);font-size:15px;font-weight:650}
+.menu-list{display:flex;flex-direction:column;gap:6px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.menu-row,#menu-dialog .color-btn,#menu-dialog .sync-chip{width:100%;height:auto;min-height:48px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--ex-bg);color:var(--text-1);font-size:15px;font-weight:600;text-align:left;box-shadow:none}
+.menu-row svg{width:20px;height:20px;flex:0 0 auto;color:var(--text-2)}
+#menu-dialog .sync-chip .sync-dot{width:10px;height:10px;margin:0 5px}
+.overview-eyebrow{background:none;border:0;padding:0;text-align:left;cursor:pointer;text-decoration:underline;text-decoration-color:#c1dcf566;text-underline-offset:4px}
+.overview-eyebrow::after{content:" ▾";text-decoration:none}
+.day-tile-last{display:flex;flex-direction:column;gap:1px}
+.day-tile-rel{font-weight:700;color:var(--text-1)}
+.day-tile-last time{font-size:11.5px;opacity:.75}
+.train-cal{margin:18px 2px 0;padding:14px 14px 12px;border:1px solid #ffffff59;border-radius:16px;background:#f0f5f9e0;backdrop-filter:blur(8px);color:var(--text-1)}
+.cal-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-size:12px;color:var(--text-2)}
+.cal-head strong{font-size:13px;color:var(--text-1)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:7px 6px;justify-items:center}
+.cal-wd{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+.cal-day{width:14px;height:14px;border-radius:50%;background:#cfdae5}
+.cal-day.is-trained{background:var(--hold)}
+.cal-day.is-today{box-shadow:0 0 0 2px #f0f5f9,0 0 0 3.5px var(--text-1)}
+.cal-day.is-future{background:transparent;border:1px dashed #b8c6d4}
+.range-chips{display:flex;gap:6px;margin:-2px 0 12px}
+.range-chip{flex:1;min-height:40px;border-radius:12px;border:1px solid var(--border);background:var(--surface-1);font-size:13px;font-weight:650;color:var(--text-2)}
+.range-chip[aria-checked="true"]{background:var(--text-1);color:#fff;border-color:var(--text-1)}
+
+#menu-dialog .sync-chip{max-width:none}
+#menu-dialog .sync-chip #sync-label::before{content:"Konto & Sync · "}
+.day-tile,.day-tile:is(*){min-height:132px}
+@media(max-width:380px){.day-tile{min-height:124px}}
+.overview-head{padding-top:4px}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */
@@ -1007,15 +1048,36 @@ dialog#spec-dialog{border-color:var(--satin-frame);color:var(--text-1)}
 <body>
 
 <header class="app-header">
-  <nav class="plan-bar" id="plan-bar" aria-label="Trainingsplan wählen"></nav>
-  <button class="color-btn" id="color-btn" type="button" aria-haspopup="dialog" aria-label="Eigene Farben">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.4-3.4l-.3-.3a1.4 1.4 0 0 1 1-2.3H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="6.5" r=".8"/><circle cx="15" cy="7" r=".8"/></svg>
-  </button>
-  <button class="sync-chip" id="sync-chip" type="button" aria-haspopup="dialog">
-    <span class="sync-dot" id="sync-dot"></span>
-    <span id="sync-label">Sync</span>
+  <button class="menu-btn" id="menu-btn" type="button" aria-haspopup="dialog" aria-label="Menü: Pläne, Farben, Sync und Daten">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    <span class="sync-dot" id="menu-dot" aria-hidden="true"></span>
   </button>
 </header>
+
+<dialog id="menu-dialog" class="sheet" aria-labelledby="menu-dlg-title">
+  <div class="dlg-inner">
+    <h2 id="menu-dlg-title">Trainingspläne</h2>
+    <nav class="plan-bar" id="plan-bar" aria-label="Trainingsplan wählen"></nav>
+    <div class="menu-list">
+      <button class="color-btn menu-row" id="color-btn" type="button" aria-haspopup="dialog" aria-label="Eigene Farben">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.4-3.4l-.3-.3a1.4 1.4 0 0 1 1-2.3H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="6.5" r=".8"/><circle cx="15" cy="7" r=".8"/></svg>
+        <span>Farben</span>
+      </button>
+      <button class="sync-chip menu-row" id="sync-chip" type="button" aria-haspopup="dialog">
+        <span class="sync-dot" id="sync-dot"></span>
+        <span id="sync-label">Sync</span>
+      </button>
+      <button class="menu-row" id="menu-export" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m-4-4 4 4 4-4M5 20h14"/></svg>
+        <span>Daten exportieren</span>
+      </button>
+      <button class="menu-row" id="menu-import" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m-4 4 4-4 4 4M5 20h14"/></svg>
+        <span>Daten importieren</span>
+      </button>
+    </div>
+  </div>
+</dialog>
 
 <main id="main"></main>
 
@@ -1780,6 +1842,26 @@ function toast(msg, action){
   el.classList.add("on");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(function(){ el.classList.remove("on", "has-action"); }, action ? 5000 : 2600);
+}
+
+/* Menü: Pläne, Farben, Sync, Daten. Jeder Eintrag schliesst das Menü. */
+function openMenu(){
+  var dlg=document.getElementById('menu-dialog');
+  if(typeof dlg.showModal==='function'){if(!dlg.open)dlg.showModal();}else dlg.setAttribute('open','');
+}
+function closeMenu(){
+  var dlg=document.getElementById('menu-dialog');
+  if(!dlg.open)return;
+  if(typeof dlg.close==='function')dlg.close();else dlg.removeAttribute('open');
+}
+function wireMenu(){
+  var dlg=document.getElementById('menu-dialog');
+  document.getElementById('menu-btn').addEventListener('click',openMenu);
+  document.getElementById('menu-export').addEventListener('click',exportData);
+  document.getElementById('menu-import').addEventListener('click',importData);
+  dlg.addEventListener('click',function(e){
+    if(e.target===dlg||e.target.closest('button'))closeMenu();
+  });
 }
 
 /* ============================================================
@@ -2914,6 +2996,20 @@ function buildProgressView(){
   pick.appendChild(sel);
   view.appendChild(pick);
 
+  /* Zeitraum des Diagramms */
+  var range = h("div", { class:"range-chips", role:"radiogroup", "aria-label":"Zeitraum" });
+  RANGES.forEach(function(r){
+    var b = h("button", { type:"button", role:"radio", class:"range-chip", text:r.label, "data-range":r.id,
+      "aria-checked": (ui.range || "all") === r.id ? "true" : "false" });
+    b.addEventListener("click", function(){
+      ui.range = r.id; saveUi();
+      range.querySelectorAll("button").forEach(function(o){ o.setAttribute("aria-checked", o === b ? "true" : "false"); });
+      renderProgress();
+    });
+    range.appendChild(b);
+  });
+  view.appendChild(range);
+
   var card = h("div", { class:"card progress-card" });
   card.appendChild(h("div", { class:"card-head", id:"chart-head" }, [
     h("h3", { id:"chart-title", text:"" }),
@@ -2936,19 +3032,25 @@ function buildProgressView(){
   log.appendChild(h("div", { id:"log-body" }));
   view.appendChild(log);
 
-  var tools = h("div", { class:"data-tools" });
-  var bExp = h("button", { type:"button", text:"Daten exportieren" });
-  var bImp = h("button", { type:"button", text:"Daten importieren" });
-  bExp.addEventListener("click", exportData);
-  bImp.addEventListener("click", importData);
-  tools.appendChild(bExp); tools.appendChild(bImp);
-  view.appendChild(tools);
-  view.appendChild(h("p", { class:"tools-hint", text:"Alle Daten liegen offline auf diesem Gerät. Export sichert sie als JSON-Datei." }));
 
   return view;
 }
 
 var hiddenSeries = {};
+
+const RANGES = [
+  { id:"3m", label:"3 M", days:92 },
+  { id:"6m", label:"6 M", days:183 },
+  { id:"1y", label:"1 J", days:366 },
+  { id:"all", label:"Alle", days:null }
+];
+/** Punkte im gewählten Zeitraum (ui.range). */
+function inRange(points){
+  var r = RANGES.find(function(x){ return x.id === (ui.range || "all"); });
+  if(!r || !r.days) return points;
+  var cut = new Date(); cut.setHours(0,0,0,0); cut.setDate(cut.getDate() - r.days);
+  return points.filter(function(p){ return isoToDate(p.date) >= cut; });
+}
 
 function collectSeries(){
   var metric = ui.metric || "day:total";
@@ -2966,7 +3068,7 @@ function collectSeries(){
     return {
       title: ex.n,
       sub: bits.join(" · "),
-      series: [{ id:ex.id, name:ex.n, slot:0, points:historyOf(ex.id) }]
+      series: [{ id:ex.id, name:ex.n, slot:0, points:inRange(historyOf(ex.id)) }]
     };
   }
   var day = DAYS.filter(function(d){ return d.id === parts[1]; })[0] || DAYS[0];
@@ -2975,7 +3077,7 @@ function collectSeries(){
   return {
     title: day.name,
     sub: filled.length + " Übungen · Gewichtsverlauf",
-    series: filled.map(function(e, i){ return { id:e.id, name:e.n, slot:i % 8, points:historyOf(e.id) }; })
+    series: filled.map(function(e, i){ return { id:e.id, name:e.n, slot:i % 8, points:inRange(historyOf(e.id)) }; })
   };
 }
 
@@ -2997,7 +3099,15 @@ function renderProgress(){
   var data = collectSeries();
 
   document.getElementById("chart-title").textContent = data.title;
-  document.getElementById("chart-sub").textContent = data.sub;
+  var sub = data.sub;
+  if(data.series.length === 1 && data.series[0].points.length){
+    var pts = data.series[0].points, best = pts.reduce(function(a, b){ return b.w >= a.w ? b : a; });
+    var bw = POOL[data.series[0].id] && POOL[data.series[0].id].bodyweight ? "+" : "";
+    var diff = Math.round((pts[pts.length-1].w - pts[0].w) * 1000) / 1000;
+    sub = "Bestwert " + bw + fmtKg(best.w) + " kg · " + DF_SHORT.format(isoToDate(best.date))
+      + (pts.length > 1 ? " · " + (diff > 0 ? "+" : diff < 0 ? "−" : "±") + fmtKg(Math.abs(diff)) + " kg im Zeitraum" : "");
+  }
+  document.getElementById("chart-sub").textContent = sub;
 
   var visible = data.series.filter(function(s){ return !hiddenSeries[s.id]; });
   var withData = visible.filter(function(s){ return s.points.length > 0; });
@@ -3105,6 +3215,11 @@ function drawChart(wrap, series, totalSeries){
         fill:col, stroke:"var(--surface-1)", "stroke-width":"2"
       }, s);
     });
+    if(series.length === 1 && pts.length > 1){
+      var bi = 0;
+      pts.forEach(function(p, i){ if(p.w >= pts[bi].w) bi = i; });
+      svg("circle", { class:"best-ring", cx:pts[bi].x.toFixed(1), cy:pts[bi].y.toFixed(1), r:"8", fill:"none", stroke:col, "stroke-width":"1.5", opacity:"0.6" }, s);
+    }
     if(directLabels && pts.length){
       var lastP = pts[pts.length-1];
       var lab = svg("text", {
@@ -3984,6 +4099,7 @@ function renderPlanBar(){
     "stroke-width":"2.2", "stroke-linecap":"round", "aria-hidden":"true" });
   svg("path", { d:"M12 5v14M5 12h14" }, pi);
   add.appendChild(pi);
+  add.appendChild(h("span", { text:"Neuer Plan" }));
   add.addEventListener("click", openNewPlan);
   bar.appendChild(add);
 
@@ -4997,6 +5113,10 @@ const SYNC_CHIP = {
 function renderChip(){
   var meta = SYNC_CHIP[Sync.state.status] || SYNC_CHIP.unconfigured;
   document.getElementById("sync-dot").className = "sync-dot " + meta.dot;
+  var md = document.getElementById("menu-dot");
+  if(md) md.className = "sync-dot " + meta.dot;
+  var mb = document.getElementById("menu-btn");
+  if(mb) mb.setAttribute("aria-label", "Menü: Pläne, Farben, Sync (" + meta.label + ") und Daten");
   document.getElementById("sync-label").textContent = meta.label;
   document.getElementById("sync-chip").setAttribute("aria-label", "Geräte-Sync: " + meta.label);
 }
@@ -5285,12 +5405,14 @@ function refreshFromData(){
 function buildOverviewView(){
   var view=h('section',{class:'view',id:'panel-overview','data-view':'overview',role:'tabpanel','aria-labelledby':'tab-overview'});
   var head=h('div',{class:'overview-head'}),plan=planById(activePlanId);
-  head.appendChild(h('div',{class:'overview-eyebrow',text:plan?plan.name:'MinMax'}));
+  var eyebrow=h('button',{type:'button',class:'overview-eyebrow',text:plan?plan.name:'MinMax','aria-label':'Trainingsplan wechseln — aktuell '+(plan?plan.name:'MinMax')});
+  eyebrow.addEventListener('click',openMenu);head.appendChild(eyebrow);
   head.appendChild(h('h2',{text:'Dein Training'}));
   var actions=h('div',{class:'overview-actions'},[h('p',{text:'Wähle deinen Trainingstag.'})]);
   var progress=h('button',{class:'overview-progress',type:'button',text:'Fortschritt'}),ic=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.8','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'});
   svg('path',{d:'M4 19h16M6 15l4-5 3 3 5-7'},ic);progress.prepend(ic);progress.addEventListener('click',function(){showTab('progress');window.scrollTo({top:0,behavior:'auto'});});actions.appendChild(progress);head.appendChild(actions);view.appendChild(head);
-  view.appendChild(h('div',{class:'day-overview-grid',id:'day-overview-grid'}));return view;
+  view.appendChild(h('div',{class:'day-overview-grid',id:'day-overview-grid'}));
+  view.appendChild(h('div',{class:'train-cal',id:'train-cal'}));return view;
 }
 
 function overviewFingerprint(){
@@ -5309,7 +5431,35 @@ function syncOverviewRunning(){
   });
   grid.dataset.overviewFingerprint=overviewFingerprint();
 }
+/** „Heute“, „Gestern“, „Vor 5 Tagen“, ab 2 Wochen „Vor 3 Wochen“. */
+function relDay(iso){
+  var t=new Date();t.setHours(0,0,0,0);
+  var d=Math.round((t-isoToDate(iso))/864e5);
+  if(d<=0)return 'Heute';if(d===1)return 'Gestern';if(d<14)return 'Vor '+d+' Tagen';
+  var w=Math.round(d/7);return w<9?'Vor '+w+' Wochen':'Vor '+Math.round(d/30)+' Monaten';
+}
+/** Kalenderleiste: die letzten 6 Wochen (Mo–So), trainierte Tage gefüllt. */
+function renderTrainingCalendar(){
+  var box=document.getElementById('train-cal');if(!box)return;
+  var trained={};
+  sessions.forEach(function(s){if(s.entries&&Object.keys(s.entries).length){var d=dayById(s.dayId)||BASE_DAYS.find(function(b){return b.id===s.dayId;});(trained[s.date]=trained[s.date]||[]).push(d?d.name:s.dayId);}});
+  var today=new Date();today.setHours(0,0,0,0);
+  var start=new Date(today);start.setDate(start.getDate()-((start.getDay()+6)%7)-35);
+  var iso=function(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+  var count=0,grid=h('div',{class:'cal-grid',role:'img'});
+  ['M','D','M','D','F','S','S'].forEach(function(l){grid.appendChild(h('span',{class:'cal-wd',text:l,'aria-hidden':'true'}));});
+  for(var i=0;i<42;i++){
+    var d=new Date(start);d.setDate(start.getDate()+i);var k=iso(d),names=trained[k];
+    if(names)count++;
+    var cell=h('span',{class:'cal-day'+(names?' is-trained':'')+(k===iso(today)?' is-today':'')+(d>today?' is-future':'')});
+    cell.title=DF_LONG.format(d)+(names?': '+names.join(', '):'');
+    grid.appendChild(cell);
+  }
+  grid.setAttribute('aria-label',count+' Trainings in den letzten 6 Wochen');
+  box.replaceChildren(h('div',{class:'cal-head'},[h('span',{text:'Letzte 6 Wochen'}),h('strong',{text:count+(count===1?' Training':' Trainings')})]),grid);
+}
 function refreshOverview(){
+  renderTrainingCalendar();
   var grid=document.getElementById('day-overview-grid');if(!grid)return;
   var fingerprint=overviewFingerprint();
   if(grid.dataset.overviewFingerprint===fingerprint)return;
@@ -5322,7 +5472,7 @@ function refreshOverview(){
     var top=h('span',{class:'day-tile-top','aria-hidden':'true'});top.appendChild(h('span',{class:'day-tile-number',text:String(i+1).padStart(2,'0')}));
     var arrow=svg('svg',{class:'day-tile-arrow',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-linecap':'round','stroke-linejoin':'round'});svg('path',{d:'M5 12h14m-6-6 6 6-6 6'},arrow);top.appendChild(arrow);tile.appendChild(top);
     tile.appendChild(h('strong',{class:'day-tile-name',text:day.name}));
-    if(date){var line=h('span',{class:'day-tile-last'});line.appendChild(document.createTextNode('Zuletzt '));line.appendChild(h('time',{datetime:last.date,text:date}));tile.appendChild(line);}
+    if(date){var line=h('span',{class:'day-tile-last'});line.appendChild(h('span',{class:'day-tile-rel',text:relDay(last.date)}));line.appendChild(h('time',{datetime:last.date,text:date}));tile.appendChild(line);}
     if(running)tile.appendChild(h('span',{class:'day-tile-running',text:'im Gange'}));
     tile.addEventListener('click',function(){showTab(day.id);window.scrollTo({top:0,behavior:'auto'});});grid.appendChild(tile);
   });
@@ -5362,6 +5512,7 @@ buildTabs();
 wireSyncUi();
 wireSwapUi();
 wireSpecUi();
+wireMenu();
 RestTimer.wire();
 RestTimer.resume();
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')RestTimer.resume();});
