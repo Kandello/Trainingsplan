@@ -61,7 +61,7 @@ zeigt die Restzeit, Antippen bricht ab. Die Pause läuft über Endzeitpunkt und
 Trainingsplänen, Farben, Konto & Sync sowie Datenexport/-import; auch der
 Planname über „Dein Training“ öffnet es. Die Tageskacheln zeigen das letzte
 Training relativ („Gestern“, „Vor 4 Tagen“) mit Datum. Darunter zeigt eine
-Kalenderleiste die trainierten Tage der letzten 6 Wochen (Mo–So). Im
+feines Kalendergitter (6 Wochen, Mo–So) trainierte Tage als kleine Punkte. Im
 Fortschritt lässt sich der Zeitraum (3 M, 6 M, 1 J, Alle) wählen; bei einer
 Einzelübung stehen Bestwert und Veränderung im Zeitraum unter dem Titel, der
 Bestwert ist im Diagramm markiert.

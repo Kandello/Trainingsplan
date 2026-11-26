@@ -34,7 +34,7 @@ const ago=n=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-n);re
  const cells=doc.querySelectorAll('#train-cal .cal-day');assert.equal(cells.length,42);
  assert.equal(doc.querySelectorAll('#train-cal .cal-day.is-trained').length,3,'Only the last 6 weeks count');
  assert.equal(doc.querySelectorAll('#train-cal .cal-day.is-today').length,1);
- assert.match(doc.querySelector('#train-cal .cal-head strong').textContent,/^3 Trainings$/);
+ assert.match(doc.querySelector('#train-cal .cal-head strong').textContent,/^3$/);
  // Progress: no data buttons any more; range and best value for one exercise.
  a.get('showTab("progress")');
  assert.equal(doc.querySelector('#panel-progress .data-tools'),null);

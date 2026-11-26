@@ -952,6 +952,17 @@ dialog.sheet[open]{animation:sheet-in .26s cubic-bezier(.2,.8,.2,1)}
 .day-tile-name,.day-tile-name:is(*){margin-top:0;padding-right:22px;font-size:18px}
 .day-tile-last{margin-top:6px}
 @media(max-width:380px){.day-tile{min-height:0;padding:12px}.day-tile-name{font-size:17px}}
+
+/* Kalender: feines Gitter, kleine Punkte */
+.train-cal{padding:12px 12px 12px}
+.cal-head{margin-bottom:6px}
+.cal-wds{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
+.cal-wds .cal-wd{text-align:center}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;justify-items:stretch;border-top:1px solid #172b441c;border-left:1px solid #172b441c}
+.cal-day,.cal-day.is-trained,.cal-day.is-future{width:auto;height:22px;border-radius:0;background:transparent;border:0;border-right:1px solid #172b441c;border-bottom:1px solid #172b441c;display:grid;place-items:center;box-shadow:none}
+.cal-day i{width:5px;height:5px;border-radius:50%;background:var(--hold)}
+.cal-day.is-today{background:#2d69ad14;box-shadow:inset 0 0 0 1px #2d69ad66}
+.cal-day.is-future{background:#172b4406}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */
@@ -5477,16 +5488,18 @@ function renderTrainingCalendar(){
   var start=new Date(today);start.setDate(start.getDate()-((start.getDay()+6)%7)-35);
   var iso=function(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
   var count=0,grid=h('div',{class:'cal-grid',role:'img'});
-  ['M','D','M','D','F','S','S'].forEach(function(l){grid.appendChild(h('span',{class:'cal-wd',text:l,'aria-hidden':'true'}));});
+  var wd=h('div',{class:'cal-wds','aria-hidden':'true'});
+  ['M','D','M','D','F','S','S'].forEach(function(l){wd.appendChild(h('span',{class:'cal-wd',text:l}));});
   for(var i=0;i<42;i++){
     var d=new Date(start);d.setDate(start.getDate()+i);var k=iso(d),names=trained[k];
     if(names)count++;
     var cell=h('span',{class:'cal-day'+(names?' is-trained':'')+(k===iso(today)?' is-today':'')+(d>today?' is-future':'')});
+    if(names)cell.appendChild(h('i'));
     cell.title=DF_LONG.format(d)+(names?': '+names.join(', '):'');
     grid.appendChild(cell);
   }
   grid.setAttribute('aria-label',count+' Trainings in den letzten 6 Wochen');
-  box.replaceChildren(h('div',{class:'cal-head'},[h('span',{text:'Letzte 6 Wochen'}),h('strong',{text:count+(count===1?' Training':' Trainings')})]),grid);
+  box.replaceChildren(h('div',{class:'cal-head'},[h('span',{text:'6 Wochen'}),h('strong',{text:String(count)})]),wd,grid);
 }
 function refreshOverview(){
   renderTrainingCalendar();
