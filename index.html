@@ -937,10 +937,21 @@ dialog.sheet[open]{animation:sheet-in .26s cubic-bezier(.2,.8,.2,1)}
 .range-chip[aria-checked="true"]{background:var(--text-1);color:#fff;border-color:var(--text-1)}
 
 #menu-dialog .sync-chip{max-width:none}
-#menu-dialog .sync-chip #sync-label::before{content:"Konto & Sync · "}
 .day-tile,.day-tile:is(*){min-height:132px}
 @media(max-width:380px){.day-tile{min-height:124px}}
 .overview-head{padding-top:4px}
+
+/* Menü als 2er-Kacheln, kompakte Tageskacheln */
+.menu-grid,#menu-dialog .plan-bar.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-direction:unset}
+#menu-dialog .menu-list{margin-top:10px;padding-top:10px}
+#menu-dialog .plan-btn,#menu-dialog .plan-btn-new{min-height:52px;font-size:14px}
+.menu-row,#menu-dialog .color-btn,#menu-dialog .sync-chip{min-height:52px;font-size:14px;gap:10px;padding:0 12px}
+#data-dialog{background:var(--surface-1);color:var(--text-1)}
+.day-tile,.day-tile:is(*){position:relative;min-height:0;padding:14px 14px 13px}
+.day-tile-arrow{position:absolute;top:13px;right:12px;width:18px;height:18px;color:var(--hold);stroke-width:2}
+.day-tile-name,.day-tile-name:is(*){margin-top:0;padding-right:22px;font-size:18px}
+.day-tile-last{margin-top:6px}
+@media(max-width:380px){.day-tile{min-height:0;padding:12px}.day-tile-name{font-size:17px}}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */
@@ -1056,9 +1067,9 @@ dialog#spec-dialog{border-color:var(--satin-frame);color:var(--text-1)}
 
 <dialog id="menu-dialog" class="sheet" aria-labelledby="menu-dlg-title">
   <div class="dlg-inner">
-    <h2 id="menu-dlg-title">Trainingspläne</h2>
-    <nav class="plan-bar" id="plan-bar" aria-label="Trainingsplan wählen"></nav>
-    <div class="menu-list">
+    <h2 id="menu-dlg-title" class="vh">Menü</h2>
+    <nav class="plan-bar menu-grid" id="plan-bar" aria-label="Trainingsplan wählen"></nav>
+    <div class="menu-grid menu-list">
       <button class="color-btn menu-row" id="color-btn" type="button" aria-haspopup="dialog" aria-label="Eigene Farben">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.4-3.4l-.3-.3a1.4 1.4 0 0 1 1-2.3H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="6.5" r=".8"/><circle cx="15" cy="7" r=".8"/></svg>
         <span>Farben</span>
@@ -1067,13 +1078,25 @@ dialog#spec-dialog{border-color:var(--satin-frame);color:var(--text-1)}
         <span class="sync-dot" id="sync-dot"></span>
         <span id="sync-label">Sync</span>
       </button>
-      <button class="menu-row" id="menu-export" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m-4-4 4 4 4-4M5 20h14"/></svg>
-        <span>Daten exportieren</span>
+      <button class="menu-row" id="menu-data" type="button" aria-haspopup="dialog" aria-label="Daten importieren oder exportieren">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h11l3 3v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V3Z"/><path d="M8 3v5h7V3M8 21v-6h8v6"/></svg>
+        <span>Import/Export</span>
       </button>
-      <button class="menu-row" id="menu-import" type="button">
+    </div>
+  </div>
+</dialog>
+
+<dialog id="data-dialog" class="sheet" aria-labelledby="data-dlg-title">
+  <div class="dlg-inner">
+    <h2 id="data-dlg-title" class="vh">Daten</h2>
+    <div class="menu-grid">
+      <button class="menu-row" id="menu-export" type="button" aria-label="Daten exportieren">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m-4-4 4 4 4-4M5 20h14"/></svg>
+        <span>Export</span>
+      </button>
+      <button class="menu-row" id="menu-import" type="button" aria-label="Daten importieren">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4m-4 4 4-4 4 4M5 20h14"/></svg>
-        <span>Daten importieren</span>
+        <span>Import</span>
       </button>
     </div>
   </div>
@@ -1857,8 +1880,14 @@ function closeMenu(){
 function wireMenu(){
   var dlg=document.getElementById('menu-dialog');
   document.getElementById('menu-btn').addEventListener('click',openMenu);
-  document.getElementById('menu-export').addEventListener('click',exportData);
-  document.getElementById('menu-import').addEventListener('click',importData);
+  var data=document.getElementById('data-dialog');
+  function closeData(){if(data.open){if(typeof data.close==='function')data.close();else data.removeAttribute('open');}}
+  document.getElementById('menu-data').addEventListener('click',function(){
+    if(typeof data.showModal==='function'){if(!data.open)data.showModal();}else data.setAttribute('open','');
+  });
+  document.getElementById('menu-export').addEventListener('click',function(){closeData();exportData();});
+  document.getElementById('menu-import').addEventListener('click',function(){closeData();importData();});
+  data.addEventListener('click',function(e){if(e.target===data)closeData();});
   dlg.addEventListener('click',function(e){
     if(e.target===dlg||e.target.closest('button'))closeMenu();
   });
@@ -5117,8 +5146,9 @@ function renderChip(){
   if(md) md.className = "sync-dot " + meta.dot;
   var mb = document.getElementById("menu-btn");
   if(mb) mb.setAttribute("aria-label", "Menü: Pläne, Farben, Sync (" + meta.label + ") und Daten");
-  document.getElementById("sync-label").textContent = meta.label;
+  document.getElementById("sync-label").textContent = "Sync";
   document.getElementById("sync-chip").setAttribute("aria-label", "Geräte-Sync: " + meta.label);
+  document.getElementById("sync-chip").title = meta.label;
 }
 
 /* Schritt-für-Schritt-Anleitung. Die Beschriftungen der Firebase-Konsole
@@ -5469,8 +5499,7 @@ function refreshOverview(){
   DAYS.forEach(function(day,i){
     var last=lastSessionOf(day.id),date=last?DF_LONG.format(isoToDate(last.date)):null,running=hasTrainingInput(day.id);
     var tile=h('button',{type:'button',class:'day-tile'+(running?' is-running':''),'data-overview-day':day.id,'aria-label':day.name+(running?', im Gange':'')+(date?', zuletzt am '+date:'')});
-    var top=h('span',{class:'day-tile-top','aria-hidden':'true'});top.appendChild(h('span',{class:'day-tile-number',text:String(i+1).padStart(2,'0')}));
-    var arrow=svg('svg',{class:'day-tile-arrow',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-linecap':'round','stroke-linejoin':'round'});svg('path',{d:'M5 12h14m-6-6 6 6-6 6'},arrow);top.appendChild(arrow);tile.appendChild(top);
+    var arrow=svg('svg',{class:'day-tile-arrow',viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'});svg('path',{d:'M5 12h14m-6-6 6 6-6 6'},arrow);tile.appendChild(arrow);
     tile.appendChild(h('strong',{class:'day-tile-name',text:day.name}));
     if(date){var line=h('span',{class:'day-tile-last'});line.appendChild(h('span',{class:'day-tile-rel',text:relDay(last.date)}));line.appendChild(h('time',{datetime:last.date,text:date}));tile.appendChild(line);}
     if(running)tile.appendChild(h('span',{class:'day-tile-running',text:'im Gange'}));
