@@ -837,6 +837,22 @@ body.has-carbon{background-color:#102d48;background-image:linear-gradient(145deg
 body:not(.is-overview) .toast{bottom:calc(env(safe-area-inset-bottom) + 150px)}
 .toast.has-action{pointer-events:auto;display:flex;align-items:center;gap:14px;padding-right:8px}
 .toast-action{min-height:36px;padding:0 12px;border-radius:999px;background:#ffffff1f;color:#cfe3ff;font-weight:700}
+
+/* ---------- Training: eine Leiste, keine Kopfleiste, kompakte Tendenz ---------- */
+.is-training .app-header,.is-training .tabbar{display:none}
+.is-training main{padding-top:calc(env(safe-area-inset-top) + 18px);padding-bottom:calc(env(safe-area-inset-bottom) + 10px)}
+.is-training .save-bar{bottom:calc(env(safe-area-inset-bottom) + 8px)}
+body.is-training .toast{bottom:calc(env(safe-area-inset-bottom) + 84px)}
+.btn-home{flex:0 0 48px;min-height:52px;border-radius:14px;display:grid;place-items:center;background:var(--surface-1);color:var(--text-1);border:1px solid var(--border);transition:transform .12s}
+.btn-home svg{width:21px;height:21px}
+.btn-home:active{transform:scale(.95)}
+.btn-discard{flex-basis:48px}
+.ex-body{flex-direction:row;flex-wrap:nowrap;align-items:center;gap:8px}
+.ex-line{flex:0 1 auto;min-width:0}
+.seg{flex:0 0 auto;width:auto;margin-left:auto}
+.seg button{flex:0 0 auto;width:44px;min-height:48px;padding:0;flex-direction:row}
+.seg button .gly{font-size:15px}
+@media(max-width:399px){.ex-body{flex-direction:row;align-items:center}.seg{flex:0 0 auto;width:auto}.seg button{width:42px;min-height:48px}.wfield{width:104px}}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */
@@ -2004,7 +2020,8 @@ function buildExercise(ex, idx){
   TRENDS.forEach(function(tr){
     var b = h("button", { type:"button", role:"radio", "data-t":tr.t, "aria-checked": d.t === tr.t ? "true" : "false" });
     b.appendChild(h("span", { class:"gly", text:tr.gly, "aria-hidden":"true" }));
-    b.appendChild(document.createTextNode(tr.label));
+    b.setAttribute("aria-label", tr.label);
+    b.title = tr.label;
     b.tabIndex = d.t === tr.t ? 0 : (d.t ? -1 : 0);
     b.addEventListener("click", function(){
       var fresh = !drafts[ex.id];
@@ -2399,8 +2416,18 @@ function buildDayView(day){
   discardBtn.appendChild(di);
   discardBtn.addEventListener("click", function(){ discardDay(day); });
 
+  var homeBtn = h("button", { class:"btn-home", type:"button", title:"Übersicht", "aria-label":"Zur Übersicht" });
+  var hi = svg("svg", { viewBox:"0 0 24 24", fill:"none", stroke:"currentColor",
+    "stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true" });
+  (TAB_ICONS.overview || TAB_ICONS.default).forEach(function(d){ svg("path", { d:d }, hi); });
+  homeBtn.appendChild(hi);
+  homeBtn.addEventListener("click", function(){
+    if(PLANS.length) showTab("overview"); else showTab("progress");
+    window.scrollTo({ top:0, behavior:"auto" });
+  });
+
   view.appendChild(h("div", { class:"save-bar" }, [
-    h("div", { class:"save-row" }, [ discardBtn, allBtn, saveBtn ]),
+    h("div", { class:"save-row" }, [ homeBtn, discardBtn, allBtn, saveBtn ]),
     h("p", { class:"save-hint vh", id:"hint-"+day.id })
   ]));
 
@@ -4905,6 +4932,8 @@ function showTab(id,options){
   if(options.startTraining!==false&&dayById(id))markTraining(id);
   document.body.classList.toggle('has-carbon',PLANS.length>0);
   document.body.classList.toggle('is-overview',id==='overview'&&PLANS.length>0);
+  // Im Training zählen nur die Übungen: keine Kopfleiste, keine Tableiste.
+  document.body.classList.toggle('is-training',!!dayById(id));
   document.querySelectorAll(".view").forEach(function(v){ v.classList.toggle("is-active", v.getAttribute("data-view") === id); });
   document.querySelectorAll(".tabbar button").forEach(function(b){ b.setAttribute("aria-selected", b.id === "tab-"+id ? "true" : "false"); });
   ui.tab = id;if(DAYS.some(function(d){return d.id===id;}))ui.lastTrainingTab=id;saveUi();
