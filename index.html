@@ -963,6 +963,13 @@ dialog.sheet[open]{animation:sheet-in .26s cubic-bezier(.2,.8,.2,1)}
 .cal-day i{width:5px;height:5px;border-radius:50%;background:var(--hold)}
 .cal-day.is-today{background:#2d69ad14;box-shadow:inset 0 0 0 1px #2d69ad66}
 .cal-day.is-future{background:#172b4406}
+
+/* Kalender: halb so breite Spalten, Zahl links daneben */
+.train-cal{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.train-cal .cal-head{flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;margin:0}
+.train-cal .cal-head strong{font-size:28px;line-height:1;font-weight:800}
+.cal-body{flex:0 0 auto}
+.cal-wds,.cal-grid{grid-template-columns:repeat(7,24px)}
 </style>
 <style>
 /* MinMax Studio: isolated builder surfaces preserve personal training colors. */
@@ -5499,7 +5506,7 @@ function renderTrainingCalendar(){
     grid.appendChild(cell);
   }
   grid.setAttribute('aria-label',count+' Trainings in den letzten 6 Wochen');
-  box.replaceChildren(h('div',{class:'cal-head'},[h('span',{text:'6 Wochen'}),h('strong',{text:String(count)})]),wd,grid);
+  box.replaceChildren(h('div',{class:'cal-head'},[h('strong',{text:String(count)}),h('span',{text:'6 Wochen'})]),h('div',{class:'cal-body'},[wd,grid]));
 }
 function refreshOverview(){
   renderTrainingCalendar();
